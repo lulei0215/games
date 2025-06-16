@@ -1,9 +1,10 @@
 package ast
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"path/filepath"
 	"testing"
+
+	"github.com/flipped-aurora/gin-vue-admin/server/global"
 )
 
 func TestPluginInitializeGorm_Injection(t *testing.T) {
@@ -21,7 +22,7 @@ func TestPluginInitializeGorm_Injection(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "测试 &model.User{} 注入",
+			name: " &model.User{} ",
 			fields: fields{
 				Type:        TypePluginInitializeGorm,
 				Path:        filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "plugin", "gva", "initialize", "gorm.go"),
@@ -32,7 +33,7 @@ func TestPluginInitializeGorm_Injection(t *testing.T) {
 			},
 		},
 		{
-			name: "测试 new(model.ExaCustomer) 注入",
+			name: " new(model.ExaCustomer) ",
 			fields: fields{
 				Type:        TypePluginInitializeGorm,
 				Path:        filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "plugin", "gva", "initialize", "gorm.go"),
@@ -43,7 +44,7 @@ func TestPluginInitializeGorm_Injection(t *testing.T) {
 			},
 		},
 		{
-			name: "测试 new(model.SysUsers) 注入",
+			name: " new(model.SysUsers) ",
 			fields: fields{
 				Type:        TypePluginInitializeGorm,
 				Path:        filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "plugin", "gva", "initialize", "gorm.go"),
@@ -92,7 +93,7 @@ func TestPluginInitializeGorm_Rollback(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "测试 &model.User{} 回滚",
+			name: " &model.User{} ",
 			fields: fields{
 				Type:        TypePluginInitializeGorm,
 				Path:        filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "plugin", "gva", "initialize", "gorm.go"),
@@ -103,7 +104,7 @@ func TestPluginInitializeGorm_Rollback(t *testing.T) {
 			},
 		},
 		{
-			name: "测试 new(model.ExaCustomer) 回滚",
+			name: " new(model.ExaCustomer) ",
 			fields: fields{
 				Type:        TypePluginInitializeGorm,
 				Path:        filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "plugin", "gva", "initialize", "gorm.go"),

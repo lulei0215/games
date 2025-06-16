@@ -14,7 +14,7 @@ var CustomerServiceApp = new(CustomerService)
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: CreateExaCustomer
-//@description: 创建客户
+//@description:
 //@param: e model.ExaCustomer
 //@return: err error
 
@@ -25,7 +25,7 @@ func (exa *CustomerService) CreateExaCustomer(e example.ExaCustomer) (err error)
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: DeleteFileChunk
-//@description: 删除客户
+//@description:
 //@param: e model.ExaCustomer
 //@return: err error
 
@@ -36,7 +36,7 @@ func (exa *CustomerService) DeleteExaCustomer(e example.ExaCustomer) (err error)
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: UpdateExaCustomer
-//@description: 更新客户
+//@description:
 //@param: e *model.ExaCustomer
 //@return: err error
 
@@ -47,7 +47,7 @@ func (exa *CustomerService) UpdateExaCustomer(e *example.ExaCustomer) (err error
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: GetExaCustomer
-//@description: 获取客户信息
+//@description:
 //@param: id uint
 //@return: customer model.ExaCustomer, err error
 
@@ -58,7 +58,7 @@ func (exa *CustomerService) GetExaCustomer(id uint) (customer example.ExaCustome
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: GetCustomerInfoList
-//@description: 分页获取客户列表
+//@description:
 //@param: sysUserAuthorityID string, info request.PageInfo
 //@return: list interface{}, total int64, err error
 

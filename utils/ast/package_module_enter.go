@@ -6,20 +6,20 @@ import (
 	"io"
 )
 
-// PackageModuleEnter 模块化入口
+// PackageModuleEnter
 // ModuleName := PackageName.AppName.GroupName.ServiceName
 type PackageModuleEnter struct {
 	Base
-	Type         Type   // 类型
-	Path         string // 文件路径
-	ImportPath   string // 导包路径
-	RelativePath string // 相对路径
-	StructName   string // 结构体名称
-	AppName      string // 应用名称
-	GroupName    string // 分组名称
-	ModuleName   string // 模块名称
-	PackageName  string // 包名
-	ServiceName  string // 服务名称
+	Type         Type   //
+	Path         string //
+	ImportPath   string //
+	RelativePath string //
+	StructName   string //
+	AppName      string //
+	GroupName    string //
+	ModuleName   string //
+	PackageName  string //
+	ServiceName  string //
 }
 
 func (a *PackageModuleEnter) Parse(filename string, writer io.Writer) (file *ast.File, err error) {
@@ -70,7 +70,7 @@ func (a *PackageModuleEnter) Rollback(file *ast.File) error {
 					if i == len(file.Decls) {
 						file.Decls = append(file.Decls[:i-1])
 						break
-					} // 空的var(), 如果不删除则会影响的注入变量, 因为识别不到*ast.ValueSpec
+					} // var(), , *ast.ValueSpec
 					file.Decls = append(file.Decls[:i], file.Decls[i+1:]...)
 				}
 			}
@@ -123,7 +123,7 @@ func (a *PackageModuleEnter) Injection(file *ast.File) error {
 				}
 				if v1.Tok == token.VAR && len(v1.Specs) == 0 {
 					hasVariables = false
-				} // 说明是空var()
+				} // var()
 				if hasVariables && !hasValue {
 					spec := &ast.ValueSpec{
 						Names: []*ast.Ident{{Name: a.ModuleName}},

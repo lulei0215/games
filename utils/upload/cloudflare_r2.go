@@ -28,7 +28,7 @@ func (c *CloudflareR2) UploadFile(file *multipart.FileHeader) (fileUrl string, f
 		global.GVA_LOG.Error("function file.Open() failed", zap.Any("err", openError.Error()))
 		return "", "", errors.New("function file.Open() failed, err:" + openError.Error())
 	}
-	defer f.Close() // 创建文件 defer 关闭
+	defer f.Close() //  defer
 
 	input := &s3manager.UploadInput{
 		Bucket: aws.String(global.GVA_CONFIG.CloudflareR2.Bucket),

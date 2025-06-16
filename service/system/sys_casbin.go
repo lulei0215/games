@@ -15,7 +15,7 @@ import (
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: UpdateCasbin
-//@description: 更新casbin权限
+//@description: casbin
 //@param: authorityId string, casbinInfos []request.CasbinInfo
 //@return: error
 
@@ -45,7 +45,7 @@ func (casbinService *CasbinService) UpdateCasbin(adminAuthorityID, AuthorityID u
 				}
 			}
 			if !hasApi {
-				return errors.New("存在api不在权限列表中")
+				return errors.New("api")
 			}
 		}
 	}
@@ -53,7 +53,7 @@ func (casbinService *CasbinService) UpdateCasbin(adminAuthorityID, AuthorityID u
 	authorityId := strconv.Itoa(int(AuthorityID))
 	casbinService.ClearCasbin(0, authorityId)
 	rules := [][]string{}
-	//做权限去重处理
+	//
 	deduplicateMap := make(map[string]bool)
 	for _, v := range casbinInfos {
 		key := authorityId + v.Path + v.Method
@@ -64,18 +64,18 @@ func (casbinService *CasbinService) UpdateCasbin(adminAuthorityID, AuthorityID u
 	}
 	if len(rules) == 0 {
 		return nil
-	} // 设置空权限无需调用 AddPolicies 方法
+	} //  AddPolicies
 	e := utils.GetCasbin()
 	success, _ := e.AddPolicies(rules)
 	if !success {
-		return errors.New("存在相同api,添加失败,请联系管理员")
+		return errors.New("api,,")
 	}
 	return nil
 }
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: UpdateCasbinApi
-//@description: API更新随动
+//@description: API
 //@param: oldPath string, newPath string, oldMethod string, newMethod string
 //@return: error
 
@@ -94,7 +94,7 @@ func (casbinService *CasbinService) UpdateCasbinApi(oldPath string, newPath stri
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: GetPolicyPathByAuthorityId
-//@description: 获取权限列表
+//@description:
 //@param: authorityId string
 //@return: pathMaps []request.CasbinInfo
 
@@ -113,7 +113,7 @@ func (casbinService *CasbinService) GetPolicyPathByAuthorityId(AuthorityID uint)
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: ClearCasbin
-//@description: 清除匹配的权限
+//@description:
 //@param: v int, p ...string
 //@return: bool
 
@@ -125,7 +125,7 @@ func (casbinService *CasbinService) ClearCasbin(v int, p ...string) bool {
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: RemoveFilteredPolicy
-//@description: 使用数据库方法清理筛选的politicy 此方法需要调用FreshCasbin方法才可以在系统中即刻生效
+//@description: politicy FreshCasbin
 //@param: db *gorm.DB, authorityId string
 //@return: error
 
@@ -135,7 +135,7 @@ func (casbinService *CasbinService) RemoveFilteredPolicy(db *gorm.DB, authorityI
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: SyncPolicy
-//@description: 同步目前数据库的policy 此方法需要调用FreshCasbin方法才可以在系统中即刻生效
+//@description: policy FreshCasbin
 //@param: db *gorm.DB, authorityId string, rules [][]string
 //@return: error
 
@@ -149,7 +149,7 @@ func (casbinService *CasbinService) SyncPolicy(db *gorm.DB, authorityId string, 
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: AddPolicies
-//@description: 添加匹配的权限
+//@description:
 //@param: v int, p ...string
 //@return: bool
 

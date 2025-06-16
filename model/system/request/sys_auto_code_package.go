@@ -6,11 +6,11 @@ import (
 )
 
 type SysAutoCodePackageCreate struct {
-	Desc        string `json:"desc" example:"描述"`
-	Label       string `json:"label" example:"展示名"`
-	Template    string `json:"template"  example:"模版"`
-	PackageName string `json:"packageName" example:"包名"`
-	Module      string `json:"-" example:"模块"`
+	Desc        string `json:"desc" example:""`
+	Label       string `json:"label" example:""`
+	Template    string `json:"template"  example:""`
+	PackageName string `json:"packageName" example:""`
+	Module      string `json:"-" example:""`
 }
 
 func (r *SysAutoCodePackageCreate) AutoCode() AutoCode {

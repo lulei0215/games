@@ -6,22 +6,22 @@ import (
 	"io"
 )
 
-// PluginInitializeRouter 插件初始化路由
+// PluginInitializeRouter
 // PackageName.AppName.GroupName.FunctionName()
 type PluginInitializeRouter struct {
 	Base
-	Type                 Type   // 类型
-	Path                 string // 文件路径
-	ImportPath           string // 导包路径
-	ImportGlobalPath     string // 导包全局变量路径
-	ImportMiddlewarePath string // 导包中间件路径
-	RelativePath         string // 相对路径
-	AppName              string // 应用名称
-	GroupName            string // 分组名称
-	PackageName          string // 包名
-	FunctionName         string // 函数名
-	LeftRouterGroupName  string // 左路由分组名称
-	RightRouterGroupName string // 右路由分组名称
+	Type                 Type   //
+	Path                 string //
+	ImportPath           string //
+	ImportGlobalPath     string //
+	ImportMiddlewarePath string //
+	RelativePath         string //
+	AppName              string //
+	GroupName            string //
+	PackageName          string //
+	FunctionName         string //
+	LeftRouterGroupName  string //
+	RightRouterGroupName string //
 }
 
 func (a *PluginInitializeRouter) Parse(filename string, writer io.Writer) (file *ast.File, err error) {
@@ -68,7 +68,7 @@ func (a *PluginInitializeRouter) Rollback(file *ast.File) error {
 				}
 			}
 			if ident.Sel.Name == a.GroupName && selExpr.Sel.Name == a.FunctionName {
-				// 删除语句
+				//
 				delI = i
 			}
 		}

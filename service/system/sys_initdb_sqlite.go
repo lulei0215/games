@@ -3,11 +3,12 @@ package system
 import (
 	"context"
 	"errors"
+	"path/filepath"
+
 	"github.com/glebarez/sqlite"
 	"github.com/google/uuid"
 	"github.com/gookit/color"
 	"gorm.io/gorm"
-	"path/filepath"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/config"
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
@@ -21,7 +22,7 @@ func NewSqliteInitHandler() *SqliteInitHandler {
 	return &SqliteInitHandler{}
 }
 
-// WriteConfig mysql回写配置
+// WriteConfig mysql
 func (h SqliteInitHandler) WriteConfig(ctx context.Context) error {
 	c, ok := ctx.Value("config").(config.Sqlite)
 	if !ok {
@@ -38,7 +39,7 @@ func (h SqliteInitHandler) WriteConfig(ctx context.Context) error {
 	return global.GVA_VP.WriteConfig()
 }
 
-// EnsureDB 创建数据库并初始化 sqlite
+// EnsureDB  sqlite
 func (h SqliteInitHandler) EnsureDB(ctx context.Context, conf *request.InitDB) (next context.Context, err error) {
 	if s, ok := ctx.Value("dbtype").(string); !ok || s != "sqlite" {
 		return ctx, ErrDBTypeMismatch
@@ -48,7 +49,7 @@ func (h SqliteInitHandler) EnsureDB(ctx context.Context, conf *request.InitDB) (
 	next = context.WithValue(ctx, "config", c)
 	if c.Dbname == "" {
 		return ctx, nil
-	} // 如果没有数据库名, 则跳出初始化数据
+	} // ,
 
 	dsn := conf.SqliteEmptyDsn()
 

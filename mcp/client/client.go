@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"errors"
+
 	mcpClient "github.com/mark3labs/mcp-go/client"
 	"github.com/mark3labs/mcp-go/mcp"
 )
@@ -15,12 +16,12 @@ func NewClient(baseUrl, name, version, serverName string) (*mcpClient.Client, er
 
 	ctx := context.Background()
 
-	// 启动client
+	// client
 	if err := client.Start(ctx); err != nil {
 		return nil, err
 	}
 
-	// 初始化
+	//
 	initRequest := mcp.InitializeRequest{}
 	initRequest.Params.ProtocolVersion = mcp.LATEST_PROTOCOL_VERSION
 	initRequest.Params.ClientInfo = mcp.Implementation{

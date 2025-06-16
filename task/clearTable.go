@@ -3,16 +3,17 @@ package task
 import (
 	"errors"
 	"fmt"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/common"
 	"time"
+
+	"github.com/flipped-aurora/gin-vue-admin/server/model/common"
 
 	"gorm.io/gorm"
 )
 
 //@author: [songzhibin97](https://github.com/songzhibin97)
 //@function: ClearTable
-//@description: 清理数据库表数据
-//@param: db(数据库对象) *gorm.DB, tableName(表名) string, compareField(比较字段) string, interval(间隔) string
+//@description:
+//@param: db() *gorm.DB, tableName() string, compareField() string, interval() string
 //@return: error
 
 func ClearTable(db *gorm.DB) error {

@@ -12,7 +12,7 @@ type BaseMenuService struct{}
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: DeleteBaseMenu
-//@description: 删除基础路由
+//@description:
 //@param: id float64
 //@return: err error
 
@@ -21,16 +21,16 @@ var BaseMenuServiceApp = new(BaseMenuService)
 func (baseMenuService *BaseMenuService) DeleteBaseMenu(id int) (err error) {
 	err = global.GVA_DB.First(&system.SysBaseMenu{}, "parent_id = ?", id).Error
 	if err == nil {
-		return errors.New("此菜单存在子菜单不可删除")
+		return errors.New("")
 	}
 	var menu system.SysBaseMenu
 	err = global.GVA_DB.First(&menu, id).Error
 	if err != nil {
-		return errors.New("记录不存在")
+		return errors.New("")
 	}
 	err = global.GVA_DB.First(&system.SysAuthority{}, "default_router = ?", menu.Name).Error
 	if err == nil {
-		return errors.New("此菜单有角色正在作为首页，不可删除")
+		return errors.New("，")
 	}
 	return global.GVA_DB.Transaction(func(tx *gorm.DB) error {
 
@@ -64,7 +64,7 @@ func (baseMenuService *BaseMenuService) DeleteBaseMenu(id int) (err error) {
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: UpdateBaseMenu
-//@description: 更新路由
+//@description:
 //@param: menu model.SysBaseMenu
 //@return: err error
 
@@ -89,8 +89,8 @@ func (baseMenuService *BaseMenuService) UpdateBaseMenu(menu system.SysBaseMenu) 
 		tx.Where("id = ?", menu.ID).Find(&oldMenu)
 		if oldMenu.Name != menu.Name {
 			if !errors.Is(tx.Where("id <> ? AND name = ?", menu.ID, menu.Name).First(&system.SysBaseMenu{}).Error, gorm.ErrRecordNotFound) {
-				global.GVA_LOG.Debug("存在相同name修改失败")
-				return errors.New("存在相同name修改失败")
+				global.GVA_LOG.Debug("name")
+				return errors.New("name")
 			}
 		}
 		txErr := tx.Unscoped().Delete(&system.SysBaseMenuParameter{}, "sys_base_menu_id = ?", menu.ID).Error
@@ -137,7 +137,7 @@ func (baseMenuService *BaseMenuService) UpdateBaseMenu(menu system.SysBaseMenu) 
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: GetBaseMenuById
-//@description: 返回当前选中menu
+//@description: menu
 //@param: id float64
 //@return: menu system.SysBaseMenu, err error
 

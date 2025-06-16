@@ -1,8 +1,6 @@
 package ast
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
-	"github.com/pkg/errors"
 	"go/ast"
 	"go/format"
 	"go/parser"
@@ -12,6 +10,9 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+
+	"github.com/flipped-aurora/gin-vue-admin/server/global"
+	"github.com/pkg/errors"
 )
 
 type Base struct{}
@@ -24,7 +25,7 @@ func (a *Base) Parse(filename string, writer io.Writer) (file *ast.File, err err
 		file, err = parser.ParseFile(fileSet, filename, writer, parser.ParseComments)
 	}
 	if err != nil {
-		return nil, errors.Wrapf(err, "[filepath:%s]打开/解析文件失败!", filename)
+		return nil, errors.Wrapf(err, "[filepath:%s]/!", filename)
 	}
 	return file, nil
 }
@@ -43,18 +44,18 @@ func (a *Base) Format(filename string, writer io.Writer, file *ast.File) error {
 		open, err := os.OpenFile(filename, os.O_WRONLY|os.O_TRUNC, 0666)
 		defer open.Close()
 		if err != nil {
-			return errors.Wrapf(err, "[filepath:%s]打开文件失败!", filename)
+			return errors.Wrapf(err, "[filepath:%s]!", filename)
 		}
 		writer = open
 	}
 	err := format.Node(writer, fileSet, file)
 	if err != nil {
-		return errors.Wrapf(err, "[filepath:%s]注入失败!", filename)
+		return errors.Wrapf(err, "[filepath:%s]!", filename)
 	}
 	return nil
 }
 
-// RelativePath 绝对路径转相对路径
+// RelativePath
 func (a *Base) RelativePath(filePath string) string {
 	server := filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server)
 	hasServer := strings.Index(filePath, server)
@@ -66,7 +67,7 @@ func (a *Base) RelativePath(filePath string) string {
 	return filePath
 }
 
-// AbsolutePath 相对路径转绝对路径
+// AbsolutePath
 func (a *Base) AbsolutePath(filePath string) string {
 	server := filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server)
 	keys := strings.Split(filePath, "/")

@@ -17,7 +17,7 @@ import (
 	"go.uber.org/zap"
 )
 
-var MinioClient *Minio // 优化性能，但是不支持动态配置
+var MinioClient *Minio // ，
 
 type Minio struct {
 	Client *minio.Client
@@ -36,7 +36,7 @@ func GetMinio(endpoint, accessKeyID, secretAccessKey, bucketName string, useSSL 
 	if err != nil {
 		return nil, err
 	}
-	// 尝试创建bucket
+	// bucket
 	err = minioClient.MakeBucket(context.Background(), bucketName, minio.MakeBucketOptions{})
 	if err != nil {
 		// Check to see if we already own this bucket (which happens if you run this twice)
@@ -62,12 +62,12 @@ func (m *Minio) UploadFile(file *multipart.FileHeader) (filePathres, key string,
 	filecontent := bytes.Buffer{}
 	_, err := io.Copy(&filecontent, f)
 	if err != nil {
-		global.GVA_LOG.Error("读取文件失败", zap.Any("err", err.Error()))
-		return "", "", errors.New("读取文件失败, err:" + err.Error())
+		global.GVA_LOG.Error("", zap.Any("err", err.Error()))
+		return "", "", errors.New(", err:" + err.Error())
 	}
-	f.Close() // 创建文件 defer 关闭
+	f.Close() //  defer
 
-	// 对文件名进行加密存储
+	//
 	ext := filepath.Ext(file.Filename)
 	filename := utils.MD5V([]byte(strings.TrimSuffix(file.Filename, ext))) + ext
 	if global.GVA_CONFIG.Minio.BasePath == "" {
@@ -76,15 +76,15 @@ func (m *Minio) UploadFile(file *multipart.FileHeader) (filePathres, key string,
 		filePathres = global.GVA_CONFIG.Minio.BasePath + "/" + time.Now().Format("2006-01-02") + "/" + filename
 	}
 
-	// 设置超时10分钟
+	// 10
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute*10)
 	defer cancel()
 
-	// Upload the file with PutObject   大文件自动切换为分片上传
+	// Upload the file with PutObject
 	info, err := m.Client.PutObject(ctx, global.GVA_CONFIG.Minio.BucketName, filePathres, &filecontent, file.Size, minio.PutObjectOptions{ContentType: "application/octet-stream"})
 	if err != nil {
-		global.GVA_LOG.Error("上传文件到minio失败", zap.Any("err", err.Error()))
-		return "", "", errors.New("上传文件到minio失败, err:" + err.Error())
+		global.GVA_LOG.Error("minio", zap.Any("err", err.Error()))
+		return "", "", errors.New("minio, err:" + err.Error())
 	}
 	return global.GVA_CONFIG.Minio.BucketUrl + "/" + info.Key, filePathres, nil
 }

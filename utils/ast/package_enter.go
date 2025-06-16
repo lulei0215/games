@@ -6,16 +6,16 @@ import (
 	"io"
 )
 
-// PackageEnter 模块化入口
+// PackageEnter
 type PackageEnter struct {
 	Base
-	Type              Type   // 类型
-	Path              string // 文件路径
-	ImportPath        string // 导包路径
-	StructName        string // 结构体名称
-	PackageName       string // 包名
-	RelativePath      string // 相对路径
-	PackageStructName string // 包结构体名称
+	Type              Type   //
+	Path              string //
+	ImportPath        string //
+	StructName        string //
+	PackageName       string //
+	RelativePath      string //
+	PackageStructName string //
 }
 
 func (a *PackageEnter) Parse(filename string, writer io.Writer) (file *ast.File, err error) {
@@ -32,7 +32,7 @@ func (a *PackageEnter) Parse(filename string, writer io.Writer) (file *ast.File,
 }
 
 func (a *PackageEnter) Rollback(file *ast.File) error {
-	// 无需回滚
+	//
 	return nil
 }
 

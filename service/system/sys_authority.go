@@ -13,11 +13,11 @@ import (
 	"gorm.io/gorm"
 )
 
-var ErrRoleExistence = errors.New("存在相同角色id")
+var ErrRoleExistence = errors.New("id")
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: CreateAuthority
-//@description: 创建一个角色
+//@description:
 //@param: auth model.SysAuthority
 //@return: authority system.SysAuthority, err error
 
@@ -55,7 +55,7 @@ func (authorityService *AuthorityService) CreateAuthority(auth system.SysAuthori
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: CopyAuthority
-//@description: 复制一个角色
+//@description:
 //@param: copyInfo response.SysAuthorityCopyResponse
 //@return: authority system.SysAuthority, err error
 
@@ -107,7 +107,7 @@ func (authorityService *AuthorityService) CopyAuthority(adminAuthorityID uint, c
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: UpdateAuthority
-//@description: 更改一个角色
+//@description:
 //@param: auth model.SysAuthority
 //@return: authority system.SysAuthority, err error
 
@@ -116,7 +116,7 @@ func (authorityService *AuthorityService) UpdateAuthority(auth system.SysAuthori
 	err = global.GVA_DB.Where("authority_id = ?", auth.AuthorityId).First(&oldAuthority).Error
 	if err != nil {
 		global.GVA_LOG.Debug(err.Error())
-		return system.SysAuthority{}, errors.New("查询角色数据失败")
+		return system.SysAuthority{}, errors.New("")
 	}
 	err = global.GVA_DB.Model(&oldAuthority).Updates(&auth).Error
 	return auth, err
@@ -124,22 +124,22 @@ func (authorityService *AuthorityService) UpdateAuthority(auth system.SysAuthori
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: DeleteAuthority
-//@description: 删除角色
+//@description:
 //@param: auth *model.SysAuthority
 //@return: err error
 
 func (authorityService *AuthorityService) DeleteAuthority(auth *system.SysAuthority) error {
 	if errors.Is(global.GVA_DB.Debug().Preload("Users").First(&auth).Error, gorm.ErrRecordNotFound) {
-		return errors.New("该角色不存在")
+		return errors.New("")
 	}
 	if len(auth.Users) != 0 {
-		return errors.New("此角色有用户正在使用禁止删除")
+		return errors.New("")
 	}
 	if !errors.Is(global.GVA_DB.Where("authority_id = ?", auth.AuthorityId).First(&system.SysUser{}).Error, gorm.ErrRecordNotFound) {
-		return errors.New("此角色有用户正在使用禁止删除")
+		return errors.New("")
 	}
 	if !errors.Is(global.GVA_DB.Where("parent_id = ?", auth.AuthorityId).First(&system.SysAuthority{}).Error, gorm.ErrRecordNotFound) {
-		return errors.New("此角色存在子角色不允许删除")
+		return errors.New("")
 	}
 
 	return global.GVA_DB.Transaction(func(tx *gorm.DB) error {
@@ -192,12 +192,12 @@ func (authorityService *AuthorityService) GetAuthorityInfoList(authorityID uint)
 	var authorities []system.SysAuthority
 	db := global.GVA_DB.Model(&system.SysAuthority{})
 	if global.GVA_CONFIG.System.UseStrictAuth {
-		// 当开启了严格树形结构后
+		//
 		if *authority.ParentId == 0 {
-			// 只有顶级角色可以修改自己的权限和以下权限
+			//
 			err = db.Preload("DataAuthorityId").Where("authority_id = ?", authorityID).Find(&authorities).Error
 		} else {
-			// 非顶级角色只能修改以下权限
+			//
 			err = db.Debug().Preload("DataAuthorityId").Where("parent_id = ?", authorityID).Find(&authorities).Error
 		}
 	} else {
@@ -252,14 +252,14 @@ func (authorityService *AuthorityService) CheckAuthorityIDAuth(authorityID, targ
 		}
 	}
 	if !hasAuth {
-		return errors.New("您提交的角色ID不合法")
+		return errors.New("ID")
 	}
 	return nil
 }
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: GetAuthorityInfo
-//@description: 获取所有角色信息
+//@description:
 //@param: auth model.SysAuthority
 //@return: sa system.SysAuthority, err error
 
@@ -270,7 +270,7 @@ func (authorityService *AuthorityService) GetAuthorityInfo(auth system.SysAuthor
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: SetDataAuthority
-//@description: 设置角色资源权限
+//@description:
 //@param: auth model.SysAuthority
 //@return: error
 
@@ -296,7 +296,7 @@ func (authorityService *AuthorityService) SetDataAuthority(adminAuthorityID uint
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: SetMenuAuthority
-//@description: 菜单与角色绑定
+//@description:
 //@param: auth *model.SysAuthority
 //@return: error
 
@@ -309,7 +309,7 @@ func (authorityService *AuthorityService) SetMenuAuthority(auth *system.SysAutho
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: findChildrenAuthority
-//@description: 查询子角色
+//@description:
 //@param: authority *model.SysAuthority
 //@return: err error
 

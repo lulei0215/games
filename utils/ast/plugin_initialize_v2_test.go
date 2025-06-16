@@ -1,9 +1,10 @@
 package ast
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"path/filepath"
 	"testing"
+
+	"github.com/flipped-aurora/gin-vue-admin/server/global"
 )
 
 func TestPluginInitialize_Injection(t *testing.T) {
@@ -19,7 +20,7 @@ func TestPluginInitialize_Injection(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "测试 Gva插件 注册注入",
+			name: " Gva ",
 			fields: fields{
 				Type:       TypePluginInitializeV2,
 				Path:       filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "initialize", "plugin_biz_v2.go"),
@@ -66,7 +67,7 @@ func TestPluginInitialize_Rollback(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "测试 Gva插件 回滚",
+			name: " Gva ",
 			fields: fields{
 				Type:       TypePluginInitializeV2,
 				Path:       filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "initialize", "plugin_biz_v2.go"),

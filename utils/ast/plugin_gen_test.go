@@ -1,9 +1,10 @@
 package ast
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"path/filepath"
 	"testing"
+
+	"github.com/flipped-aurora/gin-vue-admin/server/global"
 )
 
 func TestPluginGenModel_Injection(t *testing.T) {
@@ -21,7 +22,7 @@ func TestPluginGenModel_Injection(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "测试 GvaUser 结构体注入",
+			name: " GvaUser ",
 			fields: fields{
 				Type:        TypePluginGen,
 				Path:        filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "plugin", "gva", "gen", "main.go"),
@@ -32,7 +33,7 @@ func TestPluginGenModel_Injection(t *testing.T) {
 			},
 		},
 		{
-			name: "测试 GvaUser 结构体注入",
+			name: " GvaUser ",
 			fields: fields{
 				Type:        TypePluginGen,
 				Path:        filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "plugin", "gva", "gen", "main.go"),
@@ -81,7 +82,7 @@ func TestPluginGenModel_Rollback(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "测试 GvaUser 回滚",
+			name: " GvaUser ",
 			fields: fields{
 				Type:        TypePluginGen,
 				Path:        filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "plugin", "gva", "gen", "main.go"),
@@ -92,7 +93,7 @@ func TestPluginGenModel_Rollback(t *testing.T) {
 			},
 		},
 		{
-			name: "测试 GvaUser 回滚",
+			name: " GvaUser ",
 			fields: fields{
 				Type:        TypePluginGen,
 				Path:        filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "plugin", "gva", "gen", "main.go"),

@@ -1,9 +1,10 @@
 package ast
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"path/filepath"
 	"testing"
+
+	"github.com/flipped-aurora/gin-vue-admin/server/global"
 )
 
 func TestPackageInitializeRouter_Injection(t *testing.T) {
@@ -24,7 +25,7 @@ func TestPackageInitializeRouter_Injection(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "测试 InitCustomerRouter 注入",
+			name: " InitCustomerRouter ",
 			fields: fields{
 				Type:            TypePackageInitializeRouter,
 				Path:            filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "initialize", "router_biz.go"),
@@ -39,7 +40,7 @@ func TestPackageInitializeRouter_Injection(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "测试 InitFileUploadAndDownloadRouter 注入",
+			name: " InitFileUploadAndDownloadRouter ",
 			fields: fields{
 				Type:            TypePackageInitializeRouter,
 				Path:            filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "initialize", "router_biz.go"),
@@ -101,7 +102,7 @@ func TestPackageInitializeRouter_Rollback(t *testing.T) {
 	}{
 
 		{
-			name: "测试 InitCustomerRouter 回滚",
+			name: " InitCustomerRouter ",
 			fields: fields{
 				Type:            TypePackageInitializeRouter,
 				Path:            filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "initialize", "router_biz.go"),
@@ -116,7 +117,7 @@ func TestPackageInitializeRouter_Rollback(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "测试 InitFileUploadAndDownloadRouter 回滚",
+			name: " InitFileUploadAndDownloadRouter ",
 			fields: fields{
 				Type:            TypePackageInitializeRouter,
 				Path:            filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "initialize", "router_biz.go"),

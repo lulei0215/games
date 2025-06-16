@@ -3,6 +3,7 @@ package initialize
 import (
 	"context"
 	"fmt"
+
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/plugin/announcement/model"
 	"github.com/pkg/errors"
@@ -14,7 +15,7 @@ func Gorm(ctx context.Context) {
 		new(model.Info),
 	)
 	if err != nil {
-		err = errors.Wrap(err, "注册表失败!")
+		err = errors.Wrap(err, "!")
 		zap.L().Error(fmt.Sprintf("%+v", err))
 	}
 }

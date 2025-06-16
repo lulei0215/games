@@ -11,7 +11,7 @@ import (
 func Gorm(ctx context.Context) {
 	err := global.GVA_DB.WithContext(ctx).AutoMigrate()
 	if err != nil {
-		err = errors.Wrap(err, "注册表失败!")
+		err = errors.Wrap(err, "!")
 		zap.L().Error(fmt.Sprintf("%+v", err))
 	}
 }

@@ -8,13 +8,13 @@ import (
 
 type PluginGen struct {
 	Base
-	Type         Type   // 类型
-	Path         string // 文件路径
-	ImportPath   string // 导包路径
-	RelativePath string // 相对路径
-	StructName   string // 结构体名称
-	PackageName  string // 包名
-	IsNew        bool   // 是否使用new关键字
+	Type         Type   //
+	Path         string //
+	ImportPath   string //
+	RelativePath string //
+	StructName   string //
+	PackageName  string //
+	IsNew        bool   // new
 }
 
 func (a *PluginGen) Parse(filename string, writer io.Writer) (file *ast.File, err error) {

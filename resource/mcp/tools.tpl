@@ -14,8 +14,8 @@ type {{.Name | title}} struct {
 
 // {{.Description}}
 func (t *{{.Name | title}}) Handle(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-	// TODO: 实现工具逻辑
-	// 参数示例:
+	// TODO: 
+	// :
 	// {{- range .Params}}
 	// {{.Name}} := request.Params.Arguments["{{.Name}}"]
 	// {{- end}}
@@ -24,7 +24,7 @@ func (t *{{.Name | title}}) Handle(ctx context.Context, request mcp.CallToolRequ
 			{{- range .Response}}
 			mcp.{{.Type | title}}Content{
 				Type: "{{.Type}}",
-				// TODO: 填充{{.Type}}内容
+				// TODO: {{.Type}}
 			},
 			{{- end}}
 		},
@@ -46,7 +46,7 @@ func (t *{{.Name | title}}) New() mcp.Tool {
               {{- else if eq .Type "boolean"}}
               mcp.DefaultBoolean({{if or (eq .Default "true") (eq .Default "True")}}true{{else}}false{{end}}),
               {{- else if eq .Type "array"}}
-              // 注意：数组默认值需要在后端代码中预处理为正确的格式
+              // ：
               // mcp.DefaultArray({{.Default}}),
               {{- end}}
             {{- end}}

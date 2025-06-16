@@ -2,15 +2,16 @@ package utils
 
 import (
 	"fmt"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/common"
 	"math/rand"
 	"reflect"
 	"strings"
+
+	"github.com/flipped-aurora/gin-vue-admin/server/model/common"
 )
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: StructToMap
-//@description: 利用反射将结构体转化为map
+//@description: map
 //@param: obj interface{}
 //@return: map[string]interface{}
 
@@ -31,7 +32,7 @@ func StructToMap(obj interface{}) map[string]interface{} {
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: ArrayToString
-//@description: 将数组格式化为字符串
+//@description:
 //@param: array []interface{}
 //@return: string
 
@@ -57,7 +58,7 @@ func FirstLower(s string) string {
 	return strings.ToLower(s[:1]) + s[1:]
 }
 
-// MaheHump 将字符串转换为驼峰命名
+// MaheHump
 func MaheHump(s string) string {
 	words := strings.Split(s, "-")
 
@@ -68,15 +69,15 @@ func MaheHump(s string) string {
 	return strings.Join(words, "")
 }
 
-// HumpToUnderscore 将驼峰命名转换为下划线分割模式
+// HumpToUnderscore
 func HumpToUnderscore(s string) string {
 	var result strings.Builder
 
 	for i, char := range s {
 		if i > 0 && char >= 'A' && char <= 'Z' {
-			// 在大写字母前添加下划线
+			//
 			result.WriteRune('_')
-			result.WriteRune(char - 'A' + 'a') // 转小写
+			result.WriteRune(char - 'A' + 'a') //
 		} else {
 			result.WriteRune(char)
 		}
@@ -85,7 +86,7 @@ func HumpToUnderscore(s string) string {
 	return strings.ToLower(result.String())
 }
 
-// RandomString 随机字符串
+// RandomString
 func RandomString(n int) string {
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 	b := make([]rune, n)
@@ -99,10 +100,10 @@ func RandomInt(min, max int) int {
 	return min + rand.Intn(max-min)
 }
 
-// BuildTree 用于构建一个树形结构
+// BuildTree
 func BuildTree[T common.TreeNode[T]](nodes []T) []T {
 	nodeMap := make(map[int]T)
-	// 创建一个基本map
+	// map
 	for i := range nodes {
 		nodeMap[nodes[i].GetID()] = nodes[i]
 	}

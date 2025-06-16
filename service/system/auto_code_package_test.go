@@ -20,7 +20,7 @@ func Test_autoCodePackage_Create(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "测试 package",
+			name: " package",
 			args: args{
 				ctx: context.Background(),
 				info: &request.SysAutoCodePackageCreate{
@@ -31,7 +31,7 @@ func Test_autoCodePackage_Create(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "测试 plugin",
+			name: " plugin",
 			args: args{
 				ctx: context.Background(),
 				info: &request.SysAutoCodePackageCreate{
@@ -67,12 +67,12 @@ func Test_autoCodePackage_templates(t *testing.T) {
 		wantErr   bool
 	}{
 		{
-			name: "测试1",
+			name: "1",
 			args: args{
 				ctx: context.Background(),
 				entity: model.SysAutoCodePackage{
-					Desc:        "描述",
-					Label:       "展示名",
+					Desc:        "",
+					Label:       "",
 					Template:    "plugin",
 					PackageName: "preview",
 				},

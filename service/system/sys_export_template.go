@@ -25,28 +25,28 @@ type SysExportTemplateService struct {
 
 var SysExportTemplateServiceApp = new(SysExportTemplateService)
 
-// CreateSysExportTemplate 创建导出模板记录
+// CreateSysExportTemplate
 // Author [piexlmax](https://github.com/piexlmax)
 func (sysExportTemplateService *SysExportTemplateService) CreateSysExportTemplate(sysExportTemplate *system.SysExportTemplate) (err error) {
 	err = global.GVA_DB.Create(sysExportTemplate).Error
 	return err
 }
 
-// DeleteSysExportTemplate 删除导出模板记录
+// DeleteSysExportTemplate
 // Author [piexlmax](https://github.com/piexlmax)
 func (sysExportTemplateService *SysExportTemplateService) DeleteSysExportTemplate(sysExportTemplate system.SysExportTemplate) (err error) {
 	err = global.GVA_DB.Delete(&sysExportTemplate).Error
 	return err
 }
 
-// DeleteSysExportTemplateByIds 批量删除导出模板记录
+// DeleteSysExportTemplateByIds
 // Author [piexlmax](https://github.com/piexlmax)
 func (sysExportTemplateService *SysExportTemplateService) DeleteSysExportTemplateByIds(ids request.IdsReq) (err error) {
 	err = global.GVA_DB.Delete(&[]system.SysExportTemplate{}, "id in ?", ids.Ids).Error
 	return err
 }
 
-// UpdateSysExportTemplate 更新导出模板记录
+// UpdateSysExportTemplate
 // Author [piexlmax](https://github.com/piexlmax)
 func (sysExportTemplateService *SysExportTemplateService) UpdateSysExportTemplate(sysExportTemplate system.SysExportTemplate) (err error) {
 	return global.GVA_DB.Transaction(func(tx *gorm.DB) error {
@@ -84,22 +84,22 @@ func (sysExportTemplateService *SysExportTemplateService) UpdateSysExportTemplat
 	})
 }
 
-// GetSysExportTemplate 根据id获取导出模板记录
+// GetSysExportTemplate id
 // Author [piexlmax](https://github.com/piexlmax)
 func (sysExportTemplateService *SysExportTemplateService) GetSysExportTemplate(id uint) (sysExportTemplate system.SysExportTemplate, err error) {
 	err = global.GVA_DB.Where("id = ?", id).Preload("JoinTemplate").Preload("Conditions").First(&sysExportTemplate).Error
 	return
 }
 
-// GetSysExportTemplateInfoList 分页获取导出模板记录
+// GetSysExportTemplateInfoList
 // Author [piexlmax](https://github.com/piexlmax)
 func (sysExportTemplateService *SysExportTemplateService) GetSysExportTemplateInfoList(info systemReq.SysExportTemplateSearch) (list []system.SysExportTemplate, total int64, err error) {
 	limit := info.PageSize
 	offset := info.PageSize * (info.Page - 1)
-	// 创建db
+	// db
 	db := global.GVA_DB.Model(&system.SysExportTemplate{})
 	var sysExportTemplates []system.SysExportTemplate
-	// 如果有条件搜索 下方会自动创建搜索语句
+	//
 	if info.StartCreatedAt != nil && info.EndCreatedAt != nil {
 		db = db.Where("created_at BETWEEN ? AND ?", info.StartCreatedAt, info.EndCreatedAt)
 	}
@@ -125,13 +125,13 @@ func (sysExportTemplateService *SysExportTemplateService) GetSysExportTemplateIn
 	return sysExportTemplates, total, err
 }
 
-// ExportExcel 导出Excel
+// ExportExcel Excel
 // Author [piexlmax](https://github.com/piexlmax)
 func (sysExportTemplateService *SysExportTemplateService) ExportExcel(templateID string, values url.Values) (file *bytes.Buffer, name string, err error) {
 	var params = values.Get("params")
 	paramsValues, err := url.ParseQuery(params)
 	if err != nil {
-		return nil, "", fmt.Errorf("解析 params 参数失败: %v", err)
+		return nil, "", fmt.Errorf(" params : %v", err)
 	}
 	var template system.SysExportTemplate
 	err = global.GVA_DB.Preload("Conditions").Preload("JoinTemplate").First(&template, "template_id = ?", templateID).Error
@@ -189,13 +189,13 @@ func (sysExportTemplateService *SysExportTemplateService) ExportExcel(templateID
 	}
 
 	if filterDeleted {
-		// 自动过滤主表的软删除
+		//
 		db = db.Where(fmt.Sprintf("%s.deleted_at IS NULL", template.TableName))
 
-		// 过滤关联表的软删除(如果有)
+		// ()
 		if len(template.JoinTemplate) > 0 {
 			for _, join := range template.JoinTemplate {
-				// 检查关联表是否有deleted_at字段
+				// deleted_at
 				hasDeletedAt := sysExportTemplateService.hasDeletedAtColumn(join.Table)
 				if hasDeletedAt {
 					db = db.Where(fmt.Sprintf("%s.deleted_at IS NULL", join.Table))
@@ -221,7 +221,7 @@ func (sysExportTemplateService *SysExportTemplateService) ExportExcel(templateID
 			}
 		}
 	}
-	// 通过参数传入limit
+	// limit
 	limit := paramsValues.Get("limit")
 	if limit != "" {
 		l, e := strconv.Atoi(limit)
@@ -229,12 +229,12 @@ func (sysExportTemplateService *SysExportTemplateService) ExportExcel(templateID
 			db = db.Limit(l)
 		}
 	}
-	// 模板的默认limit
+	// limit
 	if limit == "" && template.Limit != nil && *template.Limit != 0 {
 		db = db.Limit(*template.Limit)
 	}
 
-	// 通过参数传入offset
+	// offset
 	offset := paramsValues.Get("offset")
 	if offset != "" {
 		o, e := strconv.Atoi(offset)
@@ -243,32 +243,32 @@ func (sysExportTemplateService *SysExportTemplateService) ExportExcel(templateID
 		}
 	}
 
-	// 获取当前表的所有字段
+	//
 	table := template.TableName
 	orderColumns, err := db.Migrator().ColumnTypes(table)
 	if err != nil {
 		return nil, "", err
 	}
 
-	// 创建一个 map 来存储字段名
+	//  map
 	fields := make(map[string]bool)
 
 	for _, column := range orderColumns {
 		fields[column.Name()] = true
 	}
 
-	// 通过参数传入order
+	// order
 	order := paramsValues.Get("order")
 
 	if order == "" && template.Order != "" {
-		// 如果没有order入参，这里会使用模板的默认排序
+		// order，
 		order = template.Order
 	}
 
 	if order != "" {
 		checkOrderArr := strings.Split(order, " ")
 		orderStr := ""
-		// 检查请求的排序字段是否在字段列表中
+		//
 		if _, ok := fields[checkOrderArr[0]]; !ok {
 			return nil, "", fmt.Errorf("order by %s is not in the fields", order)
 		}
@@ -304,7 +304,7 @@ func (sysExportTemplateService *SysExportTemplateService) ExportExcel(templateID
 					}
 				}
 			}
-			// 需要对时间类型特殊处理
+			//
 			if t, ok := exTable[column].(time.Time); ok {
 				row = append(row, t.Format("2006-01-02 15:04:05"))
 			} else {
@@ -330,7 +330,7 @@ func (sysExportTemplateService *SysExportTemplateService) ExportExcel(templateID
 	return file, template.Name, nil
 }
 
-// ExportTemplate 导出Excel模板
+// ExportTemplate Excel
 // Author [piexlmax](https://github.com/piexlmax)
 func (sysExportTemplateService *SysExportTemplateService) ExportTemplate(templateID string) (file *bytes.Buffer, name string, err error) {
 	var template system.SysExportTemplate
@@ -378,14 +378,14 @@ func (sysExportTemplateService *SysExportTemplateService) ExportTemplate(templat
 	return file, template.Name, nil
 }
 
-// 辅助函数：检查表是否有deleted_at列
+// ：deleted_at
 func (s *SysExportTemplateService) hasDeletedAtColumn(tableName string) bool {
 	var count int64
 	global.GVA_DB.Raw("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ? AND COLUMN_NAME = 'deleted_at'", tableName).Count(&count)
 	return count > 0
 }
 
-// ImportExcel 导入Excel
+// ImportExcel Excel
 // Author [piexlmax](https://github.com/piexlmax)
 func (sysExportTemplateService *SysExportTemplateService) ImportExcel(templateID string, file *multipart.FileHeader) (err error) {
 	var template system.SysExportTemplate
@@ -440,7 +440,7 @@ func (sysExportTemplateService *SysExportTemplateService) ImportExcel(templateID
 			var item = make(map[string]interface{})
 			for ii, value := range row {
 				if _, ok := titleKeyMap[excelTitle[ii]]; !ok {
-					continue // excel中多余的标题，在模板信息中没有对应的字段，因此key为空，必须跳过
+					continue // excel，，key，
 				}
 				key := titleKeyMap[excelTitle[ii]]
 				item[key] = value

@@ -6,12 +6,13 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 type Visitor struct {
@@ -24,11 +25,11 @@ type Visitor struct {
 func (vi *Visitor) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 	case *ast.GenDecl:
-		// 查找有没有import context包
-		// Notice：没有考虑没有import任何包的情况
+		// import context
+		// Notice：import
 		if n.Tok == token.IMPORT && vi.ImportCode != "" {
 			vi.addImport(n)
-			// 不需要再遍历子树
+			//
 			return nil
 		}
 		if n.Tok == token.TYPE && vi.StructName != "" && vi.PackageName != "" && vi.GroupName != "" {
@@ -80,11 +81,11 @@ func (vi *Visitor) addStruct(genDecl *ast.GenDecl) ast.Visitor {
 }
 
 func (vi *Visitor) addImport(genDecl *ast.GenDecl) ast.Visitor {
-	// 是否已经import
+	// import
 	hasImported := false
 	for _, v := range genDecl.Specs {
 		importSpec := v.(*ast.ImportSpec)
-		// 如果已经包含
+		//
 		if importSpec.Path.Value == strconv.Quote(vi.ImportCode) {
 			hasImported = true
 		}
@@ -176,6 +177,6 @@ func ImportReference(filepath, importCode, structName, packageName, groupName st
 	if err != nil {
 		log.Fatal(err)
 	}
-	// 写回数据
+	//
 	return os.WriteFile(filepath, buffer.Bytes(), 0o600)
 }

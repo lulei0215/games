@@ -15,7 +15,7 @@ var JwtServiceApp = new(JwtService)
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: JsonInBlacklist
-//@description: 拉黑jwt
+//@description: jwt
 //@param: jwtList model.JwtBlacklist
 //@return: err error
 
@@ -30,7 +30,7 @@ func (jwtService *JwtService) JsonInBlacklist(jwtList system.JwtBlacklist) (err 
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: GetRedisJWT
-//@description: 从redis取jwt
+//@description: redisjwt
 //@param: userName string
 //@return: redisJWT string, err error
 
@@ -43,10 +43,10 @@ func LoadAll() {
 	var data []string
 	err := global.GVA_DB.Model(&system.JwtBlacklist{}).Select("jwt").Find(&data).Error
 	if err != nil {
-		global.GVA_LOG.Error("加载数据库jwt黑名单失败!", zap.Error(err))
+		global.GVA_LOG.Error("jwt!", zap.Error(err))
 		return
 	}
 	for i := 0; i < len(data); i++ {
 		global.BlackCache.SetDefault(data[i], struct{}{})
-	} // jwt黑名单 加入 BlackCache 中
+	} // jwt  BlackCache
 }

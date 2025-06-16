@@ -7,13 +7,13 @@ import (
 
 type PluginInitializeGorm struct {
 	Base
-	Type         Type   // 类型
-	Path         string // 文件路径
-	ImportPath   string // 导包路径
-	RelativePath string // 相对路径
-	StructName   string // 结构体名称
-	PackageName  string // 包名
-	IsNew        bool   // 是否使用new关键字 true: new(PackageName.StructName) false: &PackageName.StructName{}
+	Type         Type   //
+	Path         string //
+	ImportPath   string //
+	RelativePath string //
+	StructName   string //
+	PackageName  string //
+	IsNew        bool   // new true: new(PackageName.StructName) false: &PackageName.StructName{}
 }
 
 func (a *PluginInitializeGorm) Parse(filename string, writer io.Writer) (file *ast.File, err error) {
@@ -44,7 +44,7 @@ func (a *PluginInitializeGorm) Rollback(file *ast.File) error {
 		if len(callExpr.Args) <= 1 {
 			needRollBackImport = true
 		}
-		// 删除指定的参数
+		//
 		for i, arg := range callExpr.Args {
 			compLit, cok := arg.(*ast.CompositeLit)
 			if !cok {
@@ -58,7 +58,7 @@ func (a *PluginInitializeGorm) Rollback(file *ast.File) error {
 
 			ident, idok := cselExpr.X.(*ast.Ident)
 			if idok && ident.Name == a.PackageName && cselExpr.Sel.Name == a.StructName {
-				// 删除参数
+				//
 				callExpr.Args = append(callExpr.Args[:i], callExpr.Args[i+1:]...)
 				break
 			}

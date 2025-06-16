@@ -14,7 +14,7 @@ import (
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: CreateApi
-//@description: 新增基础api
+//@description: api
 //@param: api model.SysApi
 //@return: err error
 
@@ -24,7 +24,7 @@ var ApiServiceApp = new(ApiService)
 
 func (apiService *ApiService) CreateApi(api system.SysApi) (err error) {
 	if !errors.Is(global.GVA_DB.Where("path = ? AND method = ?", api.Path, api.Method).First(&system.SysApi{}).Error, gorm.ErrRecordNotFound) {
-		return errors.New("存在相同api")
+		return errors.New("api")
 	}
 	return global.GVA_DB.Create(&api).Error
 }
@@ -92,10 +92,10 @@ func (apiService *ApiService) SyncApi() (newApis, deleteApis, ignoreApis []syste
 		}
 	}
 
-	//对比数据库中的api和内存中的api，如果数据库中的api不存在于内存中，则把api放入删除数组，如果内存中的api不存在于数据库中，则把api放入新增数组
+	//apiapi，api，api，api，api
 	for i := range cacheApis {
 		var flag bool
-		// 如果存在于内存不存在于api数组中
+		// api
 		for j := range apis {
 			if cacheApis[i].Path == apis[j].Path && cacheApis[i].Method == apis[j].Method {
 				flag = true
@@ -113,7 +113,7 @@ func (apiService *ApiService) SyncApi() (newApis, deleteApis, ignoreApis []syste
 
 	for i := range apis {
 		var flag bool
-		// 如果存在于api数组不存在于内存
+		// api
 		for j := range cacheApis {
 			if cacheApis[j].Path == apis[i].Path && cacheApis[j].Method == apis[i].Method {
 				flag = true
@@ -155,14 +155,14 @@ func (apiService *ApiService) EnterSyncApi(syncApis systemRes.SysSyncApis) (err 
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: DeleteApi
-//@description: 删除基础api
+//@description: api
 //@param: api model.SysApi
 //@return: err error
 
 func (apiService *ApiService) DeleteApi(api system.SysApi) (err error) {
 	var entity system.SysApi
-	err = global.GVA_DB.First(&entity, "id = ?", api.ID).Error // 根据id查询api记录
-	if errors.Is(err, gorm.ErrRecordNotFound) {                // api记录不存在
+	err = global.GVA_DB.First(&entity, "id = ?", api.ID).Error // idapi
+	if errors.Is(err, gorm.ErrRecordNotFound) {                // api
 		return err
 	}
 	err = global.GVA_DB.Delete(&entity).Error
@@ -217,7 +217,7 @@ func (apiService *ApiService) GetAPIInfoList(api system.SysApi, info request.Pag
 		orderMap["description"] = true
 		orderMap["method"] = true
 		if !orderMap[order] {
-			err = fmt.Errorf("非法的排序字段: %v", order)
+			err = fmt.Errorf(": %v", order)
 			return apiList, total, err
 		}
 		OrderStr = order
@@ -231,7 +231,7 @@ func (apiService *ApiService) GetAPIInfoList(api system.SysApi, info request.Pag
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: GetAllApis
-//@description: 获取所有的api
+//@description: api
 //@return:  apis []model.SysApi, err error
 
 func (apiService *ApiService) GetAllApis(authorityID uint) (apis []system.SysApi, err error) {
@@ -244,7 +244,7 @@ func (apiService *ApiService) GetAllApis(authorityID uint) (apis []system.SysApi
 		return
 	}
 	paths := CasbinServiceApp.GetPolicyPathByAuthorityId(authorityID)
-	// 挑选 apis里面的path和method也在paths里面的api
+	//  apispathmethodpathsapi
 	var authApis []system.SysApi
 	for i := range apis {
 		for j := range paths {
@@ -258,7 +258,7 @@ func (apiService *ApiService) GetAllApis(authorityID uint) (apis []system.SysApi
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: GetApiById
-//@description: 根据id获取api
+//@description: idapi
 //@param: id float64
 //@return: api model.SysApi, err error
 
@@ -269,7 +269,7 @@ func (apiService *ApiService) GetApiById(id int) (api system.SysApi, err error) 
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: UpdateApi
-//@description: 根据id更新api
+//@description: idapi
 //@param: api model.SysApi
 //@return: err error
 
@@ -284,7 +284,7 @@ func (apiService *ApiService) UpdateApi(api system.SysApi) (err error) {
 			}
 		} else {
 			if duplicateApi.ID != api.ID {
-				return errors.New("存在相同api路径")
+				return errors.New("api")
 			}
 		}
 
@@ -303,7 +303,7 @@ func (apiService *ApiService) UpdateApi(api system.SysApi) (err error) {
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: DeleteApisByIds
-//@description: 删除选中API
+//@description: API
 //@param: apis []model.SysApi
 //@return: err error
 

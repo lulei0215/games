@@ -3,13 +3,14 @@ package ast
 import (
 	"bytes"
 	"fmt"
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"go/ast"
 	"go/parser"
 	"go/printer"
 	"go/token"
 	"os"
 	"path/filepath"
+
+	"github.com/flipped-aurora/gin-vue-admin/server/global"
 )
 
 func RollBackAst(pk, model string) {
@@ -19,9 +20,9 @@ func RollBackAst(pk, model string) {
 
 func RollGormBack(pk, model string) {
 
-	// 首先分析存在多少个ttt作为调用方的node块
-	// 如果多个 仅仅删除对应块即可
-	// 如果单个 那么还需要剔除import
+	// tttnode
+	//
+	//  import
 	path := filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "initialize", "gorm_biz.go")
 	src, err := os.ReadFile(path)
 	if err != nil {
@@ -96,9 +97,9 @@ func RollGormBack(pk, model string) {
 
 func RollRouterBack(pk, model string) {
 
-	// 首先抓到所有的代码块结构 {}
-	// 分析结构中是否存在一个变量叫做 pk+Router
-	// 然后获取到代码块指针 对内部需要回滚的代码进行剔除
+	//  {}
+	//  pk+Router
+	//
 	path := filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "initialize", "router_biz.go")
 	src, err := os.ReadFile(path)
 	if err != nil {
@@ -152,7 +153,7 @@ func RollRouterBack(pk, model string) {
 	block.List = append(append([]ast.Stmt{}, block.List[:k]...), block.List[k+1:]...)
 
 	if len(block.List) == 1 {
-		// 说明这个块就没任何意义了
+		//
 		block.List = nil
 	}
 

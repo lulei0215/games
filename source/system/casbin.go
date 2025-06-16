@@ -281,7 +281,7 @@ func (i *initCasbin) InitializeData(ctx context.Context) (context.Context, error
 		{Ptype: "p", V0: "9528", V1: "/user/resetWithdrawPassword", V2: "POST"},
 	}
 	if err := db.Create(&entities).Error; err != nil {
-		return ctx, errors.Wrap(err, "Casbin 表 ("+i.InitializerName()+") 数据初始化失败!")
+		return ctx, errors.Wrap(err, "Casbin  ("+i.InitializerName()+") !")
 	}
 	next := context.WithValue(ctx, i.InitializerName(), entities)
 	return next, nil
@@ -293,7 +293,7 @@ func (i *initCasbin) DataInserted(ctx context.Context) bool {
 		return false
 	}
 	if errors.Is(db.Where(adapter.CasbinRule{Ptype: "p", V0: "9528", V1: "/user/getUserInfo", V2: "GET"}).
-		First(&adapter.CasbinRule{}).Error, gorm.ErrRecordNotFound) { // 判断是否存在数据
+		First(&adapter.CasbinRule{}).Error, gorm.ErrRecordNotFound) { //
 		return false
 	}
 	return true

@@ -2,8 +2,9 @@ package global
 
 import (
 	"fmt"
-	"github.com/mark3labs/mcp-go/server"
 	"sync"
+
+	"github.com/mark3labs/mcp-go/server"
 
 	"github.com/gin-gonic/gin"
 	"github.com/qiniu/qmgo"
@@ -41,14 +42,14 @@ var (
 	lock                    sync.RWMutex
 )
 
-// GetGlobalDBByDBName 通过名称获取db list中的db
+// GetGlobalDBByDBName db listdb
 func GetGlobalDBByDBName(dbname string) *gorm.DB {
 	lock.RLock()
 	defer lock.RUnlock()
 	return GVA_DBList[dbname]
 }
 
-// MustGetGlobalDBByDBName 通过名称获取db 如果不存在则panic
+// MustGetGlobalDBByDBName db panic
 func MustGetGlobalDBByDBName(dbname string) *gorm.DB {
 	lock.RLock()
 	defer lock.RUnlock()

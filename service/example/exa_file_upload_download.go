@@ -13,7 +13,7 @@ import (
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: Upload
-//@description: 创建文件上传记录
+//@description:
 //@param: file model.ExaFileUploadAndDownload
 //@return: error
 
@@ -23,7 +23,7 @@ func (e *FileUploadAndDownloadService) Upload(file example.ExaFileUploadAndDownl
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: FindFile
-//@description: 查询文件记录
+//@description:
 //@param: id uint
 //@return: model.ExaFileUploadAndDownload, error
 
@@ -35,7 +35,7 @@ func (e *FileUploadAndDownloadService) FindFile(id uint) (example.ExaFileUploadA
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: DeleteFile
-//@description: 删除文件记录
+//@description:
 //@param: file model.ExaFileUploadAndDownload
 //@return: err error
 
@@ -47,13 +47,13 @@ func (e *FileUploadAndDownloadService) DeleteFile(file example.ExaFileUploadAndD
 	}
 	oss := upload.NewOss()
 	if err = oss.DeleteFile(fileFromDb.Key); err != nil {
-		return errors.New("文件删除失败")
+		return errors.New("")
 	}
 	err = global.GVA_DB.Where("id = ?", file.ID).Unscoped().Delete(&file).Error
 	return err
 }
 
-// EditFileName 编辑文件名或者备注
+// EditFileName
 func (e *FileUploadAndDownloadService) EditFileName(file example.ExaFileUploadAndDownload) (err error) {
 	var fileFromDb example.ExaFileUploadAndDownload
 	return global.GVA_DB.Where("id = ?", file.ID).First(&fileFromDb).Update("name", file.Name).Error
@@ -88,7 +88,7 @@ func (e *FileUploadAndDownloadService) GetFileRecordInfoList(info request.ExaAtt
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: UploadFile
-//@description: 根据配置文件判断是文件上传到本地或者七牛云
+//@description:
 //@param: header *multipart.FileHeader, noSave string
 //@return: file model.ExaFileUploadAndDownload, err error
 
@@ -114,7 +114,7 @@ func (e *FileUploadAndDownloadService) UploadFile(header *multipart.FileHeader, 
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: ImportURL
-//@description: 导入URL
+//@description: URL
 //@param: file model.ExaFileUploadAndDownload
 //@return: error
 

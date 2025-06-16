@@ -6,17 +6,17 @@ import (
 )
 
 type SysAutoHistoryCreate struct {
-	Table            string            // 表名
-	Package          string            // 模块名/插件名
-	Request          string            // 前端传入的结构化信息
-	StructName       string            // 结构体名称
-	BusinessDB       string            // 业务库
-	Description      string            // Struct中文名称
-	Injections       map[string]string // 注入路径
-	Templates        map[string]string // 模板信息
-	ApiIDs           []uint            // api表注册内容
-	MenuID           uint              // 菜单ID
-	ExportTemplateID uint              // 导出模板ID
+	Table            string            //
+	Package          string            // /
+	Request          string            //
+	StructName       string            //
+	BusinessDB       string            //
+	Description      string            // Struct
+	Injections       map[string]string //
+	Templates        map[string]string //
+	ApiIDs           []uint            // api
+	MenuID           uint              // ID
+	ExportTemplateID uint              // ID
 }
 
 func (r *SysAutoHistoryCreate) Create() model.SysAutoCodeHistory {
@@ -42,9 +42,9 @@ func (r *SysAutoHistoryCreate) Create() model.SysAutoCodeHistory {
 
 type SysAutoHistoryRollBack struct {
 	common.GetById
-	DeleteApi   bool `json:"deleteApi" form:"deleteApi"`     // 是否删除接口
-	DeleteMenu  bool `json:"deleteMenu" form:"deleteMenu"`   // 是否删除菜单
-	DeleteTable bool `json:"deleteTable" form:"deleteTable"` // 是否删除表
+	DeleteApi   bool `json:"deleteApi" form:"deleteApi"`     //
+	DeleteMenu  bool `json:"deleteMenu" form:"deleteMenu"`   //
+	DeleteTable bool `json:"deleteTable" form:"deleteTable"` //
 }
 
 func (r *SysAutoHistoryRollBack) ApiIds(entity model.SysAutoCodeHistory) common.IdsReq {

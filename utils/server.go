@@ -1,9 +1,10 @@
 package utils
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"runtime"
 	"time"
+
+	"github.com/flipped-aurora/gin-vue-admin/server/global"
 
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/disk"
@@ -18,9 +19,9 @@ const (
 )
 
 type Server struct {
-	Os   Os   `json:"os"`
-	Cpu  Cpu  `json:"cpu"`
-	Ram  Ram  `json:"ram"`
+	Os   Os     `json:"os"`
+	Cpu  Cpu    `json:"cpu"`
+	Ram  Ram    `json:"ram"`
 	Disk []Disk `json:"disk"`
 }
 
@@ -45,16 +46,16 @@ type Ram struct {
 
 type Disk struct {
 	MountPoint  string `json:"mountPoint"`
-	UsedMB      int `json:"usedMb"`
-	UsedGB      int `json:"usedGb"`
-	TotalMB     int `json:"totalMb"`
-	TotalGB     int `json:"totalGb"`
-	UsedPercent int `json:"usedPercent"`
+	UsedMB      int    `json:"usedMb"`
+	UsedGB      int    `json:"usedGb"`
+	TotalMB     int    `json:"totalMb"`
+	TotalGB     int    `json:"totalGb"`
+	UsedPercent int    `json:"usedPercent"`
 }
 
 //@author: [SliverHorn](https://github.com/SliverHorn)
 //@function: InitCPU
-//@description: OS信息
+//@description: OS
 //@return: o Os, err error
 
 func InitOS() (o Os) {
@@ -68,7 +69,7 @@ func InitOS() (o Os) {
 
 //@author: [SliverHorn](https://github.com/SliverHorn)
 //@function: InitCPU
-//@description: CPU信息
+//@description: CPU
 //@return: c Cpu, err error
 
 func InitCPU() (c Cpu, err error) {
@@ -87,7 +88,7 @@ func InitCPU() (c Cpu, err error) {
 
 //@author: [SliverHorn](https://github.com/SliverHorn)
 //@function: InitRAM
-//@description: RAM信息
+//@description: RAM
 //@return: r Ram, err error
 
 func InitRAM() (r Ram, err error) {
@@ -103,7 +104,7 @@ func InitRAM() (r Ram, err error) {
 
 //@author: [SliverHorn](https://github.com/SliverHorn)
 //@function: InitDisk
-//@description: 硬盘信息
+//@description:
 //@return: d Disk, err error
 
 func InitDisk() (d []Disk, err error) {

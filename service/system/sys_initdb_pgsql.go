@@ -24,7 +24,7 @@ func NewPgsqlInitHandler() *PgsqlInitHandler {
 	return &PgsqlInitHandler{}
 }
 
-// WriteConfig pgsql 回写配置
+// WriteConfig pgsql
 func (h PgsqlInitHandler) WriteConfig(ctx context.Context) error {
 	c, ok := ctx.Value("config").(config.Pgsql)
 	if !ok {
@@ -41,7 +41,7 @@ func (h PgsqlInitHandler) WriteConfig(ctx context.Context) error {
 	return global.GVA_VP.WriteConfig()
 }
 
-// EnsureDB 创建数据库并初始化 pg
+// EnsureDB  pg
 func (h PgsqlInitHandler) EnsureDB(ctx context.Context, conf *request.InitDB) (next context.Context, err error) {
 	if s, ok := ctx.Value("dbtype").(string); !ok || s != "pgsql" {
 		return ctx, ErrDBTypeMismatch
@@ -51,7 +51,7 @@ func (h PgsqlInitHandler) EnsureDB(ctx context.Context, conf *request.InitDB) (n
 	next = context.WithValue(ctx, "config", c)
 	if c.Dbname == "" {
 		return ctx, nil
-	} // 如果没有数据库名, 则跳出初始化数据
+	} // ,
 
 	dsn := conf.PgsqlEmptyDsn()
 	var createSql string
@@ -62,7 +62,7 @@ func (h PgsqlInitHandler) EnsureDB(ctx context.Context, conf *request.InitDB) (n
 	}
 	if err = createDatabase(dsn, "pgx", createSql); err != nil {
 		return nil, err
-	} // 创建数据库
+	} //
 
 	var db *gorm.DB
 	if db, err = gorm.Open(postgres.New(postgres.Config{

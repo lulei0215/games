@@ -6,12 +6,12 @@ import (
 )
 
 type Ast interface {
-	// Parse 解析文件/代码
+	// Parse /
 	Parse(filename string, writer io.Writer) (file *ast.File, err error)
-	// Rollback 回滚
+	// Rollback
 	Rollback(file *ast.File) error
-	// Injection 注入
+	// Injection
 	Injection(file *ast.File) error
-	// Format 格式化输出
+	// Format
 	Format(filename string, writer io.Writer, file *ast.File) error
 }

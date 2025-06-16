@@ -4,7 +4,7 @@
 // @Summary {{.FuncDesc}}
 // @Accept application/json
 // @Produce application/json
-// @Success 200 {object} response.Response{data=object,msg=string} "获取成功"
+// @Success 200 {object} response.Response{data=object,msg=string} ""
 // @Router /{{.Abbreviation}}/{{.Router}} [{{.Method}}]
 export const {{.Router}} = () => {
   return service({
@@ -20,7 +20,7 @@ export const {{.Router}} = () => {
 // @Summary {{.FuncDesc}}
 // @Accept application/json
 // @Produce application/json
-// @Success 200 {object} response.Response{data=object,msg=string} "成功"
+// @Success 200 {object} response.Response{data=object,msg=string} ""
 // @Router /{{.Abbreviation}}/{{.Router}} [{{.Method}}]
 export const {{.Router}} = () => {
   return service({

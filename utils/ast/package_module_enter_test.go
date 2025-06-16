@@ -1,9 +1,10 @@
 package ast
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"path/filepath"
 	"testing"
+
+	"github.com/flipped-aurora/gin-vue-admin/server/global"
 )
 
 func TestPackageModuleEnter_Rollback(t *testing.T) {
@@ -24,7 +25,7 @@ func TestPackageModuleEnter_Rollback(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "测试 FileUploadAndDownloadRouter 回滚",
+			name: " FileUploadAndDownloadRouter ",
 			fields: fields{
 				Type:        TypePackageRouterModuleEnter,
 				Path:        filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "router", "example", "enter.go"),
@@ -39,7 +40,7 @@ func TestPackageModuleEnter_Rollback(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "测试 FileUploadAndDownloadApi 回滚",
+			name: " FileUploadAndDownloadApi ",
 			fields: fields{
 				Type:        TypePackageApiModuleEnter,
 				Path:        filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "api", "v1", "example", "enter.go"),
@@ -54,7 +55,7 @@ func TestPackageModuleEnter_Rollback(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "测试 FileUploadAndDownloadService 回滚",
+			name: " FileUploadAndDownloadService ",
 			fields: fields{
 				Type:        TypePackageServiceModuleEnter,
 				Path:        filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "service", "example", "enter.go"),
@@ -113,7 +114,7 @@ func TestPackageModuleEnter_Injection(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "测试 FileUploadAndDownloadRouter 注入",
+			name: " FileUploadAndDownloadRouter ",
 			fields: fields{
 				Type:        TypePackageRouterModuleEnter,
 				Path:        filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "router", "example", "enter.go"),
@@ -128,7 +129,7 @@ func TestPackageModuleEnter_Injection(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "测试 FileUploadAndDownloadApi 注入",
+			name: " FileUploadAndDownloadApi ",
 			fields: fields{
 				Type:        TypePackageApiModuleEnter,
 				Path:        filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "api", "v1", "example", "enter.go"),
@@ -143,7 +144,7 @@ func TestPackageModuleEnter_Injection(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "测试 FileUploadAndDownloadService 注入",
+			name: " FileUploadAndDownloadService ",
 			fields: fields{
 				Type:        TypePackageServiceModuleEnter,
 				Path:        filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "service", "example", "enter.go"),

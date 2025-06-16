@@ -14,13 +14,13 @@ import (
 )
 
 type LimitConfig struct {
-	// GenerationKey 根据业务生成key 下面CheckOrMark查询生成
+	// GenerationKey key CheckOrMark
 	GenerationKey func(c *gin.Context) string
-	// 检查函数,用户可修改具体逻辑,更加灵活
+	// ,,
 	CheckOrMark func(key string, expire int, limit int) error
-	// Expire key 过期时间
+	// Expire key
 	Expire int
-	// Limit 周期时间
+	// Limit
 	Limit int
 }
 
@@ -36,13 +36,13 @@ func (l LimitConfig) LimitWithTime() gin.HandlerFunc {
 	}
 }
 
-// DefaultGenerationKey 默认生成key
+// DefaultGenerationKey key
 func DefaultGenerationKey(c *gin.Context) string {
 	return "GVA_Limit" + c.ClientIP()
 }
 
 func DefaultCheckOrMark(key string, expire int, limit int) (err error) {
-	// 判断是否开启redis
+	// redis
 	if global.GVA_REDIS == nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func DefaultLimit() gin.HandlerFunc {
 	}.LimitWithTime()
 }
 
-// SetLimitWithTime 设置访问次数
+// SetLimitWithTime
 func SetLimitWithTime(key string, limit int, expiration time.Duration) error {
 	count, err := global.GVA_REDIS.Exists(context.Background(), key).Result()
 	if err != nil {
@@ -74,15 +74,15 @@ func SetLimitWithTime(key string, limit int, expiration time.Duration) error {
 		_, err = pipe.Exec(context.Background())
 		return err
 	} else {
-		// 次数
+		//
 		if times, err := global.GVA_REDIS.Get(context.Background(), key).Int(); err != nil {
 			return err
 		} else {
 			if times >= limit {
 				if t, err := global.GVA_REDIS.PTTL(context.Background(), key).Result(); err != nil {
-					return errors.New("请求太过频繁，请稍后再试")
+					return errors.New("，")
 				} else {
-					return errors.New("请求太过频繁, 请 " + t.String() + " 秒后尝试")
+					return errors.New(",  " + t.String() + " ")
 				}
 			} else {
 				return global.GVA_REDIS.Incr(context.Background(), key).Err()

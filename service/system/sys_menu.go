@@ -2,16 +2,17 @@ package system
 
 import (
 	"errors"
+	"strconv"
+
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
 	"gorm.io/gorm"
-	"strconv"
 )
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: getMenuTreeMap
-//@description: 获取路由总树map
+//@description: map
 //@param: authorityId string
 //@return: treeMap map[string][]system.SysMenu, err error
 
@@ -71,7 +72,7 @@ func (menuService *MenuService) getMenuTreeMap(authorityId uint) (treeMap map[ui
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: GetMenuTree
-//@description: 获取动态菜单树
+//@description:
 //@param: authorityId string
 //@return: menus []system.SysMenu, err error
 
@@ -86,7 +87,7 @@ func (menuService *MenuService) GetMenuTree(authorityId uint) (menus []system.Sy
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: getChildrenList
-//@description: 获取子菜单
+//@description:
 //@param: menu *model.SysMenu, treeMap map[string][]model.SysMenu
 //@return: err error
 
@@ -100,7 +101,7 @@ func (menuService *MenuService) getChildrenList(menu *system.SysMenu, treeMap ma
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: GetInfoList
-//@description: 获取路由分页
+//@description:
 //@return: list interface{}, total int64,err error
 
 func (menuService *MenuService) GetInfoList(authorityID uint) (list interface{}, err error) {
@@ -115,7 +116,7 @@ func (menuService *MenuService) GetInfoList(authorityID uint) (list interface{},
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: getBaseChildrenList
-//@description: 获取菜单的子菜单
+//@description:
 //@param: menu *model.SysBaseMenu, treeMap map[string][]model.SysBaseMenu
 //@return: err error
 
@@ -129,20 +130,20 @@ func (menuService *MenuService) getBaseChildrenList(menu *system.SysBaseMenu, tr
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: AddBaseMenu
-//@description: 添加基础路由
+//@description:
 //@param: menu model.SysBaseMenu
 //@return: error
 
 func (menuService *MenuService) AddBaseMenu(menu system.SysBaseMenu) error {
 	if !errors.Is(global.GVA_DB.Where("name = ?", menu.Name).First(&system.SysBaseMenu{}).Error, gorm.ErrRecordNotFound) {
-		return errors.New("存在重复name，请修改name")
+		return errors.New("name，name")
 	}
 	return global.GVA_DB.Create(&menu).Error
 }
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: getBaseMenuTreeMap
-//@description: 获取路由总树map
+//@description: map
 //@return: treeMap map[string][]system.SysBaseMenu, err error
 
 func (menuService *MenuService) getBaseMenuTreeMap(authorityID uint) (treeMap map[uint][]system.SysBaseMenu, err error) {
@@ -155,7 +156,7 @@ func (menuService *MenuService) getBaseMenuTreeMap(authorityID uint) (treeMap ma
 	treeMap = make(map[uint][]system.SysBaseMenu)
 	db := global.GVA_DB.Order("sort").Preload("MenuBtn").Preload("Parameters")
 
-	// 当开启了严格的树角色并且父角色不为0时需要进行菜单筛选
+	// 0
 	if global.GVA_CONFIG.System.UseStrictAuth && parentAuthorityID != 0 {
 		var authorityMenus []system.SysAuthorityMenu
 		err = global.GVA_DB.Where("sys_authority_authority_id = ?", authorityID).Find(&authorityMenus).Error
@@ -178,7 +179,7 @@ func (menuService *MenuService) getBaseMenuTreeMap(authorityID uint) (treeMap ma
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: GetBaseMenuTree
-//@description: 获取基础路由树
+//@description:
 //@return: menus []system.SysBaseMenu, err error
 
 func (menuService *MenuService) GetBaseMenuTree(authorityID uint) (menus []system.SysBaseMenu, err error) {
@@ -192,7 +193,7 @@ func (menuService *MenuService) GetBaseMenuTree(authorityID uint) (menus []syste
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: AddMenuAuthority
-//@description: 为角色增加menu树
+//@description: menu
 //@param: menus []model.SysBaseMenu, authorityId string
 //@return: err error
 
@@ -210,7 +211,7 @@ func (menuService *MenuService) AddMenuAuthority(menus []system.SysBaseMenu, adm
 	_ = global.GVA_DB.First(&authority, "authority_id = ?", adminAuthorityID).Error
 	var menuIds []string
 
-	// 当开启了严格的树角色并且父角色不为0时需要进行菜单筛选
+	// 0
 	if global.GVA_CONFIG.System.UseStrictAuth && *authority.ParentId != 0 {
 		var authorityMenus []system.SysAuthorityMenu
 		err = global.GVA_DB.Where("sys_authority_authority_id = ?", adminAuthorityID).Find(&authorityMenus).Error
@@ -230,7 +231,7 @@ func (menuService *MenuService) AddMenuAuthority(menus []system.SysBaseMenu, adm
 				}
 			}
 			if !hasMenu {
-				return errors.New("添加失败,请勿跨级操作")
+				return errors.New(",")
 			}
 		}
 	}
@@ -241,7 +242,7 @@ func (menuService *MenuService) AddMenuAuthority(menus []system.SysBaseMenu, adm
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: GetMenuAuthority
-//@description: 查看当前角色树
+//@description:
 //@param: info *request.GetAuthorityId
 //@return: menus []system.SysMenu, err error
 
@@ -272,7 +273,7 @@ func (menuService *MenuService) GetMenuAuthority(info *request.GetAuthorityId) (
 	return menus, err
 }
 
-// UserAuthorityDefaultRouter 用户角色默认路由检查
+// UserAuthorityDefaultRouter
 //
 //	Author [SliverHorn](https://github.com/SliverHorn)
 func (menuService *MenuService) UserAuthorityDefaultRouter(user *system.SysUser) {

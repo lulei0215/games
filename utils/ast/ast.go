@@ -2,14 +2,15 @@ package ast
 
 import (
 	"fmt"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"log"
+
+	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
 )
 
-// AddImport 增加 import 方法
+// AddImport  import
 func AddImport(astNode ast.Node, imp string) {
 	impStr := fmt.Sprintf("\"%s\"", imp)
 	ast.Inspect(astNode, func(node ast.Node) bool {
@@ -34,7 +35,7 @@ func AddImport(astNode ast.Node, imp string) {
 	})
 }
 
-// FindFunction 查询特定function方法
+// FindFunction function
 func FindFunction(astNode ast.Node, FunctionName string) *ast.FuncDecl {
 	var funcDeclP *ast.FuncDecl
 	ast.Inspect(astNode, func(node ast.Node) bool {
@@ -49,7 +50,7 @@ func FindFunction(astNode ast.Node, FunctionName string) *ast.FuncDecl {
 	return funcDeclP
 }
 
-// FindArray 查询特定数组方法
+// FindArray
 func FindArray(astNode ast.Node, identName, selectorExprName string) *ast.CompositeLit {
 	var assignStmt *ast.CompositeLit
 	ast.Inspect(astNode, func(n ast.Node) bool {
@@ -76,7 +77,7 @@ func FindArray(astNode ast.Node, identName, selectorExprName string) *ast.Compos
 func CreateMenuStructAst(menus []system.SysBaseMenu) *[]ast.Expr {
 	var menuElts []ast.Expr
 	for i := range menus {
-		elts := []ast.Expr{ // 结构体的字段
+		elts := []ast.Expr{ //
 			&ast.KeyValueExpr{
 				Key:   &ast.Ident{Name: "ParentId"},
 				Value: &ast.BasicLit{Kind: token.INT, Value: "0"},
@@ -132,7 +133,7 @@ func CreateMenuStructAst(menus []system.SysBaseMenu) *[]ast.Expr {
 func CreateApiStructAst(apis []system.SysApi) *[]ast.Expr {
 	var apiElts []ast.Expr
 	for i := range apis {
-		elts := []ast.Expr{ // 结构体的字段
+		elts := []ast.Expr{ //
 			&ast.KeyValueExpr{
 				Key:   &ast.Ident{Name: "Path"},
 				Value: &ast.BasicLit{Kind: token.STRING, Value: fmt.Sprintf("\"%s\"", apis[i].Path)},
@@ -158,7 +159,7 @@ func CreateApiStructAst(apis []system.SysApi) *[]ast.Expr {
 	return &apiElts
 }
 
-// CheckImport 检查是否存在Import
+// CheckImport Import
 func CheckImport(file *ast.File, importPath string) bool {
 	for _, imp := range file.Imports {
 		// Remove quotes around the import path
@@ -176,17 +177,17 @@ func clearPosition(astNode ast.Node) {
 	ast.Inspect(astNode, func(n ast.Node) bool {
 		switch node := n.(type) {
 		case *ast.Ident:
-			// 清除位置信息
+			//
 			node.NamePos = token.NoPos
 		case *ast.CallExpr:
-			// 清除位置信息
+			//
 			node.Lparen = token.NoPos
 			node.Rparen = token.NoPos
 		case *ast.BasicLit:
-			// 清除位置信息
+			//
 			node.ValuePos = token.NoPos
 		case *ast.SelectorExpr:
-			// 清除位置信息
+			//
 			node.Sel.NamePos = token.NoPos
 		case *ast.BinaryExpr:
 			node.OpPos = token.NoPos

@@ -10,7 +10,7 @@ import (
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: GetSystemConfig
-//@description: 读取配置文件
+//@description:
 //@return: conf config.Server, err error
 
 type SystemConfigService struct{}
@@ -24,7 +24,7 @@ func (systemConfigService *SystemConfigService) GetSystemConfig() (conf config.S
 // @description   set system config,
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: SetSystemConfig
-//@description: 设置配置文件
+//@description:
 //@param: system model.System
 //@return: err error
 
@@ -39,7 +39,7 @@ func (systemConfigService *SystemConfigService) SetSystemConfig(system system.Sy
 
 //@author: [SliverHorn](https://github.com/SliverHorn)
 //@function: GetServerInfo
-//@description: 获取服务器信息
+//@description:
 //@return: server *utils.Server, err error
 
 func (systemConfigService *SystemConfigService) GetServerInfo() (server *utils.Server, err error) {

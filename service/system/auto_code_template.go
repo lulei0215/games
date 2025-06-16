@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/flipped-aurora/gin-vue-admin/server/utils/autocode"
 	"go/ast"
 	"go/format"
 	"go/parser"
@@ -13,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 	"text/template"
+
+	"github.com/flipped-aurora/gin-vue-admin/server/utils/autocode"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	model "github.com/flipped-aurora/gin-vue-admin/server/model/system"
@@ -32,43 +33,43 @@ func (s *autoCodeTemplate) checkPackage(Pkg string, template string) (err error)
 		apiEnter := filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "api", "v1", Pkg, "enter.go")
 		_, err = os.Stat(apiEnter)
 		if err != nil {
-			return fmt.Errorf("package结构异常,缺少api/v1/%s/enter.go", Pkg)
+			return fmt.Errorf("package,api/v1/%s/enter.go", Pkg)
 		}
 		serviceEnter := filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "service", Pkg, "enter.go")
 		_, err = os.Stat(serviceEnter)
 		if err != nil {
-			return fmt.Errorf("package结构异常,缺少service/%s/enter.go", Pkg)
+			return fmt.Errorf("package,service/%s/enter.go", Pkg)
 		}
 		routerEnter := filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "router", Pkg, "enter.go")
 		_, err = os.Stat(routerEnter)
 		if err != nil {
-			return fmt.Errorf("package结构异常,缺少router/%s/enter.go", Pkg)
+			return fmt.Errorf("package,router/%s/enter.go", Pkg)
 		}
 	case "plugin":
 		pluginEnter := filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "plugin", Pkg, "plugin.go")
 		_, err = os.Stat(pluginEnter)
 		if err != nil {
-			return fmt.Errorf("plugin结构异常,缺少plugin/%s/plugin.go", Pkg)
+			return fmt.Errorf("plugin,plugin/%s/plugin.go", Pkg)
 		}
 	}
 	return nil
 }
 
-// Create 创建生成自动化代码
+// Create
 func (s *autoCodeTemplate) Create(ctx context.Context, info request.AutoCode) error {
 	history := info.History()
 	var autoPkg model.SysAutoCodePackage
 	err := global.GVA_DB.WithContext(ctx).Where("package_name = ?", info.Package).First(&autoPkg).Error
 	if err != nil {
-		return errors.Wrap(err, "查询包失败!")
+		return errors.Wrap(err, "!")
 	}
 	err = s.checkPackage(info.Package, autoPkg.Template)
 	if err != nil {
 		return err
 	}
-	// 增加判断: 重复创建struct 或者重复的简称
+	// : struct
 	if AutocodeHistory.Repeat(info.BusinessDB, info.StructName, info.Abbreviation, info.Package) {
-		return errors.New("已经创建过此数据结构,请勿重复创建!")
+		return errors.New(",!")
 	}
 
 	generate, templates, injections, err := s.generate(ctx, info, autoPkg)
@@ -78,15 +79,15 @@ func (s *autoCodeTemplate) Create(ctx context.Context, info request.AutoCode) er
 	for key, builder := range generate {
 		err = os.MkdirAll(filepath.Dir(key), os.ModePerm)
 		if err != nil {
-			return errors.Wrapf(err, "[filepath:%s]创建文件夹失败!", key)
+			return errors.Wrapf(err, "[filepath:%s]!", key)
 		}
 		err = os.WriteFile(key, []byte(builder.String()), 0666)
 		if err != nil {
-			return errors.Wrapf(err, "[filepath:%s]写入文件失败!", key)
+			return errors.Wrapf(err, "[filepath:%s]!", key)
 		}
 	}
 
-	// 自动创建api
+	// api
 	if info.AutoCreateApiToSql && !info.OnlyTemplate {
 		apis := info.Apis()
 		err := global.GVA_DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
@@ -95,7 +96,7 @@ func (s *autoCodeTemplate) Create(ctx context.Context, info request.AutoCode) er
 				var id uint
 				err := tx.Where("path = ? AND method = ?", v.Path, v.Method).First(&api).Error
 				if errors.Is(err, gorm.ErrRecordNotFound) {
-					if err = tx.Create(&v).Error; err != nil { // 遇到错误时回滚事务
+					if err = tx.Create(&v).Error; err != nil { //
 						return err
 					}
 					id = v.ID
@@ -111,7 +112,7 @@ func (s *autoCodeTemplate) Create(ctx context.Context, info request.AutoCode) er
 		}
 	}
 
-	// 自动创建menu
+	// menu
 	if info.AutoCreateMenuToSql {
 		var entity model.SysBaseMenu
 		var id uint
@@ -122,17 +123,17 @@ func (s *autoCodeTemplate) Create(ctx context.Context, info request.AutoCode) er
 			entity = info.Menu(autoPkg.Template)
 			if info.AutoCreateBtnAuth && !info.OnlyTemplate {
 				entity.MenuBtn = []model.SysBaseMenuBtn{
-					{SysBaseMenuID: entity.ID, Name: "add", Desc: "新增"},
-					{SysBaseMenuID: entity.ID, Name: "batchDelete", Desc: "批量删除"},
-					{SysBaseMenuID: entity.ID, Name: "delete", Desc: "删除"},
-					{SysBaseMenuID: entity.ID, Name: "edit", Desc: "编辑"},
-					{SysBaseMenuID: entity.ID, Name: "info", Desc: "详情"},
+					{SysBaseMenuID: entity.ID, Name: "add", Desc: ""},
+					{SysBaseMenuID: entity.ID, Name: "batchDelete", Desc: ""},
+					{SysBaseMenuID: entity.ID, Name: "delete", Desc: ""},
+					{SysBaseMenuID: entity.ID, Name: "edit", Desc: ""},
+					{SysBaseMenuID: entity.ID, Name: "info", Desc: ""},
 				}
 				if info.HasExcel {
 					excelBtn := []model.SysBaseMenuBtn{
-						{SysBaseMenuID: entity.ID, Name: "exportTemplate", Desc: "导出模板"},
-						{SysBaseMenuID: entity.ID, Name: "exportExcel", Desc: "导出Excel"},
-						{SysBaseMenuID: entity.ID, Name: "importExcel", Desc: "导入Excel"},
+						{SysBaseMenuID: entity.ID, Name: "exportTemplate", Desc: ""},
+						{SysBaseMenuID: entity.ID, Name: "exportExcel", Desc: "Excel"},
+						{SysBaseMenuID: entity.ID, Name: "importExcel", Desc: "Excel"},
 					}
 					entity.MenuBtn = append(entity.MenuBtn, excelBtn...)
 				}
@@ -140,7 +141,7 @@ func (s *autoCodeTemplate) Create(ctx context.Context, info request.AutoCode) er
 			err = global.GVA_DB.WithContext(ctx).Create(&entity).Error
 			id = entity.ID
 			if err != nil {
-				return errors.Wrap(err, "创建菜单失败!")
+				return errors.Wrap(err, "!")
 			}
 		}
 		history.MenuID = id
@@ -171,7 +172,7 @@ func (s *autoCodeTemplate) Create(ctx context.Context, info request.AutoCode) er
 		history.ExportTemplateID = sysExportTemplate.ID
 	}
 
-	// 创建历史记录
+	//
 	history.Templates = templates
 	history.Injections = make(map[string]string, len(injections))
 	for key, value := range injections {
@@ -185,16 +186,16 @@ func (s *autoCodeTemplate) Create(ctx context.Context, info request.AutoCode) er
 	return nil
 }
 
-// Preview 预览自动化代码
+// Preview
 func (s *autoCodeTemplate) Preview(ctx context.Context, info request.AutoCode) (map[string]string, error) {
 	var entity model.SysAutoCodePackage
 	err := global.GVA_DB.WithContext(ctx).Where("package_name = ?", info.Package).First(&entity).Error
 	if err != nil {
-		return nil, errors.Wrap(err, "查询包失败!")
+		return nil, errors.Wrap(err, "!")
 	}
-	// 增加判断: 重复创建struct 或者重复的简称
+	// : struct
 	if AutocodeHistory.Repeat(info.BusinessDB, info.StructName, info.Abbreviation, info.Package) && !info.IsAdd {
-		return nil, errors.New("已经创建过此数据结构或重复简称,请勿重复创建!")
+		return nil, errors.New(",!")
 	}
 
 	preview := make(map[string]string)
@@ -206,7 +207,7 @@ func (s *autoCodeTemplate) Preview(ctx context.Context, info request.AutoCode) (
 		if len(key) > len(global.GVA_CONFIG.AutoCode.Root) {
 			key, _ = filepath.Rel(global.GVA_CONFIG.AutoCode.Root, key)
 		}
-		// 获取key的后缀 取消.
+		// key .
 		suffix := filepath.Ext(key)[1:]
 		var builder strings.Builder
 		builder.WriteString("```" + suffix + "\n\n")
@@ -227,15 +228,15 @@ func (s *autoCodeTemplate) generate(ctx context.Context, info request.AutoCode, 
 		var files *template.Template
 		files, err = template.New(filepath.Base(key)).Funcs(autocode.GetTemplateFuncMap()).ParseFiles(key)
 		if err != nil {
-			return nil, nil, nil, errors.Wrapf(err, "[filpath:%s]读取模版文件失败!", key)
+			return nil, nil, nil, errors.Wrapf(err, "[filpath:%s]!", key)
 		}
 		var builder strings.Builder
 		err = files.Execute(&builder, info)
 		if err != nil {
-			return nil, nil, nil, errors.Wrapf(err, "[filpath:%s]生成文件失败!", create)
+			return nil, nil, nil, errors.Wrapf(err, "[filpath:%s]!", create)
 		}
 		code[create] = builder
-	} // 生成文件
+	} //
 	injections := make(map[string]utilsAst.Ast, len(asts))
 	for key, value := range asts {
 		keys := strings.Split(key, "=>")
@@ -263,11 +264,11 @@ func (s *autoCodeTemplate) generate(ctx context.Context, info request.AutoCode, 
 				}
 				code[keys[0]] = builder
 				injections[keys[1]] = value
-				fmt.Println(keys[0], "注入成功!")
+				fmt.Println(keys[0], "!")
 			}
 		}
 	}
-	// 注入代码
+	//
 	return code, templates, injections, nil
 }
 
@@ -325,13 +326,13 @@ func (s *autoCodeTemplate) getTemplateStr(t string, info request.AutoFunc) (stri
 	tempPath := filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "resource", "function", t+".tpl")
 	files, err := template.New(filepath.Base(tempPath)).Funcs(autocode.GetTemplateFuncMap()).ParseFiles(tempPath)
 	if err != nil {
-		return "", errors.Wrapf(err, "[filepath:%s]读取模版文件失败!", tempPath)
+		return "", errors.Wrapf(err, "[filepath:%s]!", tempPath)
 	}
 	var builder strings.Builder
 	err = files.Execute(&builder, info)
 	if err != nil {
 		fmt.Println(err.Error())
-		return "", errors.Wrapf(err, "[filpath:%s]生成文件失败!", tempPath)
+		return "", errors.Wrapf(err, "[filpath:%s]!", tempPath)
 	}
 	return builder.String(), nil
 }
@@ -368,9 +369,9 @@ func (s *autoCodeTemplate) addTemplateToAst(t string, info request.AutoFunc) err
 	if info.IsAuth {
 		for i := 0; i < len(funcDecl.Body.List); i++ {
 			st := funcDecl.Body.List[i]
-			// 使用类型断言来检查stmt是否是一个块语句
+			// stmt
 			if blockStmt, ok := st.(*ast.BlockStmt); ok {
-				// 如果是，插入代码 跳出
+				// ，
 				blockStmt.List = append(blockStmt.List, stmtNode)
 				break
 			}
@@ -378,16 +379,16 @@ func (s *autoCodeTemplate) addTemplateToAst(t string, info request.AutoFunc) err
 	} else {
 		for i := len(funcDecl.Body.List) - 1; i >= 0; i-- {
 			st := funcDecl.Body.List[i]
-			// 使用类型断言来检查stmt是否是一个块语句
+			// stmt
 			if blockStmt, ok := st.(*ast.BlockStmt); ok {
-				// 如果是，插入代码 跳出
+				// ，
 				blockStmt.List = append(blockStmt.List, stmtNode)
 				break
 			}
 		}
 	}
 
-	// 创建一个新的文件
+	//
 	f, err := os.Create(tPath)
 	if err != nil {
 		return err
@@ -435,17 +436,17 @@ func (s *autoCodeTemplate) addTemplateToFile(t string, info request.AutoFunc) er
 		}
 	}
 
-	// 打开文件，如果不存在则返回错误
+	// ，
 	file, err := os.OpenFile(target, os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 
-	// 写入内容
+	//
 	_, err = fmt.Fprintln(file, getTemplateStr)
 	if err != nil {
-		fmt.Printf("写入文件失败: %s\n", err.Error())
+		fmt.Printf(": %s\n", err.Error())
 		return err
 	}
 

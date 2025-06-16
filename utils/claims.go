@@ -14,7 +14,7 @@ import (
 )
 
 func ClearToken(c *gin.Context) {
-	// 增加cookie x-token 向来源的web添加
+	// cookie x-token web
 	host, _, err := net.SplitHostPort(c.Request.Host)
 	if err != nil {
 		host = c.Request.Host
@@ -28,7 +28,7 @@ func ClearToken(c *gin.Context) {
 }
 
 func SetToken(c *gin.Context, token string, maxAge int) {
-	// 增加cookie x-token 向来源的web添加
+	// cookie x-token web
 	host, _, err := net.SplitHostPort(c.Request.Host)
 	if err != nil {
 		host = c.Request.Host
@@ -48,7 +48,7 @@ func GetToken(c *gin.Context) string {
 		token, _ = c.Cookie("x-token")
 		claims, err := j.ParseToken(token)
 		if err != nil {
-			global.GVA_LOG.Error("重新写入cookie token失败,未能成功解析token,请检查请求头是否存在x-token且claims是否为规定结构")
+			global.GVA_LOG.Error("cookie token,token,x-tokenclaims")
 			return token
 		}
 		SetToken(c, token, int((claims.ExpiresAt.Unix()-time.Now().Unix())/60))
@@ -61,7 +61,7 @@ func GetClaims(c *gin.Context) (*systemReq.CustomClaims, error) {
 	j := NewJWT()
 	claims, err := j.ParseToken(token)
 	if err != nil {
-		global.GVA_LOG.Error("从Gin的Context中获取从jwt解析信息失败, 请检查请求头是否存在x-token且claims是否为规定结构")
+		global.GVA_LOG.Error("GinContextjwt, x-tokenclaims")
 	}
 	return claims, err
 }
@@ -75,7 +75,7 @@ func GetRedisClaims(c *gin.Context) (*systemReq.CustomClaims, error) {
 		return claims, errors.New("token fail")
 	}
 
-	// 直接使用 claims.Username 作为 Redis key
+	//  claims.Username  Redis key
 	key, _ := global.GVA_REDIS.Get(c, claims.Username).Result()
 	if key == "" {
 		fmt.Println("Redis key is empty or nil")
@@ -95,7 +95,7 @@ func GetRedisClaims(c *gin.Context) (*systemReq.CustomClaims, error) {
 	return claims, err
 }
 
-// GetUserID 从Gin的Context中获取从jwt解析出来的用户ID
+// GetUserID GinContextjwtID
 func GetUserID(c *gin.Context) uint {
 	if claims, exists := c.Get("claims"); !exists {
 		if cl, err := GetClaims(c); err != nil {
@@ -109,7 +109,7 @@ func GetUserID(c *gin.Context) uint {
 	}
 }
 
-// GetUserID 从Gin的Context中获取从jwt解析出来的用户ID
+// GetUserID GinContextjwtID
 func GetRedisUserID(c *gin.Context) uint {
 	cl, err := GetRedisClaims(c)
 	if err != nil {
@@ -118,7 +118,7 @@ func GetRedisUserID(c *gin.Context) uint {
 	return cl.BaseClaims.ID
 }
 
-// GetUserUuid 从Gin的Context中获取从jwt解析出来的用户UUID
+// GetUserUuid GinContextjwtUUID
 func GetUserUuid(c *gin.Context) uuid.UUID {
 	if claims, exists := c.Get("claims"); !exists {
 		if cl, err := GetClaims(c); err != nil {
@@ -132,7 +132,7 @@ func GetUserUuid(c *gin.Context) uuid.UUID {
 	}
 }
 
-// GetUserAuthorityId 从Gin的Context中获取从jwt解析出来的用户角色id
+// GetUserAuthorityId GinContextjwtid
 func GetUserAuthorityId(c *gin.Context) uint {
 	if claims, exists := c.Get("claims"); !exists {
 		if cl, err := GetClaims(c); err != nil {
@@ -146,7 +146,7 @@ func GetUserAuthorityId(c *gin.Context) uint {
 	}
 }
 
-// GetUserInfo 从Gin的Context中获取从jwt解析出来的用户角色id
+// GetUserInfo GinContextjwtid
 func GetUserInfo(c *gin.Context) *systemReq.CustomClaims {
 	if claims, exists := c.Get("claims"); !exists {
 		if cl, err := GetClaims(c); err != nil {
@@ -160,7 +160,7 @@ func GetUserInfo(c *gin.Context) *systemReq.CustomClaims {
 	}
 }
 
-// GetUserName 从Gin的Context中获取从jwt解析出来的用户名
+// GetUserName GinContextjwt
 func GetUserName(c *gin.Context) string {
 	if claims, exists := c.Get("claims"); !exists {
 		if cl, err := GetClaims(c); err != nil {

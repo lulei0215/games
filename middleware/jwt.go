@@ -15,25 +15,25 @@ import (
 
 func JWTAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 我们这里jwt鉴权取头部信息 x-token 登录时回返回token信息 这里前端需要把token存储到cookie或者本地localStorage中 不过需要跟后端协商过期时间 可以约定刷新令牌或者重新登录
+		// jwt x-token token tokencookielocalStorage
 		token := utils.GetToken(c)
 		if token == "" {
-			response.NoAuth("未登录或非法访问", c)
+			response.NoAuth("", c)
 			c.Abort()
 			return
 		}
 		if isBlacklist(token) {
-			response.NoAuth("您的帐户异地登陆或令牌失效", c)
+			response.NoAuth("", c)
 			utils.ClearToken(c)
 			c.Abort()
 			return
 		}
 		j := utils.NewJWT()
-		// parseToken 解析token包含的信息
+		// parseToken token
 		claims, err := j.ParseToken(token)
 		if err != nil {
 			if errors.Is(err, utils.TokenExpired) {
-				response.NoAuth("授权已过期", c)
+				response.NoAuth("", c)
 				utils.ClearToken(c)
 				c.Abort()
 				return
@@ -44,8 +44,8 @@ func JWTAuth() gin.HandlerFunc {
 			return
 		}
 
-		// 已登录用户被管理员禁用 需要使该用户的jwt失效 此处比较消耗性能 如果需要 请自行打开
-		// 用户被删除的逻辑 需要优化 此处比较消耗性能 如果需要 请自行打开
+		//  jwt
+		//
 
 		//if user, err := userService.FindUserByUuid(claims.UUID.String()); err != nil || user.Enable == 2 {
 		//	_ = jwtService.JsonInBlacklist(system.JwtBlacklist{Jwt: token})
@@ -62,7 +62,7 @@ func JWTAuth() gin.HandlerFunc {
 			c.Header("new-expires-at", strconv.FormatInt(newClaims.ExpiresAt.Unix(), 10))
 			utils.SetToken(c, newToken, int(dr.Seconds()))
 			if global.GVA_CONFIG.System.UseMultipoint {
-				// 记录新的活跃jwt
+				// jwt
 				_ = utils.SetRedisJWT(newToken, newClaims.Username)
 			}
 		}
@@ -79,7 +79,7 @@ func JWTAuth() gin.HandlerFunc {
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: IsBlacklist
-//@description: 判断JWT是否在黑名单内部
+//@description: JWT
 //@param: jwt string
 //@return: bool
 

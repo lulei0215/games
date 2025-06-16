@@ -9,7 +9,6 @@ import (
 	"strings"
 )
 
-// 解压
 func Unzip(zipFile string, destDir string) ([]string, error) {
 	zipReader, err := zip.OpenReader(zipFile)
 	var paths []string
@@ -20,7 +19,7 @@ func Unzip(zipFile string, destDir string) ([]string, error) {
 
 	for _, f := range zipReader.File {
 		if strings.Contains(f.Name, "..") {
-			return []string{}, fmt.Errorf("%s 文件名不合法", f.Name)
+			return []string{}, fmt.Errorf("%s ", f.Name)
 		}
 		fpath := filepath.Join(destDir, f.Name)
 		paths = append(paths, fpath)

@@ -4,6 +4,15 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"go/parser"
+	"go/printer"
+	"go/token"
+	"io"
+	"mime/multipart"
+	"os"
+	"path/filepath"
+	"strings"
+
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
@@ -13,21 +22,13 @@ import (
 	cp "github.com/otiai10/copy"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"go/parser"
-	"go/printer"
-	"go/token"
-	"io"
-	"mime/multipart"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 var AutoCodePlugin = new(autoCodePlugin)
 
 type autoCodePlugin struct{}
 
-// Install 插件安装
+// Install
 func (s *autoCodePlugin) Install(file *multipart.FileHeader) (web, server int, err error) {
 	const GVAPLUGPINATH = "./gva-plug-temp/"
 	defer os.RemoveAll(GVAPLUGPINATH)
@@ -73,8 +74,8 @@ func (s *autoCodePlugin) Install(file *multipart.FileHeader) (web, server int, e
 		}
 	}
 	if len(serverPlugin) == 0 && len(webPlugin) == 0 {
-		zap.L().Error("非标准插件，请按照文档自动迁移使用")
-		return webIndex, serverIndex, errors.New("非标准插件，请按照文档自动迁移使用")
+		zap.L().Error("，")
+		return webIndex, serverIndex, errors.New("，")
 	}
 
 	if len(serverPlugin) != 0 {
@@ -106,8 +107,8 @@ func installation(path string, formPath string, toPath string) error {
 	var to = filepath.Join(global.GVA_CONFIG.AutoCode.Root, toPath, "plugin")
 	_, err := os.Stat(to + name)
 	if err == nil {
-		zap.L().Error("autoPath 已存在同名插件，请自行手动安装", zap.String("to", to))
-		return errors.New(toPath + "已存在同名插件，请自行手动安装")
+		zap.L().Error("autoPath ，", zap.String("to", to))
+		return errors.New(toPath + "，")
 	}
 	return cp.Copy(form, to, cp.Options{Skip: skipMacSpecialDocument})
 }
@@ -132,28 +133,28 @@ func skipMacSpecialDocument(_ os.FileInfo, src, _ string) (bool, error) {
 
 func (s *autoCodePlugin) PubPlug(plugName string) (zipPath string, err error) {
 	if plugName == "" {
-		return "", errors.New("插件名称不能为空")
+		return "", errors.New("")
 	}
 
-	// 防止路径穿越
+	//
 	plugName = filepath.Clean(plugName)
 
 	webPath := filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Web, "plugin", plugName)
 	serverPath := filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "plugin", plugName)
-	// 创建一个新的zip文件
+	// zip
 
-	// 判断目录是否存在
+	//
 	_, err = os.Stat(webPath)
 	if err != nil {
-		return "", errors.New("web路径不存在")
+		return "", errors.New("web")
 	}
 	_, err = os.Stat(serverPath)
 	if err != nil {
-		return "", errors.New("server路径不存在")
+		return "", errors.New("server")
 	}
 
 	fileName := plugName + ".zip"
-	// 创建一个新的zip文件
+	// zip
 	files, err := archives.FilesFromDisk(context.Background(), nil, map[string]string{
 		webPath:    plugName + "/web/plugin/" + plugName,
 		serverPath: plugName + "/server/plugin/" + plugName,
@@ -170,7 +171,7 @@ func (s *autoCodePlugin) PubPlug(plugName string) (zipPath string, err error) {
 	// (compression is not required; you could use Tar directly)
 	format := archives.CompressedArchive{
 		//Compression: archives.Gz{},
-		Archival:    archives.Zip{},
+		Archival: archives.Zip{},
 	}
 
 	// create the archive

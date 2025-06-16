@@ -2,12 +2,12 @@ import service from '@/utils/request'
 
 {{- if not .OnlyTemplate}}
 // @Tags {{.StructName}}
-// @Summary 创建{{.Description}}
+// @Summary {{.Description}}
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
-// @Param data body model.{{.StructName}} true "创建{{.Description}}"
-// @Success 200 {string} string "{"success":true,"data":{},"msg":"创建成功"}"
+// @Param data body model.{{.StructName}} true "{{.Description}}"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":""}"
 // @Router /{{.Abbreviation}}/create{{.StructName}} [post]
 export const create{{.StructName}} = (data) => {
   return service({
@@ -18,12 +18,12 @@ export const create{{.StructName}} = (data) => {
 }
 
 // @Tags {{.StructName}}
-// @Summary 删除{{.Description}}
+// @Summary {{.Description}}
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
-// @Param data body model.{{.StructName}} true "删除{{.Description}}"
-// @Success 200 {string} string "{"success":true,"data":{},"msg":"删除成功"}"
+// @Param data body model.{{.StructName}} true "{{.Description}}"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":""}"
 // @Router /{{.Abbreviation}}/delete{{.StructName}} [delete]
 export const delete{{.StructName}} = (params) => {
   return service({
@@ -34,12 +34,12 @@ export const delete{{.StructName}} = (params) => {
 }
 
 // @Tags {{.StructName}}
-// @Summary 批量删除{{.Description}}
+// @Summary {{.Description}}
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
-// @Param data body request.IdsReq true "批量删除{{.Description}}"
-// @Success 200 {string} string "{"success":true,"data":{},"msg":"删除成功"}"
+// @Param data body request.IdsReq true "{{.Description}}"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":""}"
 // @Router /{{.Abbreviation}}/delete{{.StructName}} [delete]
 export const delete{{.StructName}}ByIds = (params) => {
   return service({
@@ -50,12 +50,12 @@ export const delete{{.StructName}}ByIds = (params) => {
 }
 
 // @Tags {{.StructName}}
-// @Summary 更新{{.Description}}
+// @Summary {{.Description}}
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
-// @Param data body model.{{.StructName}} true "更新{{.Description}}"
-// @Success 200 {string} string "{"success":true,"data":{},"msg":"更新成功"}"
+// @Param data body model.{{.StructName}} true "{{.Description}}"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":""}"
 // @Router /{{.Abbreviation}}/update{{.StructName}} [put]
 export const update{{.StructName}} = (data) => {
   return service({
@@ -66,12 +66,12 @@ export const update{{.StructName}} = (data) => {
 }
 
 // @Tags {{.StructName}}
-// @Summary 用id查询{{.Description}}
+// @Summary id{{.Description}}
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
-// @Param data query model.{{.StructName}} true "用id查询{{.Description}}"
-// @Success 200 {string} string "{"success":true,"data":{},"msg":"查询成功"}"
+// @Param data query model.{{.StructName}} true "id{{.Description}}"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":""}"
 // @Router /{{.Abbreviation}}/find{{.StructName}} [get]
 export const find{{.StructName}} = (params) => {
   return service({
@@ -82,12 +82,12 @@ export const find{{.StructName}} = (params) => {
 }
 
 // @Tags {{.StructName}}
-// @Summary 分页获取{{.Description}}列表
+// @Summary {{.Description}}
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
-// @Param data query request.PageInfo true "分页获取{{.Description}}列表"
-// @Success 200 {string} string "{"success":true,"data":{},"msg":"获取成功"}"
+// @Param data query request.PageInfo true "{{.Description}}"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":""}"
 // @Router /{{.Abbreviation}}/get{{.StructName}}List [get]
 export const get{{.StructName}}List = (params) => {
   return service({
@@ -99,11 +99,11 @@ export const get{{.StructName}}List = (params) => {
 
 {{- if .HasDataSource}}
 // @Tags {{.StructName}}
-// @Summary 获取数据源
+// @Summary 
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
-// @Success 200 {string} string "{"success":true,"data":{},"msg":"查询成功"}"
+// @Success 200 {string} string "{"success":true,"data":{},"msg":""}"
 // @Router /{{.Abbreviation}}/find{{.StructName}}DataSource [get]
 export const get{{.StructName}}DataSource = () => {
   return service({
@@ -116,11 +116,11 @@ export const get{{.StructName}}DataSource = () => {
 {{- end}}
 
 // @Tags {{.StructName}}
-// @Summary 不需要鉴权的{{.Description}}接口
+// @Summary {{.Description}}
 // @Accept application/json
 // @Produce application/json
-// @Param data query {{.Package}}Req.{{.StructName}}Search true "分页获取{{.Description}}列表"
-// @Success 200 {object} response.Response{data=object,msg=string} "获取成功"
+// @Param data query {{.Package}}Req.{{.StructName}}Search true "{{.Description}}"
+// @Success 200 {object} response.Response{data=object,msg=string} ""
 // @Router /{{.Abbreviation}}/get{{.StructName}}Public [get]
 export const get{{.StructName}}Public = () => {
   return service({

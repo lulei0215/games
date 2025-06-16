@@ -8,13 +8,13 @@ import (
 
 type PluginInitializeV2 struct {
 	Base
-	Type         Type   // 类型
-	Path         string // 文件路径
-	PluginPath   string // 插件路径
-	RelativePath string // 相对路径
-	ImportPath   string // 导包路径
-	StructName   string // 结构体名称
-	PackageName  string // 包名
+	Type         Type   //
+	Path         string //
+	PluginPath   string //
+	RelativePath string //
+	ImportPath   string //
+	StructName   string //
+	PackageName  string //
 }
 
 func (a *PluginInitializeV2) Parse(filename string, writer io.Writer) (file *ast.File, err error) {

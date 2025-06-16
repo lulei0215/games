@@ -1,9 +1,10 @@
 package ast
 
 import (
-	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"path/filepath"
 	"testing"
+
+	"github.com/flipped-aurora/gin-vue-admin/server/global"
 )
 
 func TestPackageEnter_Rollback(t *testing.T) {
@@ -21,7 +22,7 @@ func TestPackageEnter_Rollback(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "测试ExampleApiGroup回滚",
+			name: "ExampleApiGroup",
 			fields: fields{
 				Type:              TypePackageApiEnter,
 				Path:              filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "api", "v1", "enter.go"),
@@ -33,7 +34,7 @@ func TestPackageEnter_Rollback(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "测试ExampleRouterGroup回滚",
+			name: "ExampleRouterGroup",
 			fields: fields{
 				Type:              TypePackageRouterEnter,
 				Path:              filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "router", "enter.go"),
@@ -45,7 +46,7 @@ func TestPackageEnter_Rollback(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "测试ExampleServiceGroup回滚",
+			name: "ExampleServiceGroup",
 			fields: fields{
 				Type:              TypePackageServiceEnter,
 				Path:              filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "service", "enter.go"),
@@ -95,7 +96,7 @@ func TestPackageEnter_Injection(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "测试ExampleApiGroup注入",
+			name: "ExampleApiGroup",
 			fields: fields{
 				Type:              TypePackageApiEnter,
 				Path:              filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "api", "v1", "enter.go"),
@@ -106,7 +107,7 @@ func TestPackageEnter_Injection(t *testing.T) {
 			},
 		},
 		{
-			name: "测试ExampleRouterGroup注入",
+			name: "ExampleRouterGroup",
 			fields: fields{
 				Type:              TypePackageRouterEnter,
 				Path:              filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "router", "enter.go"),
@@ -118,7 +119,7 @@ func TestPackageEnter_Injection(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "测试ExampleServiceGroup注入",
+			name: "ExampleServiceGroup",
 			fields: fields{
 				Type:              TypePackageServiceEnter,
 				Path:              filepath.Join(global.GVA_CONFIG.AutoCode.Root, global.GVA_CONFIG.AutoCode.Server, "service", "enter.go"),

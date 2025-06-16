@@ -2,13 +2,14 @@ package autocode
 
 import (
 	"fmt"
-	systemReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
 	"slices"
 	"strings"
 	"text/template"
+
+	systemReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
 )
 
-// GetTemplateFuncMap 返回模板函数映射，用于在模板中使用
+// GetTemplateFuncMap ，
 func GetTemplateFuncMap() template.FuncMap {
 	return template.FuncMap{
 		"title":                    strings.Title,
@@ -23,9 +24,9 @@ func GetTemplateFuncMap() template.FuncMap {
 	}
 }
 
-// 渲染Model中的字段
+// Model
 func GenerateField(field systemReq.AutoCodeField) string {
-	// 构建gorm标签
+	// gorm
 	gormTag := ``
 
 	if field.FieldIndexType != "" {
@@ -52,7 +53,7 @@ func GenerateField(field systemReq.AutoCodeField) string {
 
 	requireTag := ` binding:"required"` + "`"
 
-	// 根据字段类型构建不同的字段定义
+	//
 	var result string
 	switch field.FieldType {
 	case "enum":
@@ -93,7 +94,7 @@ func GenerateField(field systemReq.AutoCodeField) string {
 		result = result[0:len(result)-1] + requireTag
 	}
 
-	// 添加字段描述
+	//
 	if field.FieldDesc != "" {
 		result += fmt.Sprintf("  //%s", field.FieldDesc)
 	}
@@ -101,7 +102,6 @@ func GenerateField(field systemReq.AutoCodeField) string {
 	return result
 }
 
-// 格式化搜索条件语句
 func GenerateSearchConditions(fields []*systemReq.AutoCodeField) string {
 	var conditions []string
 
@@ -130,7 +130,7 @@ func GenerateSearchConditions(fields []*systemReq.AutoCodeField) string {
 			} else {
 				condition = fmt.Sprintf(`
     if info.%s != "" {
-        // 数据类型为复杂类型，请根据业务需求自行实现复杂类型的查询业务
+        // ，
     }`, field.FieldName)
 			}
 
@@ -178,19 +178,18 @@ func GenerateSearchConditions(fields []*systemReq.AutoCodeField) string {
 	return strings.Join(conditions, "")
 }
 
-// 格式化前端搜索条件
 func GenerateSearchFormItem(field systemReq.AutoCodeField) string {
-	// 开始构建表单项
+	//
 	result := fmt.Sprintf(`<el-form-item label="%s" prop="%s">
 `, field.FieldDesc, field.FieldJson)
 
-	// 根据字段属性生成不同的输入类型
+	//
 	if field.FieldType == "bool" {
-		result += fmt.Sprintf(`  <el-select v-model="searchInfo.%s" clearable placeholder="请选择">
+		result += fmt.Sprintf(`  <el-select v-model="searchInfo.%s" clearable placeholder="">
 `, field.FieldJson)
-		result += `    <el-option key="true" label="是" value="true"></el-option>
+		result += `    <el-option key="true" label="" value="true"></el-option>
 `
-		result += `    <el-option key="false" label="否" value="false"></el-option>
+		result += `    <el-option key="false" label="" value="false"></el-option>
 `
 		result += `  </el-select>
 `
@@ -199,7 +198,7 @@ func GenerateSearchFormItem(field systemReq.AutoCodeField) string {
 		if field.FieldType == "array" {
 			multipleAttr = "multiple "
 		}
-		result += fmt.Sprintf(`  <el-select %sv-model="searchInfo.%s" clearable filterable placeholder="请选择" @clear="()=>{searchInfo.%s=undefined}">
+		result += fmt.Sprintf(`  <el-select %sv-model="searchInfo.%s" clearable filterable placeholder="" @clear="()=>{searchInfo.%s=undefined}">
 `,
 			multipleAttr, field.FieldJson, field.FieldJson)
 		result += fmt.Sprintf(`    <el-option v-for="(item,key) in %sOptions" :key="key" :label="item.label" :value="item.value" />
@@ -212,7 +211,7 @@ func GenerateSearchFormItem(field systemReq.AutoCodeField) string {
 		if field.DataSource.Association == 2 {
 			multipleAttr = "multiple "
 		}
-		result += fmt.Sprintf(`  <el-select %sv-model="searchInfo.%s" filterable placeholder="请选择%s" :clearable="%v">
+		result += fmt.Sprintf(`  <el-select %sv-model="searchInfo.%s" filterable placeholder="%s" :clearable="%v">
 `,
 			multipleAttr, field.FieldJson, field.FieldDesc, field.Clearable)
 		result += fmt.Sprintf(`    <el-option v-for="(item,key) in dataSource.%s" :key="key" :label="item.label" :value="item.value" />
@@ -222,14 +221,14 @@ func GenerateSearchFormItem(field systemReq.AutoCodeField) string {
 `
 	} else if field.FieldType == "float64" || field.FieldType == "int" {
 		if field.FieldSearchType == "BETWEEN" || field.FieldSearchType == "NOT BETWEEN" {
-			result += fmt.Sprintf(`  <el-input class="w-40" v-model.number="searchInfo.start%s" placeholder="最小值" />
+			result += fmt.Sprintf(`  <el-input class="w-40" v-model.number="searchInfo.start%s" placeholder="" />
 `, field.FieldName)
 			result += `  —
 `
-			result += fmt.Sprintf(`  <el-input class="w-40" v-model.number="searchInfo.end%s" placeholder="最大值" />
+			result += fmt.Sprintf(`  <el-input class="w-40" v-model.number="searchInfo.end%s" placeholder="" />
 `, field.FieldName)
 		} else {
-			result += fmt.Sprintf(`  <el-input v-model.number="searchInfo.%s" placeholder="搜索条件" />
+			result += fmt.Sprintf(`  <el-input v-model.number="searchInfo.%s" placeholder="" />
 `, field.FieldJson)
 		}
 	} else if field.FieldType == "time.Time" {
@@ -240,7 +239,7 @@ func GenerateSearchFormItem(field systemReq.AutoCodeField) string {
 `
 			result += fmt.Sprintf(`      %s
 `, field.FieldDesc)
-			result += `      <el-tooltip content="搜索范围是开始日期（包含）至结束日期（不包含）">
+			result += `      <el-tooltip content="（）（）">
 `
 			result += `        <el-icon><QuestionFilled /></el-icon>
 `
@@ -250,16 +249,16 @@ func GenerateSearchFormItem(field systemReq.AutoCodeField) string {
 `
 			result += `  </template>
 `
-			result += fmt.Sprintf(`<el-date-picker class="w-[380px]" v-model="searchInfo.%sRange" type="datetimerange" range-separator="至"  start-placeholder="开始时间" end-placeholder="结束时间"></el-date-picker>`, field.FieldJson)
+			result += fmt.Sprintf(`<el-date-picker class="w-[380px]" v-model="searchInfo.%sRange" type="datetimerange" range-separator=""  start-placeholder="" end-placeholder=""></el-date-picker>`, field.FieldJson)
 		} else {
-			result += fmt.Sprintf(`<el-date-picker v-model="searchInfo.%s" type="datetime" placeholder="搜索条件"></el-date-picker>`, field.FieldJson)
+			result += fmt.Sprintf(`<el-date-picker v-model="searchInfo.%s" type="datetime" placeholder=""></el-date-picker>`, field.FieldJson)
 		}
 	} else {
-		result += fmt.Sprintf(`  <el-input v-model="searchInfo.%s" placeholder="搜索条件" />
+		result += fmt.Sprintf(`  <el-input v-model="searchInfo.%s" placeholder="" />
 `, field.FieldJson)
 	}
 
-	// 关闭表单项
+	//
 	result += `</el-form-item>`
 
 	return result
@@ -390,7 +389,7 @@ func GenerateTableColumn(field systemReq.AutoCodeField) string {
 `, field.FieldDesc, field.FieldJson)
 		result += `   <template #default="scope">
 `
-		result += `      [富文本内容]
+		result += `      []
 `
 		result += `   </template>
 `
@@ -441,17 +440,17 @@ func GenerateTableColumn(field systemReq.AutoCodeField) string {
 }
 
 func GenerateFormItem(field systemReq.AutoCodeField) string {
-	// 开始构建表单项
+	//
 	result := fmt.Sprintf(`<el-form-item label="%s:" prop="%s">
 `, field.FieldDesc, field.FieldJson)
 
-	// 处理不同字段类型
+	//
 	if field.CheckDataSource {
 		multipleAttr := ""
 		if field.DataSource.Association == 2 {
 			multipleAttr = " multiple"
 		}
-		result += fmt.Sprintf(`    <el-select%s v-model="formData.%s" placeholder="请选择%s" filterable style="width:100%%" :clearable="%v">
+		result += fmt.Sprintf(`    <el-select%s v-model="formData.%s" placeholder="%s" filterable style="width:100%%" :clearable="%v">
 `,
 			multipleAttr, field.FieldJson, field.FieldDesc, field.Clearable)
 		result += fmt.Sprintf(`        <el-option v-for="(item,key) in dataSource.%s" :key="key" :label="item.label" :value="item.value" />
@@ -462,13 +461,13 @@ func GenerateFormItem(field systemReq.AutoCodeField) string {
 	} else {
 		switch field.FieldType {
 		case "bool":
-			result += fmt.Sprintf(`    <el-switch v-model="formData.%s" active-color="#13ce66" inactive-color="#ff4949" active-text="是" inactive-text="否" clearable ></el-switch>
+			result += fmt.Sprintf(`    <el-switch v-model="formData.%s" active-color="#13ce66" inactive-color="#ff4949" active-text="" inactive-text="" clearable ></el-switch>
 `,
 				field.FieldJson)
 
 		case "string":
 			if field.DictType != "" {
-				result += fmt.Sprintf(`    <el-select v-model="formData.%s" placeholder="请选择%s" style="width:100%%" filterable :clearable="%v">
+				result += fmt.Sprintf(`    <el-select v-model="formData.%s" placeholder="%s" style="width:100%%" filterable :clearable="%v">
 `,
 					field.FieldJson, field.FieldDesc, field.Clearable)
 				result += fmt.Sprintf(`        <el-option v-for="(item,key) in %sOptions" :key="key" :label="item.label" :value="item.value" />
@@ -477,7 +476,7 @@ func GenerateFormItem(field systemReq.AutoCodeField) string {
 				result += `    </el-select>
 `
 			} else {
-				result += fmt.Sprintf(`    <el-input v-model="formData.%s" :clearable="%v" placeholder="请输入%s" />
+				result += fmt.Sprintf(`    <el-input v-model="formData.%s" :clearable="%v" placeholder="%s" />
 `,
 					field.FieldJson, field.Clearable, field.FieldDesc)
 			}
@@ -487,14 +486,14 @@ func GenerateFormItem(field systemReq.AutoCodeField) string {
 `, field.FieldJson)
 
 		case "json":
-			result += fmt.Sprintf(`    // 此字段为json结构，可以前端自行控制展示和数据绑定模式 需绑定json的key为 formData.%s 后端会按照json的类型进行存取
+			result += fmt.Sprintf(`    // json， jsonkey formData.%s json
 `, field.FieldJson)
 			result += fmt.Sprintf(`    {{ formData.%s }}
 `, field.FieldJson)
 
 		case "array":
 			if field.DictType != "" {
-				result += fmt.Sprintf(`    <el-select multiple v-model="formData.%s" placeholder="请选择%s" filterable style="width:100%%" :clearable="%v">
+				result += fmt.Sprintf(`    <el-select multiple v-model="formData.%s" placeholder="%s" filterable style="width:100%%" :clearable="%v">
 `,
 					field.FieldJson, field.FieldDesc, field.Clearable)
 				result += fmt.Sprintf(`        <el-option v-for="(item,key) in %sOptions" :key="key" :label="item.label" :value="item.value" />
@@ -508,12 +507,12 @@ func GenerateFormItem(field systemReq.AutoCodeField) string {
 			}
 
 		case "int":
-			result += fmt.Sprintf(`    <el-input v-model.number="formData.%s" :clearable="%v" placeholder="请输入%s" />
+			result += fmt.Sprintf(`    <el-input v-model.number="formData.%s" :clearable="%v" placeholder="%s" />
 `,
 				field.FieldJson, field.Clearable, field.FieldDesc)
 
 		case "time.Time":
-			result += fmt.Sprintf(`    <el-date-picker v-model="formData.%s" type="date" style="width:100%%" placeholder="选择日期" :clearable="%v" />
+			result += fmt.Sprintf(`    <el-date-picker v-model="formData.%s" type="date" style="width:100%%" placeholder="" :clearable="%v" />
 `,
 				field.FieldJson, field.Clearable)
 
@@ -523,7 +522,7 @@ func GenerateFormItem(field systemReq.AutoCodeField) string {
 				field.FieldJson, field.Clearable)
 
 		case "enum":
-			result += fmt.Sprintf(`    <el-select v-model="formData.%s" placeholder="请选择%s" style="width:100%%" filterable :clearable="%v">
+			result += fmt.Sprintf(`    <el-select v-model="formData.%s" placeholder="%s" style="width:100%%" filterable :clearable="%v">
 `,
 				field.FieldJson, field.FieldDesc, field.Clearable)
 			result += fmt.Sprintf(`       <el-option v-for="item in [%s]" :key="item" :label="item" :value="item" />
@@ -560,14 +559,14 @@ func GenerateFormItem(field systemReq.AutoCodeField) string {
 		}
 	}
 
-	// 关闭表单项
+	//
 	result += `</el-form-item>`
 
 	return result
 }
 
 func GenerateDescriptionItem(field systemReq.AutoCodeField) string {
-	// 开始构建描述项
+	//
 	result := fmt.Sprintf(`<el-descriptions-item label="%s">
 `, field.FieldDesc)
 
@@ -626,14 +625,14 @@ func GenerateDescriptionItem(field systemReq.AutoCodeField) string {
 		}
 	}
 
-	// 关闭描述项
+	//
 	result += `</el-descriptions-item>`
 
 	return result
 }
 
 func GenerateDefaultFormValue(field systemReq.AutoCodeField) string {
-	// 根据字段类型确定默认值
+	//
 	var defaultValue string
 
 	switch field.FieldType {
@@ -642,7 +641,7 @@ func GenerateDefaultFormValue(field systemReq.AutoCodeField) string {
 	case "string", "richtext":
 		defaultValue = "''"
 	case "int":
-		if field.DataSource != nil { // 检查数据源是否存在
+		if field.DataSource != nil { //
 			defaultValue = "undefined"
 		} else {
 			defaultValue = "0"
@@ -661,21 +660,21 @@ func GenerateDefaultFormValue(field systemReq.AutoCodeField) string {
 		defaultValue = "null"
 	}
 
-	// 返回格式化后的默认值字符串
+	//
 	return fmt.Sprintf(`%s: %s,`, field.FieldJson, defaultValue)
 }
 
-// GenerateSearchField 根据字段属性生成搜索结构体中的字段定义
+// GenerateSearchField
 func GenerateSearchField(field systemReq.AutoCodeField) string {
 	var result string
 
 	if field.FieldSearchType == "" {
-		return "" // 如果没有搜索类型，返回空字符串
+		return "" // ，
 	}
 
 	if field.FieldSearchType == "BETWEEN" || field.FieldSearchType == "NOT BETWEEN" {
-		// 生成范围搜索字段
-		// time 的情况
+		//
+		// time
 		if field.FieldType == "time.Time" {
 			result = fmt.Sprintf("%sRange  []time.Time  `json:\"%sRange\" form:\"%sRange[]\"`",
 				field.FieldName, field.FieldJson, field.FieldJson)
@@ -687,7 +686,7 @@ func GenerateSearchField(field systemReq.AutoCodeField) string {
 			result = startField + "\n" + endField
 		}
 	} else {
-		// 生成普通搜索字段
+		//
 		if field.FieldType == "enum" || field.FieldType == "picture" ||
 			field.FieldType == "pictures" || field.FieldType == "video" ||
 			field.FieldType == "json" || field.FieldType == "richtext" || field.FieldType == "array" {

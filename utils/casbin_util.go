@@ -15,12 +15,12 @@ var (
 	once                 sync.Once
 )
 
-// GetCasbin 获取casbin实例
+// GetCasbin casbin
 func GetCasbin() *casbin.SyncedCachedEnforcer {
 	once.Do(func() {
 		a, err := gormadapter.NewAdapterByDB(global.GVA_DB)
 		if err != nil {
-			zap.L().Error("适配数据库失败请检查casbin表是否为InnoDB引擎!", zap.Error(err))
+			zap.L().Error("casbinInnoDB!", zap.Error(err))
 			return
 		}
 		text := `
@@ -41,7 +41,7 @@ func GetCasbin() *casbin.SyncedCachedEnforcer {
 		`
 		m, err := model.NewModelFromString(text)
 		if err != nil {
-			zap.L().Error("字符串加载模型失败!", zap.Error(err))
+			zap.L().Error("!", zap.Error(err))
 			return
 		}
 		syncedCachedEnforcer, _ = casbin.NewSyncedCachedEnforcer(m, a)

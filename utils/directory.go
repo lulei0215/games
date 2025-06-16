@@ -13,7 +13,7 @@ import (
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: PathExists
-//@description: 文件目录是否存在
+//@description:
 //@param: path string
 //@return: bool, error
 
@@ -23,7 +23,7 @@ func PathExists(path string) (bool, error) {
 		if fi.IsDir() {
 			return true, nil
 		}
-		return false, errors.New("存在同名文件")
+		return false, errors.New("")
 	}
 	if os.IsNotExist(err) {
 		return false, nil
@@ -33,7 +33,7 @@ func PathExists(path string) (bool, error) {
 
 //@author: [piexlmax](https://github.com/piexlmax)
 //@function: CreateDir
-//@description: 批量创建文件夹
+//@description:
 //@param: dirs ...string
 //@return: err error
 
@@ -56,8 +56,8 @@ func CreateDir(dirs ...string) (err error) {
 
 //@author: [songzhibin97](https://github.com/songzhibin97)
 //@function: FileMove
-//@description: 文件移动供外部调用
-//@param: src string, dst string(src: 源位置,绝对路径or相对路径, dst: 目标位置,绝对路径or相对路径,必须为文件夹)
+//@description:
+//@param: src string, dst string(src: ,or, dst: ,or,)
 //@return: err error
 
 func FileMove(src string, dst string) (err error) {
@@ -95,8 +95,8 @@ func DeLFile(filePath string) error {
 
 //@author: [songzhibin97](https://github.com/songzhibin97)
 //@function: TrimSpace
-//@description: 去除结构体空格
-//@param: target interface (target: 目标结构体,传入必须是指针类型)
+//@description:
+//@param: target interface (target: ,)
 //@return: null
 
 func TrimSpace(target interface{}) {
@@ -114,7 +114,7 @@ func TrimSpace(target interface{}) {
 	}
 }
 
-// FileExist 判断文件是否存在
+// FileExist
 func FileExist(path string) bool {
 	fi, err := os.Lstat(path)
 	if err == nil {

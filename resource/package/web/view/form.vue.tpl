@@ -1,29 +1,29 @@
 {{- if .IsAdd }}
-// 新增表单中增加如下代码
+// 
 {{- range .Fields}}
      {{- if .Form}}
         {{ GenerateFormItem . }}
      {{- end }}
 {{- end }}
 
-// 字典增加如下代码
+// 
     {{- range $index, $element := .DictTypes}}
 const {{ $element }}Options = ref([])
     {{- end }}
 
-// init方法中增加如下调用
+// init
 
 {{- range $index, $element := .DictTypes }}
     {{ $element }}Options.value = await getDictFunc('{{$element}}')
 {{- end }}
 
-// 基础formData结构增加如下字段
+// formData
 {{- range .Fields}}
           {{- if .Form}}
             {{ GenerateDefaultFormValue . }}
           {{- end }}
         {{- end }}
-// 验证规则中增加如下字段
+// 
 
 {{- range .Fields }}
         {{- if .Form }}
@@ -36,7 +36,7 @@ const {{ $element }}Options = ref([])
                {{- if eq .FieldType "string" }}
 {
     whitespace: true,
-    message: '不能只输入空格',
+    message: '',
     trigger: ['input', 'blur'],
 }
               {{- end }}
@@ -46,10 +46,10 @@ const {{ $element }}Options = ref([])
     {{- end }}
 
 {{- if .HasDataSource }}
-// 请引用
+// 
 get{{.StructName}}DataSource,
 
-//  获取数据源
+//  
 const dataSource = ref([])
 const getDataSourceFunc = async()=>{
   const res = await get{{.StructName}}DataSource()
@@ -66,7 +66,7 @@ getDataSourceFunc()
     <div class="gva-form-box">
       <el-form :model="formData" ref="elFormRef" label-position="right" :rules="rule" label-width="80px">
         {{- if .IsTree }}
-          <el-form-item label="父节点:" prop="parentID" >
+          <el-form-item label=":" prop="parentID" >
               <el-tree-select
                   v-model="formData.parentID"
                   :data="[rootNode,...tableData]"
@@ -75,7 +75,7 @@ getDataSourceFunc()
                   :props="defaultProps"
                   clearable
                   style="width: 240px"
-                  placeholder="根节点"
+                  placeholder=""
               />
           </el-form-item>
         {{- end }}
@@ -85,8 +85,8 @@ getDataSourceFunc()
       {{- end }}
       {{- end }}
         <el-form-item>
-          <el-button :loading="btnLoading" type="primary" @click="save">保存</el-button>
-          <el-button type="primary" @click="back">返回</el-button>
+          <el-button :loading="btnLoading" type="primary" @click="save"></el-button>
+          <el-button type="primary" @click="back"></el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -110,28 +110,28 @@ defineOptions({
     name: '{{.StructName}}Form'
 })
 
-// 自动获取字典
+// 
 import { getDictFunc } from '@/utils/format'
 import { useRoute, useRouter } from "vue-router"
 import { ElMessage } from 'element-plus'
 import { ref, reactive } from 'vue'
 {{- if .HasPic }}
-// 图片选择组件
+// 
 import SelectImage from '@/components/selectImage/selectImage.vue'
 {{- end }}
 
 {{- if .HasFile }}
-// 文件选择组件
+// 
 import SelectFile from '@/components/selectFile/selectFile.vue'
 {{- end }}
 
 {{- if .HasRichText }}
-// 富文本组件
+// 
 import RichEdit from '@/components/richtext/rich-edit.vue'
 {{- end }}
 
 {{- if .HasArray}}
-// 数组控制组件
+// 
 import ArrayCtrl from '@/components/arrayCtrl/arrayCtrl.vue'
 {{- end }}
 
@@ -150,7 +150,7 @@ const defaultProps = {
 
 const rootNode = {
   {{ .PrimaryField.FieldJson }}: 0,
-  {{ .TreeJson }}: '根节点',
+  {{ .TreeJson }}: '',
   children: []
 }
 
@@ -165,7 +165,7 @@ getTableData()
 
 {{- end }}
 
-// 提交按钮loading
+// loading
 const btnLoading = ref(false)
 
 const type = ref('')
@@ -182,7 +182,7 @@ const formData = ref({
           {{- end }}
         {{- end }}
         })
-// 验证规则
+// 
 const rule = reactive({
     {{- range .Fields }}
             {{- if eq .Require true }}
@@ -208,9 +208,9 @@ const elFormRef = ref()
   getDataSourceFunc()
 {{- end }}
 
-// 初始化方法
+// 
 const init = async () => {
- // 建议通过url传参获取目标数据ID 调用 find方法进行查询数据操作 从而决定本页面是create还是update 以下为id作为url参数示例
+ // urlID  find createupdate idurl
     if (route.query.id) {
       const res = await find{{.StructName}}({ ID: route.query.id })
       if (res.code === 0) {
@@ -226,7 +226,7 @@ const init = async () => {
 }
 
 init()
-// 保存按钮
+// 
 const save = async() => {
       btnLoading.value = true
       elFormRef.value?.validate( async (valid) => {
@@ -247,13 +247,13 @@ const save = async() => {
            if (res.code === 0) {
              ElMessage({
                type: 'success',
-               message: '创建/更改成功'
+               message: '/'
              })
            }
        })
 }
 
-// 返回按钮
+// 
 const back = () => {
     router.go(-1)
 }
