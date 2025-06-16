@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"errors"
+	"fmt"
 	"net"
 	"time"
 
@@ -63,6 +65,35 @@ func GetClaims(c *gin.Context) (*systemReq.CustomClaims, error) {
 	}
 	return claims, err
 }
+func GetRedisClaims(c *gin.Context) (*systemReq.CustomClaims, error) {
+	token := GetToken(c)
+
+	j := NewJWT()
+	claims, err := j.ParseToken(token)
+	if err != nil {
+		global.GVA_LOG.Error("fail")
+		return claims, errors.New("token fail")
+	}
+
+	// 直接使用 claims.Username 作为 Redis key
+	key, _ := global.GVA_REDIS.Get(c, claims.Username).Result()
+	if key == "" {
+		fmt.Println("Redis key is empty or nil")
+		global.GVA_LOG.Error("redis key is empty or nil")
+		return claims, errors.New("redis key is empty or nil")
+	}
+	if token != key {
+		fmt.Println("guoqi")
+		global.GVA_LOG.Error("guoqi")
+		return claims, errors.New("guoqi")
+	}
+	fmt.Printf("Username: %v\n", claims.Username)
+	fmt.Printf("Token: %v\n", token)
+	fmt.Printf("key: %v\n", key)
+	fmt.Println("claims::", claims)
+	fmt.Println("err::", err)
+	return claims, err
+}
 
 // GetUserID 从Gin的Context中获取从jwt解析出来的用户ID
 func GetUserID(c *gin.Context) uint {
@@ -76,6 +107,15 @@ func GetUserID(c *gin.Context) uint {
 		waitUse := claims.(*systemReq.CustomClaims)
 		return waitUse.BaseClaims.ID
 	}
+}
+
+// GetUserID 从Gin的Context中获取从jwt解析出来的用户ID
+func GetRedisUserID(c *gin.Context) uint {
+	cl, err := GetRedisClaims(c)
+	if err != nil {
+		return 0
+	}
+	return cl.BaseClaims.ID
 }
 
 // GetUserUuid 从Gin的Context中获取从jwt解析出来的用户UUID

@@ -350,3 +350,26 @@ func (userService *UserService) ChangeWithdrawPassword(u *system.SysUser, newPas
 	return &user, err
 
 }
+func (userService *UserService) ApiRegister(u system.SysUser) (userInter system.SysUser, err error) {
+	var user system.SysUser
+	if !errors.Is(global.GVA_DB.Where("username = ?", u.Username).First(&user).Error, gorm.ErrRecordNotFound) { // 判断用户名是否注册
+		return userInter, errors.New("用户名已注册")
+	}
+	// 否则 附加uuid 密码hash加密 注册
+	u.Password = utils.BcryptHash(u.Password)
+	u.UUID = uuid.New()
+	err = global.GVA_DB.Create(&u).Error
+	return u, err
+}
+func (userService *UserService) BindEmail(ID uint, email string) (err error) {
+	fmt.Println("BindEmail", ID, email)
+	err = global.GVA_DB.Model(&system.SysUser{}).Where("id = ?", ID).Update("email", email).Error
+	return err
+}
+func (userService *UserService) CheckEmail(email string) (err error) {
+	var user system.SysUser
+	if !errors.Is(global.GVA_DB.Where("email = ?", email).First(&user).Error, gorm.ErrRecordNotFound) { // 判断用户名是否注册
+		return errors.New("email chongfu")
+	}
+	return nil
+}

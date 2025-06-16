@@ -2,6 +2,7 @@ package system
 
 import (
 	"fmt"
+	"math/rand"
 	"strconv"
 	"time"
 
@@ -15,6 +16,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"gopkg.in/gomail.v2"
 )
 
 // Login
@@ -109,7 +111,7 @@ func (b *BaseApi) TokenNext(c *gin.Context, user system.SysUser) {
 		User:      user,
 		Token:     token,
 		ExpiresAt: claims.RegisteredClaims.ExpiresAt.Unix() * 1000,
-	}, "登录成功", c)
+	}, "ok", c)
 }
 
 // Register
@@ -537,7 +539,6 @@ func (b *BaseApi) ApiLogin(c *gin.Context) {
 	user, err := userService.ApiLogin(u)
 	if err != nil {
 		global.GVA_LOG.Error("登陆失败! 用户名不存在或者密码错误!", zap.Error(err))
-		// 验证码次数+1
 		global.BlackCache.Increment(key, 1)
 		response.FailWithMessage("用户名不存在或者密码错误", c)
 		return
@@ -548,10 +549,40 @@ func (b *BaseApi) ApiLogin(c *gin.Context) {
 		response.FailWithMessage("用户被禁止登录", c)
 		return
 	}
-	b.TokenNext(c, *user)
+	b.ApiTokenNext(c, *user)
 	return
 }
 
+// TokenNext 登录以后签发jwt
+func (b *BaseApi) ApiTokenNext(c *gin.Context, user system.SysUser) {
+	j := &utils.JWT{SigningKey: []byte(global.GVA_CONFIG.JWT.SigningKey)}
+	claims := j.CreateClaims(systemReq.BaseClaims{
+		UUID:     user.UUID,
+		ID:       uint(user.ID),
+		NickName: user.NickName,
+		Username: user.Username,
+	})
+	token, err := j.CreateToken(claims)
+	if err != nil {
+		global.GVA_LOG.Error("get token error!", zap.Error(err))
+		response.FailWithMessage("get token error", c)
+		return
+	}
+
+	// 存储新的token
+	if err := utils.SetRedisJWT(token, user.Username); err != nil {
+		global.GVA_LOG.Error("set fail!", zap.Error(err))
+		response.FailWithMessage("set fail", c)
+		return
+	}
+
+	utils.SetToken(c, token, int(claims.RegisteredClaims.ExpiresAt.Unix()-time.Now().Unix()))
+	response.OkWithDetailed(systemRes.LoginResponse{
+		User:      user,
+		Token:     token,
+		ExpiresAt: claims.RegisteredClaims.ExpiresAt.Unix() * 1000,
+	}, "ok", c)
+}
 func (b *BaseApi) ApiRegister(c *gin.Context) {
 	var r systemReq.Register
 	err := c.ShouldBindJSON(&r)
@@ -576,11 +607,119 @@ func (b *BaseApi) ApiRegister(c *gin.Context) {
 	r.Enable = 1
 
 	user := &system.SysUser{Username: r.Username, NickName: r.NickName, Password: r.Password, HeaderImg: r.HeaderImg, AuthorityId: r.AuthorityId, Authorities: authorities, Enable: r.Enable, Phone: r.Phone, Email: r.Email}
-	userReturn, err := userService.Register(*user)
+	userReturn, err := userService.ApiRegister(*user)
 	if err != nil {
 		global.GVA_LOG.Error("注册失败!", zap.Error(err))
 		response.FailWithDetailed(systemRes.SysUserResponse{User: userReturn}, "注册失败", c)
 		return
 	}
 	response.OkWithDetailed(systemRes.SysUserResponse{User: userReturn}, "注册成功", c)
+}
+
+func GenerateVerificationCode() string {
+	const charset = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	const length = 4
+
+	rand.Seed(time.Now().UnixNano())
+
+	code := make([]byte, length)
+	for i := range code {
+		code[i] = charset[rand.Intn(len(charset))]
+	}
+
+	return string(code)
+}
+func (b *BaseApi) SendCode(c *gin.Context) {
+	uid := utils.GetRedisUserID(c)
+	if uid == 0 {
+		response.Result(401, nil, "", c)
+		return
+	}
+	var r systemReq.SendEmailCodeRequest
+	err := c.ShouldBindJSON(&r)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	err = utils.Verify(r, utils.ApiSendEmailCodeVerify)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	err = userService.CheckEmail(r.Email)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	code := GenerateVerificationCode()
+
+	err = global.GVA_REDIS.Set(c, fmt.Sprintf("email_code_%d:%s", uid, r.Email), code, 5*time.Minute).Err()
+	if err != nil {
+		global.GVA_LOG.Error("save fail !", zap.Error(err))
+		response.FailWithMessage("send fail", c)
+		return
+	}
+
+	err = SendVerificationEmail(r.Email, code)
+	if err != nil {
+		global.GVA_LOG.Error("send fail!", zap.Error(err))
+		response.FailWithMessage("send fail", c)
+		return
+	}
+
+	response.OkWithMessage("send ok", c)
+}
+
+func SendVerificationEmail(email, code string) error {
+	m := gomail.NewMessage()
+	m.SetHeader("From", "lul0215@163.com")
+	m.SetHeader("To", email)
+	m.SetHeader("Subject", "verification code")
+	m.SetBody("text/plain", fmt.Sprintf("Your verification code is: %s, valid for 5 minutes.", code))
+
+	d := gomail.NewDialer("smtp.163.com", 465, "lul0215@163.com", "PNgReYFe54tQNej6")
+	d.SSL = true
+
+	if err := d.DialAndSend(m); err != nil {
+		fmt.Printf("send fail: %v\n", err)
+		return err
+	}
+
+	return nil
+}
+func (b *BaseApi) BindeMail(c *gin.Context) {
+	uid := utils.GetRedisUserID(c)
+	if uid == 0 {
+		response.Result(401, nil, "user fail", c)
+		return
+	}
+	var r systemReq.BindEmailRequest
+	err := c.ShouldBindJSON(&r)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	storedCode, err := global.GVA_REDIS.Get(c, fmt.Sprintf("email_code_%d:%s", uid, r.Email)).Result()
+	if err != nil {
+		response.FailWithMessage("code error", c)
+		return
+	}
+
+	if storedCode != r.Code {
+		response.FailWithMessage("code error", c)
+		return
+	}
+
+	global.GVA_REDIS.Del(c, fmt.Sprintf("email_code:%s", r.Email))
+
+	err = userService.BindEmail(uid, r.Email)
+	if err != nil {
+		global.GVA_LOG.Error("bind email fail!", zap.Error(err))
+		response.FailWithDetailed(nil, "", c)
+		return
+	}
+
+	response.OkWithDetailed(nil, "bind email ok", c)
 }

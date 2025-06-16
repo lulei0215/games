@@ -50,6 +50,13 @@ type WithdrawPassword struct {
 type SetUserAuth struct {
 	AuthorityId uint `json:"authorityId"` // 角色ID
 }
+type SendEmailCodeRequest struct {
+	Email string `json:"email" form:"email"` // email
+}
+type BindEmailRequest struct {
+	Email string `json:"email" form:"email"` // email
+	Code  string `json:"code" form:"code"`   // email
+}
 
 // SetUserAuthorities Modify user's auth structure
 type SetUserAuthorities struct {

@@ -29,5 +29,7 @@ func (s *UserRouter) InitUserRouter(Router *gin.RouterGroup, RouterPub *gin.Rout
 		userRouterPub.POST("changeWithdrawPassword", baseApi.ChangeWithdrawPassword) // 重置提现密码
 		userRouterPub.POST("login", baseApi.ApiLogin)                                // 获取自身信息
 		userRouterPub.POST("register", baseApi.ApiRegister)                          // 获取自身信息
+		userRouterPub.POST("sendcode", baseApi.SendCode)                             // 获取自身信息
+		userRouterPub.POST("bindemail", baseApi.BindeMail)                           // 获取自身信息
 	}
 }
