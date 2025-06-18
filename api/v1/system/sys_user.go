@@ -1,18 +1,21 @@
 package system
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
+	apiReq "github.com/flipped-aurora/gin-vue-admin/server/model/api/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
 	systemReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
 	systemRes "github.com/flipped-aurora/gin-vue-admin/server/model/system/response"
+
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -112,6 +115,23 @@ func (b *BaseApi) TokenNext(c *gin.Context, user system.SysUser) {
 		Token:     token,
 		ExpiresAt: claims.RegisteredClaims.ExpiresAt.Unix() * 1000,
 	}, "ok", c)
+
+	users, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", user.ID)).Result()
+	if users == "" {
+		// 将用户数据序列化为JSON
+		userJson, err := json.Marshal(user)
+		if err != nil {
+			global.GVA_LOG.Error("Failed to marshal user data", zap.Error(err))
+		} else {
+			// 保存到Redis，设置过期时间为24小时
+			err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%d", user.ID), string(userJson), 24*time.Hour).Err()
+			if err != nil {
+				global.GVA_LOG.Error("Failed to save user data to Redis", zap.Error(err))
+			}
+		}
+	} else {
+		// 用户数据已存在，可以在这里添加其他处理逻辑
+	}
 }
 
 // Register
@@ -180,7 +200,6 @@ func (b *BaseApi) ChangePassword(c *gin.Context) {
 	response.OkWithMessage("", c)
 }
 func (b *BaseApi) ChangeWithdrawPassword(c *gin.Context) {
-	fmt.Println("ChangeWithdrawPassword")
 
 	var req systemReq.ChangePasswordReq
 	err := c.ShouldBindJSON(&req)
@@ -512,7 +531,6 @@ func (b *BaseApi) ResetWithdrawPassword(c *gin.Context) {
 		return
 	}
 	rps.ID = uid
-	fmt.Println("ResetWithdrawPassword", uid)
 	err = userService.ResetWithdrawPassword(rps.ID, rps.Password)
 	if err != nil {
 		global.GVA_LOG.Error("!", zap.Error(err))
@@ -530,11 +548,7 @@ func (b *BaseApi) ApiLogin(c *gin.Context) {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-	// err = utils.Verify(l, utils.LoginVerify)
-	// if err != nil {
-	// 	response.FailWithMessage(err.Error(), c)
-	// 	return
-	// }
+
 	u := &system.SysUser{Username: l.Username, Password: l.Password}
 	user, err := userService.ApiLogin(u)
 	if err != nil {
@@ -577,6 +591,21 @@ func (b *BaseApi) ApiTokenNext(c *gin.Context, user system.SysUser) {
 	}
 
 	utils.SetToken(c, token, int(claims.RegisteredClaims.ExpiresAt.Unix()-time.Now().Unix()))
+
+	users, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", user.ID)).Result()
+	if users == "" {
+		// 将用户数据序列化为JSON
+		userJson, err := json.Marshal(user)
+		if err != nil {
+			global.GVA_LOG.Error("Failed to marshal user data", zap.Error(err))
+		} else {
+			// 保存到Redis，设置过期时间为24小时
+			err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%d", user.ID), string(userJson), 24*time.Hour).Err()
+			if err != nil {
+				global.GVA_LOG.Error("Failed to save user data to Redis", zap.Error(err))
+			}
+		}
+	}
 	response.OkWithDetailed(systemRes.LoginResponse{
 		User:      user,
 		Token:     token,
@@ -601,17 +630,30 @@ func (b *BaseApi) ApiRegister(c *gin.Context) {
 			AuthorityId: v,
 		})
 	}
-
 	r.AuthorityId = 888
 	r.AuthorityIds = []uint{888}
 	r.Enable = 1
-
 	user := &system.SysUser{Username: r.Username, NickName: r.NickName, Password: r.Password, HeaderImg: r.HeaderImg, AuthorityId: r.AuthorityId, Authorities: authorities, Enable: r.Enable, Phone: r.Phone, Email: r.Email}
 	userReturn, err := userService.ApiRegister(*user)
 	if err != nil {
 		global.GVA_LOG.Error("!", zap.Error(err))
 		response.FailWithDetailed(systemRes.SysUserResponse{User: userReturn}, "", c)
 		return
+	}
+	if r.Uuid != "" {
+		parentUser, err := userService.FindUserByUuid(r.Uuid)
+		if err != nil || parentUser.ID == 0 {
+			response.FailWithMessage("parent_user-1 fail", c)
+			return
+		}
+		userAgentRelation2, err := userAgentRelationService.GetUserAgentRelation(c, fmt.Sprint(parentUser.ID))
+		var userAgentRelation system.UserAgentRelation
+		userAgentRelation.UserId = int(userReturn.ID)
+		userAgentRelation.ParentId1 = int(parentUser.ID)
+		if userAgentRelation2.ParentId1 > 0 {
+			userAgentRelation.ParentId2 = int(userAgentRelation2.ParentId1)
+		}
+		userAgentRelationService.CreateUserAgentRelation(c, &userAgentRelation)
 	}
 	response.OkWithDetailed(systemRes.SysUserResponse{User: userReturn}, "", c)
 }
@@ -721,5 +763,120 @@ func (b *BaseApi) BindeMail(c *gin.Context) {
 		return
 	}
 
-	response.OkWithDetailed(nil, "bind email ok", c)
+	response.OkWithDetailed(nil, "ok", c)
+}
+func (b *BaseApi) Decrypt(c *gin.Context) {
+	type DecryptRequest struct {
+		Data string `json:"data" binding:"required"`
+		IV   string `json:"iv" binding:"required"`
+	}
+
+	var r DecryptRequest
+	if err := c.ShouldBindJSON(&r); err != nil {
+		response.FailWithMessage("Invalid request format: "+err.Error(), c)
+		return
+	}
+
+	jsonData, err := json.MarshalIndent(r, "", "    ")
+	if err != nil {
+		response.FailWithMessage("Failed to process request data", c)
+		return
+	}
+
+	decrypted, err := utils.CBCDecrypt(string(jsonData))
+	if err != nil {
+		global.GVA_LOG.Error("Decryption failed", zap.Error(err))
+		response.FailWithMessage("Decryption failed: "+err.Error(), c)
+		return
+	}
+	response.OkWithDetailed(decrypted, "ok", c)
+}
+func (b *BaseApi) Encrypt(c *gin.Context) {
+	var rawData map[string]interface{}
+	if err := c.ShouldBindJSON(&rawData); err != nil {
+		response.FailWithMessage("Invalid request format: "+err.Error(), c)
+		return
+	}
+
+	jsonBytes, err := json.Marshal(rawData)
+	if err != nil {
+		response.FailWithMessage("Failed to marshal request data: "+err.Error(), c)
+		return
+	}
+	encrypted, err := utils.CBCEncrypt(string(jsonBytes))
+	if err != nil {
+		response.FailWithMessage("Encryption failed: "+err.Error(), c)
+		return
+	}
+
+	response.OkWithDetailed(encrypted, "ok", c)
+}
+func (b *BaseApi) Info(c *gin.Context) {
+
+	uid := utils.GetRedisUserID(c)
+	if uid == 0 {
+		response.Result(401, nil, "", c)
+		return
+	}
+
+	var user system.ApiSysUser
+	redisuser, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", uid)).Result()
+	if redisuser == "" {
+		response.Result(401, nil, "", c)
+		return
+	}
+
+	// 将Redis中的用户数据反序列化为user对象
+	err := json.Unmarshal([]byte(redisuser), &user)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to unmarshal user data", zap.Error(err))
+		response.Result(401, nil, "Failed to get user data", c)
+		return
+	}
+
+	// jiami
+	encrypted, err := utils.CBCEncrypt(user)
+	if err != nil {
+		global.GVA_LOG.Error("Encryption failed", zap.Error(err))
+		response.FailWithMessage("Encryption failed: "+err.Error(), c)
+		return
+	}
+	response.OkWithDetailed(encrypted, "ok", c)
+}
+func (b *BaseApi) RobotList(c *gin.Context) {
+
+	var r apiReq.DecryptRequest
+	if err := c.ShouldBindJSON(&r); err != nil {
+		response.FailWithMessage("Invalid request format: "+err.Error(), c)
+		return
+	}
+	jsonData, err := json.MarshalIndent(r, "", "    ")
+	if err != nil {
+		response.FailWithMessage("Failed to process request data", c)
+		return
+	}
+	decrypted, err := utils.CBCDecrypt(string(jsonData))
+	if err != nil {
+		global.GVA_LOG.Error("Decryption failed", zap.Error(err))
+		response.FailWithMessage("Decryption failed: "+err.Error(), c)
+		return
+	}
+	decryptedStr, ok := decrypted.(string)
+	if !ok {
+		response.FailWithMessage("Decryption result is not a string", c)
+		return
+	}
+	var der apiReq.RobotRequest
+	if err := json.Unmarshal([]byte(decryptedStr), &der); err != nil {
+		response.FailWithMessage("Failed to unmarshal decrypted data: "+err.Error(), c)
+		return
+	}
+	list, _ := userService.GetRobot(der.Limit)
+	res, err := utils.CBCEncrypt(list)
+	if err != nil {
+		global.GVA_LOG.Error("CBCEncrypt failed", zap.Error(err))
+		response.FailWithMessage("CBCEncrypt failed: "+err.Error(), c)
+		return
+	}
+	response.OkWithDetailed(res, "ok", c)
 }

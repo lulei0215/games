@@ -362,7 +362,6 @@ func (userService *UserService) ApiRegister(u system.SysUser) (userInter system.
 	return u, err
 }
 func (userService *UserService) BindEmail(ID uint, email string) (err error) {
-	fmt.Println("BindEmail", ID, email)
 	err = global.GVA_DB.Model(&system.SysUser{}).Where("id = ?", ID).Update("email", email).Error
 	return err
 }
@@ -372,4 +371,56 @@ func (userService *UserService) CheckEmail(email string) (err error) {
 		return errors.New("email chongfu")
 	}
 	return nil
+}
+func (userService *UserService) GetRobot(number int) (users_res []system.ApiSysUser, err error) {
+	var users []system.SysUser
+	err = global.GVA_DB.Where("robot = ?", 1).Limit(number).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	if len(users) == 0 {
+		return nil, fmt.Errorf("no available robots found")
+	}
+	var userIds []uint
+	for _, user := range users {
+		userIds = append(userIds, user.ID)
+	}
+
+	err = global.GVA_DB.Model(&system.SysUser{}).
+		Where("id IN ?", userIds).
+		Update("robot", 2).Error
+	if err != nil {
+		return nil, fmt.Errorf("update robot status failed: %v", err)
+	}
+	for _, user := range users {
+		apiUser := system.ApiSysUser{
+			UUID:             user.UUID,
+			Username:         user.Username,
+			Password:         user.Password,
+			NickName:         user.NickName,
+			HeaderImg:        user.HeaderImg,
+			Phone:            user.Phone,
+			Email:            user.Email,
+			Enable:           user.Enable,
+			WithdrawPassword: user.WithdrawPassword,
+			Balance:          user.Balance,
+			Birthday:         user.Birthday,
+			Facebook:         user.Facebook,
+			Whatsapp:         user.Whatsapp,
+			Telegram:         user.Telegram,
+			Twitter:          user.Twitter,
+			VipLevel:         user.VipLevel,
+			VipExpireTime:    user.VipExpireTime,
+			UserType:         user.UserType,
+			Level:            user.Level,
+		}
+		users_res = append(users_res, apiUser)
+	}
+	return users_res, nil
+}
+
+func (userService *UserService) UserRelation(ID uint, email string) (err error) {
+	fmt.Println("UserRelation", ID, email)
+	err = global.GVA_DB.Model(&system.SysUser{}).Where("id = ?", ID).Update("email", email).Error
+	return err
 }

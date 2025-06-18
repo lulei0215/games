@@ -1,0 +1,218 @@
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 10:59:32.361	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 10:59:32.366	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:00:47.847	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:00:47.848	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:00:47.851	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:00:47.876	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:20:24.355	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:20:24.356	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:20:30.454	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:20:30.457	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:20:30.459	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:20:30.483	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:22:35.584	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:22:35.586	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:22:42.851	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:22:42.852	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:22:42.854	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:22:42.883	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:23:25.181	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:23:25.183	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:23:31.239	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:23:31.239	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:23:31.242	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:23:31.265	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:24:19.566	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:24:19.569	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:24:26.056	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:24:26.058	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:24:26.061	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:24:26.089	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:43:41.630	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:43:41.634	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:43:49.451	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:43:49.452	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:43:49.456	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:43:49.480	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:44:18.011	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:44:18.013	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:44:25.176	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:44:25.177	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:44:25.180	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:44:25.212	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:53:08.152	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:53:08.153	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:53:13.756	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:53:13.757	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:53:13.759	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:53:13.780	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:55:58.542	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:55:58.543	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:56:46.982	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:56:46.983	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:56:46.985	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:56:47.011	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:57:27.939	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:57:27.939	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:57:31.209	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:57:31.210	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:57:31.211	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 11:57:31.234	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:31:47.562	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:31:47.565	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:32:44.830	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:32:44.831	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:32:44.833	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:32:44.856	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:45:36.515	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:45:36.517	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:49:43.013	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:49:43.015	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:49:43.017	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:49:43.046	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:51:27.784	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:51:27.786	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:51:36.083	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:51:36.085	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:51:36.088	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:51:36.115	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:55:46.951	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:55:46.957	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:55:54.571	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:55:54.573	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:55:54.576	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:55:54.607	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:57:50.702	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:57:50.703	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:57:59.832	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:57:59.833	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:57:59.835	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 13:57:59.860	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 14:01:59.029	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 14:01:59.031	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 14:02:07.634	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 14:02:07.635	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 14:02:07.638	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 14:02:07.661	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:31:14.795	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:31:14.797	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:31:24.498	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:31:24.499	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:31:24.501	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:31:24.527	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:36:58.898	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:36:58.898	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:37:05.078	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:37:05.079	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:37:05.081	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:37:05.100	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:37:55.301	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:37:55.303	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:38:02.806	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:38:02.807	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:38:02.809	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:38:02.829	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:39:13.231	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:39:13.232	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:39:19.960	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:39:19.961	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:39:19.964	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:39:19.986	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:40:31.210	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:40:31.210	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:40:39.206	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:40:39.207	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:40:39.210	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:40:39.234	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:42:52.571	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:42:52.573	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:43:00.642	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:43:00.643	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:43:00.645	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:43:00.670	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:44:06.906	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:44:06.908	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:44:12.794	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:44:12.795	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:44:12.797	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:44:12.824	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:45:22.417	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:45:22.418	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:45:27.845	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:45:27.846	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:45:27.848	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:45:27.868	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:46:07.232	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:46:07.232	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:46:12.658	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:46:12.659	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:46:12.661	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:46:12.685	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:47:41.678	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:47:41.679	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:47:47.703	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:47:47.704	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:47:47.707	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:47:47.732	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:48:21.841	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:48:21.842	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:48:28.454	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:48:28.454	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:48:28.457	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:48:28.477	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:49:40.122	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:49:40.122	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:49:46.291	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:49:46.292	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:49:46.294	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:49:46.313	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:51:52.328	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:51:52.328	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:51:58.524	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:51:58.525	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:51:58.527	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:51:58.546	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:53:27.504	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:53:27.507	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:53:33.213	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:53:33.214	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:53:33.217	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:53:33.238	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:54:57.998	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:54:58.000	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:55:11.275	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:55:11.275	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:55:11.277	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:55:11.296	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:57:00.769	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:57:00.770	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:57:07.018	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:57:07.020	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:57:07.022	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:57:07.046	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:57:38.394	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:57:38.395	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:57:44.597	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:57:44.599	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:57:44.601	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:57:44.622	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:58:48.421	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:58:48.424	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:58:54.361	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:58:54.362	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:58:54.363	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 16:58:54.382	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 17:01:35.535	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 17:01:35.536	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 17:01:46.967	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 17:01:46.968	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 17:01:46.970	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 17:01:46.992	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 17:20:58.002	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 17:20:58.005	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 17:22:34.725	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 17:22:34.725	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 17:22:34.729	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 17:22:34.753	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 18:27:40.690	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:48	关闭WEB服务...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-18 18:27:40.692	[34minfo[0m	D:/games/ga/gin-vue-admin-main/server/core/server_run.go:59	WEB服务已关闭

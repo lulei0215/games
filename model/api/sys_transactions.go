@@ -24,3 +24,13 @@ type SysTransactions struct {
 func (SysTransactions) TableName() string {
 	return "sys_transactions"
 }
+
+type LotteryRecord struct {
+	RoundNumber  int       `json:"round_number"`  // 轮次
+	PreviousHash string    `json:"previous_hash"` // 上一轮hash
+	TimeStamp    int64     `json:"timestamp"`     // 开奖时间戳
+	LuckyNumber  int       `json:"lucky_number"`  // 幸运号码
+	SeedString   string    `json:"seed_string"`   // 种子字符串
+	CurrentHash  string    `json:"current_hash"`  // 当前hash
+	CreatedAt    time.Time `json:"created_at"`    // 记录创建时间
+}

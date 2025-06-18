@@ -18,4 +18,6 @@ var (
 	ChangePasswordVerify   = Rules{"Password": {NotEmpty()}, "NewPassword": {NotEmpty()}}
 	SetUserAuthorityVerify = Rules{"AuthorityId": {NotEmpty()}}
 	ApiSendEmailCodeVerify = Rules{"email": {NotEmpty()}}
+	ApiBettingVerify       = Rules{"coin": {NotEmpty(), Gt("0")}}
+	SettleVerify           = Rules{"SessionId": {NotEmpty()}, "Gid": {NotEmpty()}}
 )

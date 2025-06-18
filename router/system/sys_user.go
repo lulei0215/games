@@ -31,5 +31,9 @@ func (s *UserRouter) InitUserRouter(Router *gin.RouterGroup, RouterPub *gin.Rout
 		userRouterPub.POST("register", baseApi.ApiRegister)                          //
 		userRouterPub.POST("sendcode", baseApi.SendCode)                             //
 		userRouterPub.POST("bindemail", baseApi.BindeMail)                           //
+		userRouterPub.POST("decrypt", baseApi.Decrypt)                               //
+		userRouterPub.POST("encrypt", baseApi.Encrypt)                               //
+		userRouterPub.POST("info", baseApi.Info)                                     //
+		userRouterPub.POST("list", baseApi.RobotList)                                //
 	}
 }

@@ -16,6 +16,7 @@ type Register struct {
 	AuthorityIds []uint `json:"authorityIds" swaggertype:"string" example:"[]uint id"`
 	Phone        string `json:"phone" example:""`
 	Email        string `json:"email" example:""`
+	Uuid         string `json:"uuid" example:""`
 }
 
 // Login User login structure
@@ -57,6 +58,10 @@ type BindEmailRequest struct {
 	Email string `json:"email" form:"email"` // email
 	Code  string `json:"code" form:"code"`   // email
 }
+type CryptRequest struct {
+	Data string `json:"data" form:"data"` // email
+	Iv   string `json:"iv" form:"iv"`     // email
+}
 
 // SetUserAuthorities Modify user's auth structure
 type SetUserAuthorities struct {
@@ -82,4 +87,8 @@ type GetUserList struct {
 	NickName string `json:"nickName" form:"nickName"`
 	Phone    string `json:"phone" form:"phone"`
 	Email    string `json:"email" form:"email"`
+}
+
+type Betting struct {
+	Coin uint `json:"coin"`
 }

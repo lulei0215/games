@@ -15,3 +15,8 @@
 [github.com/flipped-aurora/gin-vue-admin/server]2025-06-16 17:23:02.369	[31merror[0m	D:/games/ga/gin-vue-admin-main/server/utils/claims.go:81	redis key is empty or nil
 [github.com/flipped-aurora/gin-vue-admin/server]2025-06-16 17:33:34.792	[31merror[0m	D:/games/ga/gin-vue-admin-main/server/utils/claims.go:74	fail
 [github.com/flipped-aurora/gin-vue-admin/server]2025-06-16 17:35:26.834	[31merror[0m	D:/games/ga/gin-vue-admin-main/server/utils/claims.go:74	fail
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-16 20:16:17.635	[31merror[0m	D:/games/ga/gin-vue-admin-main/server/api/v1/system/sys_user.go:752	Decryption failed	{"error": "invalid input type"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-16 20:18:46.165	[31merror[0m	D:/games/ga/gin-vue-admin-main/server/api/v1/system/sys_user.go:752	Decryption failed	{"error": "invalid input type"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-16 20:24:59.306	[31merror[0m	D:/games/ga/gin-vue-admin-main/server/api/v1/system/sys_user.go:752	Decryption failed	{"error": "unsupported input type: system.DecryptRequest"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-16 20:34:08.648	[31merror[0m	D:/games/ga/gin-vue-admin-main/server/api/v1/system/sys_user.go:752	Decryption failed	{"error": "invalid input type"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-16 21:04:37.266	[31merror[0m	D:/games/ga/gin-vue-admin-main/server/api/v1/system/sys_user.go:752	Decryption failed	{"error": "encoding/hex: odd length hex string"}
