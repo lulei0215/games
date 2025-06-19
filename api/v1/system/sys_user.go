@@ -124,7 +124,7 @@ func (b *BaseApi) TokenNext(c *gin.Context, user system.SysUser) {
 			global.GVA_LOG.Error("Failed to marshal user data", zap.Error(err))
 		} else {
 			// 保存到Redis，设置过期时间为24小时
-			err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%d", user.ID), string(userJson), 24*time.Hour).Err()
+			err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%d", user.ID), string(userJson), 0).Err()
 			if err != nil {
 				global.GVA_LOG.Error("Failed to save user data to Redis", zap.Error(err))
 			}
@@ -594,13 +594,11 @@ func (b *BaseApi) ApiTokenNext(c *gin.Context, user system.SysUser) {
 
 	users, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", user.ID)).Result()
 	if users == "" {
-		// 将用户数据序列化为JSON
 		userJson, err := json.Marshal(user)
 		if err != nil {
 			global.GVA_LOG.Error("Failed to marshal user data", zap.Error(err))
 		} else {
-			// 保存到Redis，设置过期时间为24小时
-			err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%d", user.ID), string(userJson), 24*time.Hour).Err()
+			err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%d", user.ID), string(userJson), 0).Err()
 			if err != nil {
 				global.GVA_LOG.Error("Failed to save user data to Redis", zap.Error(err))
 			}

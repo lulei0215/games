@@ -70,7 +70,6 @@ func (userService *UserService) ApiLogin(u *system.SysUser) (userInter *system.S
 		if ok := utils.BcryptCheck(u.Password, user.Password); !ok {
 			return nil, errors.New("password error")
 		}
-		// MenuServiceApp.UserAuthorityDefaultRouter(&user)
 	}
 	return &user, err
 }

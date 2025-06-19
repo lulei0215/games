@@ -38,3 +38,19 @@ type DecryptRequest struct {
 type RobotRequest struct {
 	Limit int `json:"limit" binding:"required"`
 }
+
+type SettleRecord struct {
+	SessionID string  `json:"session_id" gorm:"column:session_id"`
+	UserCode  string  `json:"usercode" gorm:"column:usercode"`
+	Coin      float64 `json:"coin" gorm:"column:coin"`
+	BetInfo   BetInfo `json:"bet_info" gorm:"column:bet_info"` // 如果需要可定义为 map[string]interface{}
+	Win       float64 `json:"win" gorm:"column:win"`
+	GameType  int     `json:"gametype" gorm:"column:gametype"`
+	Area      string  `json:"area" gorm:"column:area"`
+	Balance   float64 `json:"balance" gorm:"column:balance"`
+}
+type BetInfo struct {
+	Room       int `json:"room"`
+	BetAmount  int `json:"betAmount"`
+	TargetRoom int `json:"targetRoom"`
+}

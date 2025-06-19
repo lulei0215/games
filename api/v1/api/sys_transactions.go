@@ -8,9 +8,9 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/api"
 	apiReq "github.com/flipped-aurora/gin-vue-admin/server/model/api/request"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
-	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -212,81 +212,73 @@ func (sysTransactionsApi *SysTransactionsApi) Get(c *gin.Context) {
 	}, "", c)
 }
 
-func (sysTransactionsApi *SysTransactionsApi) Betting(c *gin.Context) {
-	fmt.Println("Request Headers:")
-	for k, v := range c.Request.Header {
-		fmt.Printf("%s: %v\n", k, v)
-	}
+// jiesuan
+func (sysTransactionsApi *SysTransactionsApi) Settle(c *gin.Context) {
 
-	var r apiReq.Betting
-
-	err := c.ShouldBindJSON(&r)
-	if err != nil {
-		response.FailWithMessage(err.Error(), c)
-		return
-	}
-	err = utils.Verify(r, utils.ApiBettingVerify)
-	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+	var r apiReq.DecryptRequest
+	if err := c.ShouldBindJSON(&r); err != nil {
+		response.FailWithMessage("Invalid request format: "+err.Error(), c)
 		return
 	}
 
-	uid := utils.GetRedisUserID(c)
-	if uid == 0 {
-		response.Result(401, nil, "", c)
-		return
-	}
-	var user system.SysUser
-	redisuser, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", uid)).Result()
-	if redisuser == "" {
-		response.Result(401, nil, "", c)
+	jsonData, err := json.MarshalIndent(r, "", "    ")
+	if err != nil {
+		response.FailWithMessage("Failed to process request data", c)
 		return
 	}
 
-	err = json.Unmarshal([]byte(redisuser), &user)
+	decrypted, err := utils.CBCDecrypt(string(jsonData))
 	if err != nil {
-		global.GVA_LOG.Error("Failed to unmarshal user data", zap.Error(err))
-		response.Result(401, nil, "Failed to get user data", c)
+		global.GVA_LOG.Error("Decryption failed", zap.Error(err))
+		response.FailWithMessage("Decryption failed: "+err.Error(), c)
 		return
 	}
-	if float64(r.Coin) > user.Balance {
-		response.Result(400, nil, "Insufficient balance", c)
-		return
+	type SettleRecords struct {
+		List []apiReq.SettleRecord `json:"list"`
 	}
-	newBalance := user.Balance - float64(r.Coin)
-	user.Balance = newBalance
-	updatedUserJson, err := json.Marshal(user)
-	if err != nil {
-		global.GVA_LOG.Error("Failed to marshal updated user data", zap.Error(err))
-		response.Result(500, nil, "Internal server error", c)
-		return
-	}
-	pipe := global.GVA_REDIS.Pipeline()
-	pipe.Set(c, fmt.Sprintf("user_%d", uid), string(updatedUserJson), 24*time.Hour)
 
-	balanceUpdate := map[string]interface{}{
-		"user_id":    uid,
-		"balance":    newBalance,
-		"type":       "betting",
-		"coin":       r.Coin,
-		"room":       r.Room,
-		"created_at": time.Now().Format("2006-01-02 15:04:05"),
-	}
-	balanceUpdateJson, _ := json.Marshal(balanceUpdate)
-	pipe.LPush(c, "balance_updates", string(balanceUpdateJson))
-	_, err = pipe.Exec(c)
-	if err != nil {
-		global.GVA_LOG.Error("Failed to update balance in Redis", zap.Error(err))
-		response.Result(500, nil, "Failed to update balance", c)
+	decryptedStr, ok := decrypted.(string)
+	if !ok {
+		response.FailWithMessage("Decryption result is not a string", c)
 		return
 	}
-	// 返回成功响应
-	response.OkWithMessage("Betting successful", c)
-	return
+	var der SettleRecords
+	if err := json.Unmarshal([]byte(decryptedStr), &der); err != nil {
+		response.FailWithMessage("Failed to unmarshal decrypted data: "+err.Error(), c)
+		return
+	}
+
+	for _, record := range der.List {
+		fmt.Println("der:", record.Coin)
+
+		redisuser, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%s", record.UserCode)).Result()
+		if redisuser == "" {
+			response.Result(401, nil, "", c)
+			return
+		}
+		var userJson system.ApiSysUser
+		err = json.Unmarshal([]byte(redisuser), &userJson)
+		if err != nil {
+			global.GVA_LOG.Error("Failed to unmarshal user data", zap.Error(err))
+		} else {
+			userJson.Balance = userJson.Balance + record.Win
+			updatedUserJson, err := json.Marshal(userJson)
+			if err != nil {
+				global.GVA_LOG.Error("Failed to marshal updated user data", zap.Error(err))
+			} else {
+				err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%s", record.UserCode), string(updatedUserJson), 0).Err()
+				if err != nil {
+					global.GVA_LOG.Error("Failed to save user data to Redis", zap.Error(err))
+				}
+			}
+		}
+		response.OkWithMessage("ok", c)
+		return
+	}
 }
 
-// jiesuan
-func (sysTransactionsApi *SysTransactionsApi) Win(c *gin.Context) {
+// kaijiang
+func (sysTransactionsApi *SysTransactionsApi) Lottery(c *gin.Context) {
 
 	var r apiReq.DecryptRequest
 	if err := c.ShouldBindJSON(&r); err != nil {
