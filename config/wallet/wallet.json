@@ -1,0 +1,10 @@
+{
+  "totp_secret": "A235YI2JKMBAIWE5JI3SGZWQKH36QORU",
+  "wallet": {
+    "encrypted_private_key": "dVRKh+5dll68xnGYHVmyEodKQ+m0n/vanxFckHVx8httAQkDwL1F4HXm9DLGN2S9BGD/OjHulLKmmJMm6DoyuQ==",
+    "public_key": "CAjMw35G4A2MKHVuTja1yjPPxgmuoUbP5K217grWbtZ3",
+    "salt": "PLszJExVgC7D2R6942SdLA==",
+    "iv": "kmJMFZ3XspQ3jdQz7Y0zpA==",
+    "encrypted_totp_key": "sPrlEk194j1cj2nLX+Y6jdilfgpH9sl1DTI+Kp0dgc8="
+  }
+}

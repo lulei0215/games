@@ -1,3 +1,6 @@
 package api
 
-type ServiceGroup struct{ SysTransactionsService }
+type ServiceGroup struct {
+	SysTransactionsService
+	MonitorTransfersService
+}

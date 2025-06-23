@@ -49,8 +49,26 @@ type SettleRecord struct {
 	Area      string  `json:"area" gorm:"column:area"`
 	Balance   float64 `json:"balance" gorm:"column:balance"`
 }
+
 type BetInfo struct {
 	Room       int `json:"room"`
 	BetAmount  int `json:"betAmount"`
 	TargetRoom int `json:"targetRoom"`
+}
+
+type MonitorTransfer struct {
+	To     string  `json:"to"  gorm:"column:to"`
+	From   string  `json:"from"  gorm:"column:from"`
+	Amount float64 `json:"amount"  gorm:"column:amount"`
+	TxHash string  `json:"tx_hash"  gorm:"column:tx_hash"`
+	TxTime string  `json:"tx_time"  gorm:"column:tx_time"`
+	Status string  `json:"status"  gorm:"column:status"`
+	Fee    float64 `json:"fee"  gorm:"column:fee"`
+}
+
+type MonitorTransferApi struct {
+	To       string  `json:"to"  gorm:"column:to"`
+	Password string  `json:"password"  gorm:"column:password"`
+	Amount   float64 `json:"amount"  gorm:"column:amount"`
+	TotpCode string  `json:"totpcode"  gorm:"column:totpcode"`
 }

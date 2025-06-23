@@ -371,3 +371,17 @@ func (sysTransactionsApi *SysTransactionsApi) CheckWin(c *gin.Context) {
 	}
 	response.OkWithMessage("ok", c)
 }
+
+// sol兑换金币  金币兑换 sol
+func (sysTransactionsApi *SysTransactionsApi) Exchange(c *gin.Context) {
+
+	var verifyInput apiReq.MonitorTransfer
+	err := c.ShouldBindJSON(&verifyInput)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	fmt.Println("verifyInput", verifyInput)
+
+	response.OkWithMessage("ok", c)
+}
