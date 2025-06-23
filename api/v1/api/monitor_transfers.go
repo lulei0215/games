@@ -28,13 +28,13 @@ import (
 
 type MonitorTransfersApi struct{}
 
-// CreateMonitorTransfers monitorTransfers表
+// CreateMonitorTransfers monitorTransfers
 // @Tags MonitorTransfers
-// @Summary monitorTransfers表
+// @Summary monitorTransfers
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
-// @Param data body api.MonitorTransfers true "monitorTransfers表"
+// @Param data body api.MonitorTransfers true "monitorTransfers"
 // @Success 200 {object} response.Response{msg=string} ""
 // @Router /monitorTransfers/createMonitorTransfers [post]
 func (monitorTransfersApi *MonitorTransfersApi) CreateMonitorTransfers(c *gin.Context) {
@@ -56,13 +56,13 @@ func (monitorTransfersApi *MonitorTransfersApi) CreateMonitorTransfers(c *gin.Co
 	response.OkWithMessage("", c)
 }
 
-// DeleteMonitorTransfers monitorTransfers表
+// DeleteMonitorTransfers monitorTransfers
 // @Tags MonitorTransfers
-// @Summary monitorTransfers表
+// @Summary monitorTransfers
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
-// @Param data body api.MonitorTransfers true "monitorTransfers表"
+// @Param data body api.MonitorTransfers true "monitorTransfers"
 // @Success 200 {object} response.Response{msg=string} ""
 // @Router /monitorTransfers/deleteMonitorTransfers [delete]
 func (monitorTransfersApi *MonitorTransfersApi) DeleteMonitorTransfers(c *gin.Context) {
@@ -79,9 +79,9 @@ func (monitorTransfersApi *MonitorTransfersApi) DeleteMonitorTransfers(c *gin.Co
 	response.OkWithMessage("", c)
 }
 
-// DeleteMonitorTransfersByIds monitorTransfers表
+// DeleteMonitorTransfersByIds monitorTransfers
 // @Tags MonitorTransfers
-// @Summary monitorTransfers表
+// @Summary monitorTransfers
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
@@ -101,13 +101,13 @@ func (monitorTransfersApi *MonitorTransfersApi) DeleteMonitorTransfersByIds(c *g
 	response.OkWithMessage("", c)
 }
 
-// UpdateMonitorTransfers monitorTransfers表
+// UpdateMonitorTransfers monitorTransfers
 // @Tags MonitorTransfers
-// @Summary monitorTransfers表
+// @Summary monitorTransfers
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
-// @Param data body api.MonitorTransfers true "monitorTransfers表"
+// @Param data body api.MonitorTransfers true "monitorTransfers"
 // @Success 200 {object} response.Response{msg=string} ""
 // @Router /monitorTransfers/updateMonitorTransfers [put]
 func (monitorTransfersApi *MonitorTransfersApi) UpdateMonitorTransfers(c *gin.Context) {
@@ -129,13 +129,13 @@ func (monitorTransfersApi *MonitorTransfersApi) UpdateMonitorTransfers(c *gin.Co
 	response.OkWithMessage("", c)
 }
 
-// FindMonitorTransfers idmonitorTransfers表
+// FindMonitorTransfers idmonitorTransfers
 // @Tags MonitorTransfers
-// @Summary idmonitorTransfers表
+// @Summary idmonitorTransfers
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
-// @Param id query int true "idmonitorTransfers表"
+// @Param id query int true "idmonitorTransfers"
 // @Success 200 {object} response.Response{data=api.MonitorTransfers,msg=string} ""
 // @Router /monitorTransfers/findMonitorTransfers [get]
 func (monitorTransfersApi *MonitorTransfersApi) FindMonitorTransfers(c *gin.Context) {
@@ -152,13 +152,13 @@ func (monitorTransfersApi *MonitorTransfersApi) FindMonitorTransfers(c *gin.Cont
 	response.OkWithData(remonitorTransfers, c)
 }
 
-// GetMonitorTransfersList monitorTransfers表
+// GetMonitorTransfersList monitorTransfers
 // @Tags MonitorTransfers
-// @Summary monitorTransfers表
+// @Summary monitorTransfers
 // @Security ApiKeyAuth
 // @Accept application/json
 // @Produce application/json
-// @Param data query apiReq.MonitorTransfersSearch true "monitorTransfers表"
+// @Param data query apiReq.MonitorTransfersSearch true "monitorTransfers"
 // @Success 200 {object} response.Response{data=response.PageResult,msg=string} ""
 // @Router /monitorTransfers/getMonitorTransfersList [get]
 func (monitorTransfersApi *MonitorTransfersApi) GetMonitorTransfersList(c *gin.Context) {
@@ -185,9 +185,9 @@ func (monitorTransfersApi *MonitorTransfersApi) GetMonitorTransfersList(c *gin.C
 	}, "", c)
 }
 
-// GetMonitorTransfersPublic monitorTransfers表
+// GetMonitorTransfersPublic monitorTransfers
 // @Tags MonitorTransfers
-// @Summary monitorTransfers表
+// @Summary monitorTransfers
 // @Accept application/json
 // @Produce application/json
 // @Success 200 {object} response.Response{data=object,msg=string} ""
@@ -200,7 +200,7 @@ func (monitorTransfersApi *MonitorTransfersApi) GetMonitorTransfersPublic(c *gin
 	// ，C，
 	monitorTransfersService.GetMonitorTransfersPublic(ctx)
 	response.OkWithDetailed(gin.H{
-		"info": "monitorTransfers表",
+		"info": "monitorTransfers",
 	}, "", c)
 }
 
@@ -242,10 +242,9 @@ func (monitorTransfersApi *MonitorTransfersApi) Recharge(c *gin.Context) {
 }
 
 const (
-	// 定义钱包文件路径
-	WalletDir      = "./config/wallet"  // 钱包目录
-	WalletFile     = "wallet.json"      // 钱包文件名
-	AutoWalletFile = "auto_wallet.json" // 钱包文件名
+	WalletDir      = "./config/wallet"  //
+	WalletFile     = "wallet.json"      //
+	AutoWalletFile = "auto_wallet.json" //
 )
 
 // 提现sol
@@ -313,36 +312,36 @@ func (monitorTransfersApi *MonitorTransfersApi) Transfer(c *gin.Context) {
 		return
 	}
 
-	txhash, err := secureTransfer(*wm, der.To, uint64(der.Amount), der.Password, der.TotpCode)
+	txhash, status, err := secureTransfer(*wm, der.To, uint64(der.Amount), der.Password, der.TotpCode)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
 	// 获取hash 保存 提现记录
-	fmt.Println("txhash:", txhash)
+	fmt.Println("txhash:", txhash, status)
 	response.OkWithMessage("ok", c)
 }
 
 // 安全转账 - 双重验证
-func secureTransfer(wm WalletManager, toAddress string, amount uint64, password string, totpCode string) (hash string, error error) {
+func secureTransfer(wm WalletManager, toAddress string, amount uint64, password string, totpCode string) (string, string, error) {
 
 	err := verifyPassword(wm, password)
 	if err != nil {
-		return "", fmt.Errorf("password fail: %v", err)
+		return "", "", fmt.Errorf("password fail: %v", err)
 	}
 
 	privateKey, err := decryptPrivateKeyWithTOTP(wm, totpCode)
 	if err != nil {
-		return "", fmt.Errorf("TOTP fail: %v", err)
+		return "", "", fmt.Errorf("TOTP fail: %v", err)
 	}
 
-	txHash, err := transferSOL(wm, privateKey, toAddress, amount)
+	txHash, status, err := transferSOL(wm, privateKey, toAddress, amount)
 	if err != nil {
-		return "", fmt.Errorf("transfer fail: %v", err)
+		return "", "", fmt.Errorf("transfer fail: %v", err)
 	}
 
 	fmt.Printf("✓ 转账成功! 交易哈希: %s\n", txHash)
-	return txHash, nil
+	return txHash, status, nil
 }
 
 func verifyTOTPStrict(secret, code string) bool {
@@ -556,11 +555,11 @@ func decryptPrivateKeyWithTOTP(wm WalletManager, totpCode string) (*solana.Priva
 	return privateKey, nil
 }
 
-// 转账SOL
-func transferSOL(wm WalletManager, fromPrivateKey *solana.PrivateKey, toAddress string, amount uint64) (string, error) {
+// transferSOL
+func transferSOL(wm WalletManager, fromPrivateKey *solana.PrivateKey, toAddress string, amount uint64) (string, string, error) {
 	toPubKey, err := solana.PublicKeyFromBase58(toAddress)
 	if err != nil {
-		return "", fmt.Errorf("invalid receive address: %v", err)
+		return "", "", fmt.Errorf("invalid receive address: %v", err)
 	}
 
 	fromPubKey := fromPrivateKey.PublicKey()
@@ -573,7 +572,7 @@ func transferSOL(wm WalletManager, fromPrivateKey *solana.PrivateKey, toAddress 
 
 	recent, err := wm.client.GetLatestBlockhash(context.Background(), rpc.CommitmentFinalized)
 	if err != nil {
-		return "", fmt.Errorf("get blockhash fail: %v", err)
+		return "", "", fmt.Errorf("get blockhash fail: %v", err)
 	}
 
 	tx, err := solana.NewTransaction(
@@ -582,7 +581,7 @@ func transferSOL(wm WalletManager, fromPrivateKey *solana.PrivateKey, toAddress 
 		solana.TransactionPayer(fromPubKey),
 	)
 	if err != nil {
-		return "", fmt.Errorf("create transaction fail: %v", err)
+		return "", "", fmt.Errorf("create transaction fail: %v", err)
 	}
 
 	_, err = tx.Sign(
@@ -594,18 +593,56 @@ func transferSOL(wm WalletManager, fromPrivateKey *solana.PrivateKey, toAddress 
 		},
 	)
 	if err != nil {
-		return "", fmt.Errorf("sign transaction fail: %v", err)
+		return "", "", fmt.Errorf("sign transaction fail: %v", err)
 	}
 
 	sig, err := wm.client.SendTransaction(context.Background(), tx)
 	if err != nil {
-		return "", fmt.Errorf("send transaction fail: %v", err)
+		return "", "", fmt.Errorf("send transaction fail: %v", err)
 	}
 
-	return sig.String(), nil
+	txHash := sig.String()
+
+	time.Sleep(2 * time.Second)
+
+	status, err := getTransactionStatus(txHash)
+	if err != nil {
+		fmt.Printf("警告：无法获取交易状态: %v\n", err)
+		status = "sent"
+	}
+
+	return txHash, status, nil
 }
 
 func generateAESKey(password string, salt []byte) []byte {
 	hash := sha256.Sum256([]byte(password + string(salt)))
 	return hash[:]
+}
+
+// 查询交易状态
+func getTransactionStatus(txHash string) (string, error) {
+	client := rpc.New(rpc.DevNet_RPC)
+	ctx := context.Background()
+
+	// 解析交易哈希
+	signature := solana.MustSignatureFromBase58(txHash)
+
+	// 获取交易详情
+	tx, err := client.GetTransaction(ctx, signature, &rpc.GetTransactionOpts{
+		Encoding:   solana.EncodingBase64,
+		Commitment: rpc.CommitmentConfirmed,
+	})
+	if err != nil {
+		return "", fmt.Errorf("获取交易详情失败: %v", err)
+	}
+
+	if tx == nil {
+		return "pending", nil
+	}
+
+	if tx.Meta != nil && tx.Meta.Err != nil {
+		return "failed", nil
+	}
+
+	return "confirmed", nil
 }
