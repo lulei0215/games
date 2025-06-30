@@ -1,0 +1,171 @@
+package i18n
+
+import (
+	"strings"
+)
+
+// Language constants
+const (
+	LangEnglish    = "en"
+	LangPortuguese = "pt"
+	DefaultLang    = LangEnglish
+)
+
+// MessageKey 消息键类型
+type MessageKey string
+
+// 定义消息键常量
+const (
+	// 通用消息
+	MsgSuccess           MessageKey = "success"
+	MsgFailed            MessageKey = "failed"
+	MsgUserNotFound      MessageKey = "user_not_found"
+	MsgInsufficientFunds MessageKey = "insufficient_funds"
+	MsgInvalidRequest    MessageKey = "invalid_request"
+
+	// 支付相关消息
+	MsgPaymentSuccess    MessageKey = "payment_success"
+	MsgPaymentFailed     MessageKey = "payment_failed"
+	MsgPaymentPending    MessageKey = "payment_pending"
+	MsgPaymentProcessing MessageKey = "payment_processing"
+	MsgPaymentCancelled  MessageKey = "payment_cancelled"
+
+	// 提现相关消息
+	MsgWithdrawalSuccess MessageKey = "withdrawal_success"
+	MsgWithdrawalFailed  MessageKey = "withdrawal_failed"
+	MsgWithdrawalPending MessageKey = "withdrawal_pending"
+	MsgAccountNotFound   MessageKey = "account_not_found"
+	MsgInvalidAmount     MessageKey = "invalid_amount"
+
+	// 错误消息
+	MsgCreateRecordFailed MessageKey = "create_record_failed"
+	MsgUpdateStatusFailed MessageKey = "update_status_failed"
+	MsgRedisUpdateFailed  MessageKey = "redis_update_failed"
+	MsgDatabaseError      MessageKey = "database_error"
+)
+
+// Messages 多语言消息映射
+var Messages = map[string]map[MessageKey]string{
+	LangEnglish: {
+		// 通用消息
+		MsgSuccess:           "Success",
+		MsgFailed:            "Failed",
+		MsgUserNotFound:      "User not found",
+		MsgInsufficientFunds: "Insufficient funds",
+		MsgInvalidRequest:    "Invalid request",
+
+		// 支付相关消息
+		MsgPaymentSuccess:    "Payment successful",
+		MsgPaymentFailed:     "Payment failed",
+		MsgPaymentPending:    "Payment pending",
+		MsgPaymentProcessing: "Payment processing",
+		MsgPaymentCancelled:  "Payment cancelled",
+
+		// 提现相关消息
+		MsgWithdrawalSuccess: "Withdrawal successful",
+		MsgWithdrawalFailed:  "Withdrawal failed",
+		MsgWithdrawalPending: "Withdrawal pending",
+		MsgAccountNotFound:   "Withdrawal account not found",
+		MsgInvalidAmount:     "Invalid amount",
+
+		// 错误消息
+		MsgCreateRecordFailed: "Failed to create transaction record",
+		MsgUpdateStatusFailed: "Failed to update transaction status",
+		MsgRedisUpdateFailed:  "Failed to update user balance",
+		MsgDatabaseError:      "Database operation failed",
+	},
+	LangPortuguese: {
+		// 通用消息
+		MsgSuccess:           "Sucesso",
+		MsgFailed:            "Falhou",
+		MsgUserNotFound:      "Usuário não encontrado",
+		MsgInsufficientFunds: "Saldo insuficiente",
+		MsgInvalidRequest:    "Solicitação inválida",
+
+		// 支付相关消息
+		MsgPaymentSuccess:    "Pagamento bem-sucedido",
+		MsgPaymentFailed:     "Pagamento falhou",
+		MsgPaymentPending:    "Pagamento pendente",
+		MsgPaymentProcessing: "Processando pagamento",
+		MsgPaymentCancelled:  "Pagamento cancelado",
+
+		// 提现相关消息
+		MsgWithdrawalSuccess: "Saque bem-sucedido",
+		MsgWithdrawalFailed:  "Saque falhou",
+		MsgWithdrawalPending: "Saque pendente",
+		MsgAccountNotFound:   "Conta de saque não encontrada",
+		MsgInvalidAmount:     "Quantia inválida",
+
+		// 错误消息
+		MsgCreateRecordFailed: "Falha ao criar registro de transação",
+		MsgUpdateStatusFailed: "Falha ao atualizar status da transação",
+		MsgRedisUpdateFailed:  "Falha ao atualizar saldo do usuário",
+		MsgDatabaseError:      "Operação de banco de dados falhou",
+	},
+}
+
+// GetMessage 获取指定语言的消息
+func GetMessage(lang string, key MessageKey) string {
+	// 规范化语言代码
+	lang = NormalizeLang(lang)
+
+	// 检查语言是否存在
+	if messages, exists := Messages[lang]; exists {
+		if message, found := messages[key]; found {
+			return message
+		}
+	}
+
+	// 回退到默认语言
+	if messages, exists := Messages[DefaultLang]; exists {
+		if message, found := messages[key]; found {
+			return message
+		}
+	}
+
+	// 如果都找不到，返回键名
+	return string(key)
+}
+
+// NormalizeLang 规范化语言代码
+func NormalizeLang(lang string) string {
+	if lang == "" {
+		return DefaultLang
+	}
+
+	// 转换为小写
+	lang = strings.ToLower(lang)
+
+	// 处理常见的语言代码变体
+	switch {
+	case strings.HasPrefix(lang, "pt"):
+		return LangPortuguese
+	case strings.HasPrefix(lang, "en"):
+		return LangEnglish
+	default:
+		return DefaultLang
+	}
+}
+
+// GetLangFromHeader 从请求头获取语言代码
+func GetLangFromHeader(acceptLang string) string {
+	if acceptLang == "" {
+		return DefaultLang
+	}
+
+	// 解析 Accept-Language 头
+	// 例如: "pt-BR,pt;q=0.9,en;q=0.8"
+	langs := strings.Split(acceptLang, ",")
+	for _, lang := range langs {
+		// 去除权重信息 (q=0.9)
+		lang = strings.Split(strings.TrimSpace(lang), ";")[0]
+		normalized := NormalizeLang(lang)
+
+		// 如果是支持的语言，直接返回
+		if _, exists := Messages[normalized]; exists {
+			return normalized
+		}
+	}
+
+	return DefaultLang
+}

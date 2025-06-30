@@ -46,6 +46,7 @@ type SysUser struct {
 	Level            int            `json:"level" gorm:"default:3;comment:2putong"`
 }
 type ApiSysUser struct {
+	global.GVA_MODEL
 	UUID             uuid.UUID  `json:"uuid" gorm:"index;comment:UUID"`                                                   // UUID
 	Username         string     `json:"userName" gorm:"index;comment:"`                                                   //
 	Password         string     `json:"-"  gorm:"comment:"`                                                               //
