@@ -841,6 +841,31 @@ func (b *BaseApi) Info(c *gin.Context) {
 	}
 	response.OkWithDetailed(encrypted, "ok", c)
 }
+func (b *BaseApi) GetInfo(c *gin.Context) {
+
+	uid := utils.GetRedisUserID(c)
+	if uid == 0 {
+		response.Result(401, nil, "", c)
+		return
+	}
+
+	var user system.ApiSysUser
+	redisuser, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", uid)).Result()
+	if redisuser == "" {
+		response.Result(401, nil, "", c)
+		return
+	}
+
+	// 将Redis中的用户数据反序列化为user对象
+	err := json.Unmarshal([]byte(redisuser), &user)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to unmarshal user data", zap.Error(err))
+		response.Result(401, nil, "Failed to get user data", c)
+		return
+	}
+
+	response.OkWithDetailed(user, "ok", c)
+}
 func (b *BaseApi) RobotList(c *gin.Context) {
 
 	var r apiReq.DecryptRequest
