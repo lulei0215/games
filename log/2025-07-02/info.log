@@ -36,3 +36,15 @@
 [github.com/flipped-aurora/gin-vue-admin/server]2025-07-02 14:50:43.437	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:120	router register success
 [github.com/flipped-aurora/gin-vue-admin/server]2025-07-02 14:55:26.818	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:46	close WEB...
 [github.com/flipped-aurora/gin-vue-admin/server]2025-07-02 14:55:26.828	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:57	WEB closed
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-02 15:06:08.365	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-02 15:06:08.388	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-02 15:06:08.402	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-02 15:06:08.495	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-02 17:52:27.051	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:46	close WEB...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-02 17:52:27.058	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:57	WEB closed
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-02 17:52:43.379	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-02 17:52:43.392	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-02 17:52:43.400	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-02 17:52:43.431	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-02 19:34:35.975	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:46	close WEB...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-02 19:34:35.991	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:57	WEB closed

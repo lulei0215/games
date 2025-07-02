@@ -7,4 +7,5 @@ type ServiceGroup struct {
 	PaymentCallbacksService
 	UserWithdrawalAccountsService
 	UserAgentRelationService
+	GamesService
 }

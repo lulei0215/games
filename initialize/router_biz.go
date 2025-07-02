@@ -19,12 +19,13 @@ func initBizRouter(routers ...*gin.RouterGroup) {
 		apiRouter.InitMonitorTransfersRouter(privateGroup, publicGroup)
 		apiRouter.InitPaymentTransactionsRouter(privateGroup, publicGroup)
 		apiRouter.InitPaymentCallbacksRouter(privateGroup, publicGroup)
-		apiRouter.InitUserWithdrawalAccountsRouter(privateGroup, publicGroup) // 占位方法，保证文件可以正确加载，避免go空变量检测报错，请勿删除。
-		apiRouter.InitUserAgentRelationRouter(privateGroup, publicGroup)
+		apiRouter.InitUserWithdrawalAccountsRouter(privateGroup, publicGroup)
+		apiRouter.InitUserAgentRelationRouter(privateGroup, publicGroup) // 占位方法，保证文件可以正确加载，避免go空变量检测报错，请勿删除。
+		// 注释掉system路由，避免与api路由冲突
+		// {
+		// 	systemRouter := router.RouterGroupApp.System
+		// 	systemRouter.InitUserAgentRelationRouter(privateGroup, publicGroup)
+		// }
+		apiRouter.InitGamesRouter(privateGroup, publicGroup)
 	}
-	// 注释掉system路由，避免与api路由冲突
-	// {
-	// 	systemRouter := router.RouterGroupApp.System
-	// 	systemRouter.InitUserAgentRelationRouter(privateGroup, publicGroup)
-	// }
 }

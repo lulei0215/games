@@ -185,7 +185,7 @@ func (paymentTransactionsService *PaymentTransactionsService) GetPaymentList(ctx
 	var paymentTransactionss []api.PaymentTransactions
 	//
 
-	err = db.Count(&total).Error
+	err = db.Where("user_id = ? and transaction_type = ?", uid, transactionType).Count(&total).Error
 	if err != nil {
 		return
 	}
@@ -194,6 +194,6 @@ func (paymentTransactionsService *PaymentTransactionsService) GetPaymentList(ctx
 		db = db.Limit(limit).Offset(offset)
 	}
 
-	err = db.Where("user_id = ? and transaction_type = ?", uid, transactionType).Find(&paymentTransactionss).Error
+	err = db.Find(&paymentTransactionss).Error
 	return paymentTransactionss, total, err
 }
