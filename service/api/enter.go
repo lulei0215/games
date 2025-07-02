@@ -6,4 +6,5 @@ type ServiceGroup struct {
 	PaymentTransactionsService
 	PaymentCallbacksService
 	UserWithdrawalAccountsService
+	UserAgentRelationService
 }

@@ -8,6 +8,7 @@ type ApiGroup struct {
 	PaymentTransactionsApi
 	PaymentCallbacksApi
 	UserWithdrawalAccountsApi
+	UserAgentRelationApi
 }
 
 var (
@@ -16,4 +17,5 @@ var (
 	paymentTransactionsService    = service.ServiceGroupApp.ApiServiceGroup.PaymentTransactionsService
 	paymentCallbacksService       = service.ServiceGroupApp.ApiServiceGroup.PaymentCallbacksService
 	userWithdrawalAccountsService = service.ServiceGroupApp.ApiServiceGroup.UserWithdrawalAccountsService
+	userAgentRelationService      = service.ServiceGroupApp.ApiServiceGroup.UserAgentRelationService
 )

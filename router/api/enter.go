@@ -8,6 +8,7 @@ type RouterGroup struct {
 	PaymentTransactionsRouter
 	PaymentCallbacksRouter
 	UserWithdrawalAccountsRouter
+	UserAgentRelationRouter
 }
 
 var (
@@ -16,4 +17,5 @@ var (
 	paymentTransactionsApi    = api.ApiGroupApp.ApiApiGroup.PaymentTransactionsApi
 	paymentCallbacksApi       = api.ApiGroupApp.ApiApiGroup.PaymentCallbacksApi
 	userWithdrawalAccountsApi = api.ApiGroupApp.ApiApiGroup.UserWithdrawalAccountsApi
+	userAgentRelationApi      = api.ApiGroupApp.ApiApiGroup.UserAgentRelationApi
 )

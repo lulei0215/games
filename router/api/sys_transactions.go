@@ -29,5 +29,6 @@ func (s *SysTransactionsRouter) InitSysTransactionsRouter(Router *gin.RouterGrou
 		sysTransactionsRouterWithoutAuth.POST("lottery", sysTransactionsApi.Lottery)                                  // sysTransactions
 		sysTransactionsRouterWithoutAuth.POST("checkwin", sysTransactionsApi.CheckWin)                                // sysTransactions
 		sysTransactionsRouterWithoutAuth.POST("exchange", sysTransactionsApi.Exchange)                                // sysTransactions
+		sysTransactionsRouterWithoutAuth.POST("config", sysTransactionsApi.Config)                                    // sysTransactions
 	}
 }

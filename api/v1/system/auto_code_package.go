@@ -1,6 +1,8 @@
 package system
 
 import (
+	"strings"
+
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	common "github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
@@ -8,7 +10,6 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"strings"
 )
 
 type AutoCodePackageApi struct{}
@@ -72,6 +73,7 @@ func (a *AutoCodePackageApi) Delete(c *gin.Context) {
 // @Success   200  {object}  response.Response{data=map[string]interface{},msg=string}  "创建package成功"
 // @Router    /autoCode/getPackage [post]
 func (a *AutoCodePackageApi) All(c *gin.Context) {
+
 	data, err := autoCodePackageService.All(c.Request.Context())
 	if err != nil {
 		global.GVA_LOG.Error("获取失败!", zap.Error(err))

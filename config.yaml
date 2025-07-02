@@ -7,8 +7,8 @@ aliyun-oss:
     base-path: yourBasePath
 autocode:
     web: web/src
-    root: D:\games\ga\gin-vue-admin-main
-    server: server
+    root: ""
+    server: games
     module: github.com/flipped-aurora/gin-vue-admin/server
     ai-path: ""
 aws-s3:

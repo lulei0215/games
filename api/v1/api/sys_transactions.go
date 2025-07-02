@@ -385,3 +385,35 @@ func (sysTransactionsApi *SysTransactionsApi) Exchange(c *gin.Context) {
 
 	response.OkWithMessage("ok", c)
 }
+func (sysTransactionsApi *SysTransactionsApi) Config(c *gin.Context) {
+
+	// 从POST请求中获取config字段
+	var requestData struct {
+		Config string `json:"config"`
+	}
+
+	if err := c.ShouldBindJSON(&requestData); err != nil {
+		response.FailWithMessage("请求参数错误", c)
+		return
+	}
+
+	if requestData.Config == "" {
+		response.FailWithMessage("config字段不能为空", c)
+		return
+	}
+
+	storedCode, err := global.GVA_REDIS.Get(c, requestData.Config).Result()
+	if err != nil {
+		response.FailWithMessage("code error", c)
+		return
+	}
+
+	// 将JSON字符串解析为map
+	var configData map[string]interface{}
+	if err := json.Unmarshal([]byte(storedCode), &configData); err != nil {
+		response.FailWithMessage("JSON解析失败", c)
+		return
+	}
+
+	response.OkWithData(configData, c)
+}
