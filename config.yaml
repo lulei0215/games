@@ -139,7 +139,7 @@ mysql:
     config: charset=utf8mb4&parseTime=True&loc=Local
     db-name: gav
     username: root
-    password: "123123"
+    password: "123456"
     path: 127.0.0.1
     engine: ""
     log-mode: error

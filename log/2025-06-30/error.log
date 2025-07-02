@@ -1,0 +1,34 @@
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 11:23:53.803	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:35	server start fail	{"error": "listen tcp :8888: bind: address already in use"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 13:49:43.208	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:637	!	{"error": ""}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 13:51:49.043	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:637	!	{"error": ""}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 13:52:27.557	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:637	!	{"error": ""}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 13:55:14.213	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:637	!	{"error": ""}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:01:27.494	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:35	server start fail	{"error": "listen tcp :8888: bind: address already in use"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:07:56.788	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "password error"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:08:01.956	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "password error"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:08:03.305	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "password error"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:12:36.933	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:35	server start fail	{"error": "listen tcp :8888: bind: address already in use"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:13:15.909	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "record not found"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:13:57.254	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "record not found"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:34:13.135	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "record not found"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:34:17.031	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "record not found"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:35:56.640	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "record not found"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:36:29.723	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "record not found"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:36:57.180	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "record not found"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:39:37.893	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "record not found"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:40:40.808	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "record not found"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:42:07.073	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "record not found"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 14:42:37.351	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "record not found"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 15:22:09.148	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "record not found"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 15:31:56.556	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "record not found"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 16:41:55.032	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/utils/claims.go:74	fail
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 17:40:38.553	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/api/v1/system/sys_user.go:555	! !	{"error": "record not found"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 18:29:55.284	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/utils/claims.go:87	guoqi
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 18:30:00.567	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/utils/claims.go:87	guoqi
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 18:32:53.120	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/utils/claims.go:87	guoqi
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 18:33:05.613	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/utils/claims.go:87	guoqi
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 18:40:08.476	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/utils/claims.go:87	guoqi
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 19:36:43.387	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/utils/claims.go:87	guoqi
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 19:37:06.561	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/utils/claims.go:87	guoqi
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 19:38:05.481	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/utils/claims.go:87	guoqi
+[github.com/flipped-aurora/gin-vue-admin/server]2025-06-30 19:52:30.334	[31merror[0m	/Users/ll/Downloads/wurenzhibo/games/utils/claims.go:87	guoqi

@@ -176,3 +176,24 @@ func (paymentTransactionsService *PaymentTransactionsService) PaymentOk(ctx cont
 	return err
 
 }
+
+func (paymentTransactionsService *PaymentTransactionsService) GetPaymentList(ctx context.Context, info apiReq.PaymentTransactionsSearch, uid uint, transactionType int) (list []api.PaymentTransactions, total int64, err error) {
+	limit := info.PageSize
+	offset := info.PageSize * (info.Page - 1)
+	// db
+	db := global.GVA_DB.Model(&api.PaymentTransactions{})
+	var paymentTransactionss []api.PaymentTransactions
+	//
+
+	err = db.Count(&total).Error
+	if err != nil {
+		return
+	}
+
+	if limit != 0 {
+		db = db.Limit(limit).Offset(offset)
+	}
+
+	err = db.Where("user_id = ? and transaction_type = ?", uid, transactionType).Find(&paymentTransactionss).Error
+	return paymentTransactionss, total, err
+}

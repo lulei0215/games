@@ -456,3 +456,64 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment(c *gin.Conte
 
 	utils.OkWithMessageI18n(i18n.MsgWithdrawalPending, c)
 }
+func (paymentTransactionsApi *PaymentTransactionsApi) GetPaymentList(c *gin.Context) {
+
+	uid := utils.GetRedisUserID(c)
+	if uid == 0 {
+		utils.UnauthorizedI18n(c)
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	var pageInfo apiReq.PaymentTransactionsSearch
+	err := c.ShouldBindQuery(&pageInfo)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	var transactionType = 2
+	list, total, err := paymentTransactionsService.GetPaymentList(ctx, pageInfo, uid, transactionType)
+	if err != nil {
+		global.GVA_LOG.Error("!", zap.Error(err))
+		response.FailWithMessage(":"+err.Error(), c)
+		return
+	}
+	response.OkWithDetailed(response.PageResult{
+		List:     list,
+		Total:    total,
+		Page:     pageInfo.Page,
+		PageSize: pageInfo.PageSize,
+	}, "", c)
+}
+
+func (paymentTransactionsApi *PaymentTransactionsApi) GetTradeList(c *gin.Context) {
+
+	uid := utils.GetRedisUserID(c)
+	if uid == 0 {
+		utils.UnauthorizedI18n(c)
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	var pageInfo apiReq.PaymentTransactionsSearch
+	err := c.ShouldBindQuery(&pageInfo)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	var transactionType = 1
+	list, total, err := paymentTransactionsService.GetPaymentList(ctx, pageInfo, uid, transactionType)
+	if err != nil {
+		global.GVA_LOG.Error("!", zap.Error(err))
+		response.FailWithMessage(":"+err.Error(), c)
+		return
+	}
+	response.OkWithDetailed(response.PageResult{
+		List:     list,
+		Total:    total,
+		Page:     pageInfo.Page,
+		PageSize: pageInfo.PageSize,
+	}, "", c)
+}

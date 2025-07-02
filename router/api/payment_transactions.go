@@ -26,7 +26,9 @@ func (s *PaymentTransactionsRouter) InitPaymentTransactionsRouter(Router *gin.Ro
 		paymentTransactionsRouterWithoutAuth.GET("getPaymentTransactionsPublic", paymentTransactionsApi.GetPaymentTransactionsPublic) // paymentTransactions
 		paymentTransactionsRouterWithoutAuth.POST("createTrade", paymentTransactionsApi.CreateTrade)                                  // paymentTransactions
 		// paymentTransactionsRouterWithoutAuth.POST("queryTrade", paymentTransactionsApi.QueryTrade)  // paymentTransactions
-		paymentTransactionsRouterWithoutAuth.POST("createPayment", paymentTransactionsApi.CreatePayment) // paymentTransactions
+		paymentTransactionsRouterWithoutAuth.POST("createPayment", paymentTransactionsApi.CreatePayment)   // paymentTransactions
+		paymentTransactionsRouterWithoutAuth.POST("getPaymentList", paymentTransactionsApi.GetPaymentList) // paymentTransactions
+		paymentTransactionsRouterWithoutAuth.POST("getPTradeList", paymentTransactionsApi.GetTradeList)    // paymentTransactions
 		// paymentTransactionsRouterWithoutAuth.POST("queryPayment", paymentTransactionsApi.QueryPayment)  // paymentTransactions
 	}
 }

@@ -201,6 +201,38 @@ func (userWithdrawalAccountsApi *UserWithdrawalAccountsApi) Add(c *gin.Context) 
 	response.OkWithMessage("ok", c)
 
 }
+func (userWithdrawalAccountsApi *UserWithdrawalAccountsApi) AddPost(c *gin.Context) {
+	// Context
+	uid := utils.GetRedisUserID(c)
+	if uid == 0 {
+		response.Result(401, nil, "user fail", c)
+		return
+	}
+
+	var userWithdrawalAccounts api.UserWithdrawalAccounts
+	err := c.ShouldBindJSON(&userWithdrawalAccounts)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	userWithdrawalAccounts.UserId = uid
+	userWithdrawalAccounts.IsDefault = 1
+	userWithdrawalAccounts.Status = 1
+	err = utils.Verify(userWithdrawalAccounts, utils.AddUserWithdrawalAccountsVerify)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	err = userWithdrawalAccountsService.CreateUserWithdrawalAccounts(c, &userWithdrawalAccounts)
+	if err != nil {
+		global.GVA_LOG.Error("!", zap.Error(err))
+		response.FailWithMessage(":"+err.Error(), c)
+		return
+	}
+	response.OkWithMessage("ok", c)
+
+}
 
 func (userWithdrawalAccountsApi *UserWithdrawalAccountsApi) Del(c *gin.Context) {
 

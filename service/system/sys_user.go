@@ -349,6 +349,31 @@ func (userService *UserService) ChangeWithdrawPassword(u *system.SysUser, newPas
 	return &user, err
 
 }
+func (userService *UserService) VerifyWithdrawPassword(u *system.SysUser, newPassword string) (err error) {
+	var user system.SysUser
+	if err = global.GVA_DB.Where("id = ?", u.ID).First(&user).Error; err != nil {
+		return err
+	}
+	if ok := utils.BcryptCheck(u.Password, user.WithdrawPassword); !ok {
+		return errors.New("old password error")
+	}
+
+	return nil
+
+}
+func (userService *UserService) SetWithdrawPassword(u *system.SysUser, newPassword string, loginPassword string) (userInter system.SysUser, err error) {
+	var user system.SysUser
+	if err = global.GVA_DB.Where("id = ?", u.ID).First(&user).Error; err != nil {
+		return user, err
+	}
+	if ok := utils.BcryptCheck(loginPassword, user.Password); !ok {
+		return user, errors.New("login password error")
+	}
+	user.WithdrawPassword = utils.BcryptHash(newPassword)
+	err = global.GVA_DB.Save(&user).Error
+	return user, err
+
+}
 func (userService *UserService) ApiRegister(u system.SysUser) (userInter system.SysUser, err error) {
 	var user system.SysUser
 	if !errors.Is(global.GVA_DB.Where("username = ?", u.Username).First(&user).Error, gorm.ErrRecordNotFound) { //

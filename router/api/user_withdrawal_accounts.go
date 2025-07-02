@@ -23,9 +23,10 @@ func (s *UserWithdrawalAccountsRouter) InitUserWithdrawalAccountsRouter(Router *
 		userWithdrawalAccountsRouterWithoutRecord.GET("getUserWithdrawalAccountsList", userWithdrawalAccountsApi.GetUserWithdrawalAccountsList) // userWithdrawalAccounts
 	}
 	{
-		userWithdrawalAccountsRouterWithoutAuth.POST("add", userWithdrawalAccountsApi.Add)   // userWithdrawalAccounts
-		userWithdrawalAccountsRouterWithoutAuth.POST("del", userWithdrawalAccountsApi.Del)   // userWithdrawalAccounts
-		userWithdrawalAccountsRouterWithoutAuth.POST("upd", userWithdrawalAccountsApi.Upd)   // userWithdrawalAccounts
-		userWithdrawalAccountsRouterWithoutAuth.POST("list", userWithdrawalAccountsApi.List) // userWithdrawalAccounts
+		userWithdrawalAccountsRouterWithoutAuth.POST("add", userWithdrawalAccountsApi.Add)         // userWithdrawalAccounts
+		userWithdrawalAccountsRouterWithoutAuth.POST("addpost", userWithdrawalAccountsApi.AddPost) // userWithdrawalAccounts
+		userWithdrawalAccountsRouterWithoutAuth.POST("del", userWithdrawalAccountsApi.Del)         // userWithdrawalAccounts
+		userWithdrawalAccountsRouterWithoutAuth.POST("upd", userWithdrawalAccountsApi.Upd)         // userWithdrawalAccounts
+		userWithdrawalAccountsRouterWithoutAuth.POST("list", userWithdrawalAccountsApi.List)       // userWithdrawalAccounts
 	}
 }

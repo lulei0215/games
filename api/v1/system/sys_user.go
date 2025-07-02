@@ -227,6 +227,75 @@ func (b *BaseApi) ChangeWithdrawPassword(c *gin.Context) {
 	}
 	response.OkWithMessage("", c)
 }
+func (b *BaseApi) VerifyWithdrawPassword(c *gin.Context) {
+
+	var req systemReq.VerifyWithdrawPasswordReq
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	err = utils.Verify(req, utils.ChangePasswordVerify)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	uid := utils.GetUserID(c)
+	if uid == 0 {
+		response.FailWithMessage("ID", c)
+		return
+	}
+
+	u := &system.SysUser{GVA_MODEL: global.GVA_MODEL{ID: uid}, Password: req.Password}
+	err = userService.VerifyWithdrawPassword(u, req.Password)
+	if err != nil {
+		global.GVA_LOG.Error("!", zap.Error(err))
+		response.FailWithMessage("，", c)
+		return
+	}
+	response.OkWithMessage("ok", c)
+}
+func (b *BaseApi) SetWithdrawPassword(c *gin.Context) {
+
+	var req systemReq.VerifyWithdrawPasswordReq
+	err := c.ShouldBindJSON(&req)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	err = utils.Verify(req, utils.ChangePasswordVerify)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	uid := utils.GetUserID(c)
+	if uid == 0 {
+		response.FailWithMessage("ID", c)
+		return
+	}
+
+	u := &system.SysUser{GVA_MODEL: global.GVA_MODEL{ID: uid}, WithdrawPassword: req.Password}
+	user, err := userService.SetWithdrawPassword(u, req.Password, req.LoginPassword)
+	if err != nil {
+		global.GVA_LOG.Error("!", zap.Error(err))
+		response.FailWithMessage("，", c)
+		return
+	}
+
+	// 将用户数据序列化为JSON
+	userJson, err := json.Marshal(user)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to marshal user data", zap.Error(err))
+	} else {
+		// 保存到Redis，设置过期时间为24小时
+		err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%d", user.ID), string(userJson), 0).Err()
+		if err != nil {
+			global.GVA_LOG.Error("Failed to save user data to Redis", zap.Error(err))
+		}
+	}
+
+	response.OkWithMessage("ok", c)
+}
 
 // GetUserList
 // @Tags      SysUser

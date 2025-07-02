@@ -1,0 +1,58 @@
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 09:16:26.945	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:46	close WEB...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 09:16:26.964	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:57	WEB closed
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 10:45:54.363	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 10:45:54.375	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 10:45:54.387	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 10:45:54.424	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:09:03.660	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:09:03.671	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:09:03.685	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:09:03.722	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:17:39.850	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:17:39.860	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:17:39.872	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:17:39.905	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:28:12.669	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:46	close WEB...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:28:12.673	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:57	WEB closed
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:28:24.609	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:28:24.621	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:28:24.632	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:28:24.668	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:41:14.522	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:41:14.529	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:41:14.541	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:41:14.579	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:42:29.562	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:42:29.576	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:42:29.589	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 11:42:29.623	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:11:28.678	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:46	close WEB...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:11:28.689	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:57	WEB closed
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:11:41.001	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:11:41.016	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:11:41.030	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:11:41.072	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:15:48.735	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:46	close WEB...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:15:48.751	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:57	WEB closed
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:15:59.805	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:15:59.812	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:15:59.822	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:15:59.854	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:16:04.714	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:46	close WEB...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:16:04.718	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:57	WEB closed
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:16:15.465	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:16:15.473	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:16:15.484	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:16:15.516	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:20:30.606	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:46	close WEB...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:20:30.623	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:57	WEB closed
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:20:45.129	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:20:45.153	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:20:45.163	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 14:20:45.228	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:120	router register success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 15:58:15.632	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:46	close WEB...
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 15:58:15.648	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/core/server_run.go:57	WEB closed
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 15:58:26.790	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/gorm.go:77	register table success
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 15:58:26.797	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/redis.go:35	redis connect ping response:	{"name": "", "pong": "PONG"}
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 15:58:26.808	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:71	register swagger handler
+[github.com/flipped-aurora/gin-vue-admin/server]2025-07-01 15:58:26.842	[34minfo[0m	/Users/ll/Downloads/wurenzhibo/games/initialize/router.go:120	router register success

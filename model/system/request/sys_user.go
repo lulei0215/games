@@ -37,6 +37,10 @@ type ChangePasswordReq struct {
 	Password    string `json:"password"`    //
 	NewPassword string `json:"newPassword"` //
 }
+type VerifyWithdrawPasswordReq struct {
+	Password      string `json:"password"`      //
+	LoginPassword string `json:"loginPassword"` //
+}
 
 type ResetPassword struct {
 	ID       uint   `json:"ID" form:"ID"`

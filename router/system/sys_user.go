@@ -23,18 +23,20 @@ func (s *UserRouter) InitUserRouter(Router *gin.RouterGroup, RouterPub *gin.Rout
 		userRouter.PUT("setSelfSetting", baseApi.SetSelfSetting)          //
 	}
 	{
-		userRouterWithoutRecord.POST("getUserList", baseApi.GetUserList)             //
-		userRouterWithoutRecord.GET("getUserInfo", baseApi.GetUserInfo)              //
-		userRouterPub.POST("resetWithdrawPassword", baseApi.ResetWithdrawPassword)   //
-		userRouterPub.POST("changeWithdrawPassword", baseApi.ChangeWithdrawPassword) //
-		userRouterPub.POST("login", baseApi.ApiLogin)                                //
-		userRouterPub.POST("register", baseApi.ApiRegister)                          //
-		userRouterPub.POST("sendcode", baseApi.SendCode)                             //
-		userRouterPub.POST("bindemail", baseApi.BindeMail)                           //
-		userRouterPub.POST("decrypt", baseApi.Decrypt)                               //
-		userRouterPub.POST("encrypt", baseApi.Encrypt)                               //
-		userRouterPub.POST("info", baseApi.Info)                                     //
-		userRouterPub.POST("list", baseApi.RobotList)                                //
-		userRouterPub.GET("info", baseApi.GetInfo)                                   //
+		userRouterWithoutRecord.POST("getUserList", baseApi.GetUserList)               //
+		userRouterWithoutRecord.GET("getUserInfo", baseApi.GetUserInfo)                //
+		userRouterPub.POST("resetWithdrawPassword", baseApi.ResetWithdrawPassword)     //
+		userRouterPub.POST("changeWithdrawPassword", baseApi.ChangeWithdrawPassword)   //
+		userRouterPub.POST("verify-withdraw-password", baseApi.VerifyWithdrawPassword) //
+		userRouterPub.POST("set-withdraw-password", baseApi.SetWithdrawPassword)       //
+		userRouterPub.POST("login", baseApi.ApiLogin)                                  //
+		userRouterPub.POST("register", baseApi.ApiRegister)                            //
+		userRouterPub.POST("sendcode", baseApi.SendCode)                               //
+		userRouterPub.POST("bindemail", baseApi.BindeMail)                             //
+		userRouterPub.POST("decrypt", baseApi.Decrypt)                                 //
+		userRouterPub.POST("encrypt", baseApi.Encrypt)                                 //
+		userRouterPub.POST("info", baseApi.Info)                                       //
+		userRouterPub.POST("list", baseApi.RobotList)                                  //
+		userRouterPub.GET("info", baseApi.GetInfo)                                     //
 	}
 }
