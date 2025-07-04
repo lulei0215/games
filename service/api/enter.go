@@ -8,4 +8,5 @@ type ServiceGroup struct {
 	UserWithdrawalAccountsService
 	UserAgentRelationService
 	GamesService
+	UserRebatesService
 }

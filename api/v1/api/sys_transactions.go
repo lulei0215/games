@@ -3,6 +3,8 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"math"
+	"strconv"
 	"time"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
@@ -261,7 +263,18 @@ func (sysTransactionsApi *SysTransactionsApi) Settle(c *gin.Context) {
 		if err != nil {
 			global.GVA_LOG.Error("Failed to unmarshal user data", zap.Error(err))
 		} else {
-			userJson.Balance = userJson.Balance + record.Win
+			newBalance := userJson.Balance + record.Win
+			if newBalance < 0 {
+				global.GVA_LOG.Error("<0:",
+					zap.String("UserCode", record.UserCode),
+					zap.Float64("OriginalBalance", userJson.Balance),
+					zap.Float64("WinAmount", record.Win),
+					zap.Float64("CalculatedBalance", newBalance),
+					zap.String("Username", userJson.Username),
+				)
+				newBalance = 0
+			}
+			userJson.Balance = math.Round(newBalance*100) / 100
 			updatedUserJson, err := json.Marshal(userJson)
 			if err != nil {
 				global.GVA_LOG.Error("Failed to marshal updated user data", zap.Error(err))
@@ -272,9 +285,23 @@ func (sysTransactionsApi *SysTransactionsApi) Settle(c *gin.Context) {
 				}
 			}
 		}
-		response.OkWithMessage("ok", c)
-		return
 	}
+
+	// 将整个 SettleRecords 结构体保存到Redis Hash中，使用时间戳作为key
+	timestamp := time.Now().Unix()
+	settleKey := fmt.Sprintf("Settle_%d", timestamp)
+	derJson, err := json.Marshal(der.List)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to marshal SettleRecords", zap.Error(err))
+	} else {
+		// 将数据保存到Redis Hash中
+		err = global.GVA_REDIS.HSet(c, "Settle_Records", settleKey, string(derJson)).Err()
+		if err != nil {
+			global.GVA_LOG.Error("Failed to save SettleRecords to Redis", zap.Error(err))
+		}
+	}
+
+	response.OkWithMessage("ok", c)
 }
 
 // kaijiang
@@ -416,4 +443,409 @@ func (sysTransactionsApi *SysTransactionsApi) Config(c *gin.Context) {
 	}
 
 	response.OkWithData(configData, c)
+}
+
+// GetSettleListFromRedis Get settlement list data from Redis and process
+func (sysTransactionsApi *SysTransactionsApi) GetSettleListFromRedis(c *gin.Context) {
+	// Get all data from Settle_Records Hash in Redis
+	settleRecords, err := global.GVA_REDIS.HGetAll(c, "Settle_Records").Result()
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get Settle_Records from Redis", zap.Error(err))
+		response.FailWithMessage("Failed to get settlement list: "+err.Error(), c)
+		return
+	}
+
+	if len(settleRecords) == 0 {
+		response.OkWithDetailed(gin.H{
+			"list":  []interface{}{},
+			"total": 0,
+		}, "No settlement data", c)
+		return
+	}
+
+	// Process each settlement record
+	var processedList []map[string]interface{}
+	var processedKeys []string
+	var totalRecordsProcessed int
+	var totalRebateProcessed int
+
+	for key, settleData := range settleRecords {
+		var settleRecords []apiReq.SettleRecord
+		err := json.Unmarshal([]byte(settleData), &settleRecords)
+		if err != nil {
+			global.GVA_LOG.Error("Failed to unmarshal settle record",
+				zap.Error(err),
+				zap.String("data", settleData),
+				zap.String("key", key))
+			continue
+		}
+
+		// Process each settlement record
+		for _, record := range settleRecords {
+			// Get user invitation relationship and process rebate
+			processUserRebate(c, record)
+			totalRebateProcessed++
+
+			processedRecord := map[string]interface{}{
+				"UserCode": record.UserCode,
+				"Win":      record.Win,
+				"Coin":     record.Coin,
+				"Key":      key,
+			}
+			processedList = append(processedList, processedRecord)
+			totalRecordsProcessed++
+		}
+
+		// Record processed keys
+		processedKeys = append(processedKeys, key)
+	}
+
+	// Delete processed data
+	if len(processedKeys) > 0 {
+		err = global.GVA_REDIS.HDel(c, "Settle_Records", processedKeys...).Err()
+		if err != nil {
+			global.GVA_LOG.Error("Failed to delete processed Settle_Records from Redis",
+				zap.Error(err),
+				zap.Strings("keysToDelete", processedKeys))
+		}
+	}
+
+	response.OkWithDetailed(gin.H{
+		"list":           processedList,
+		"total":          len(processedList),
+		"processed_keys": processedKeys,
+	}, "Get settlement list successfully, processed data cleaned", c)
+}
+
+// GetUserInvitationRelation 获取用户邀请关系API
+func (sysTransactionsApi *SysTransactionsApi) GetUserInvitationRelation(c *gin.Context) {
+	// 从请求参数中获取用户ID
+	userIdStr := c.Query("userId")
+	if userIdStr == "" {
+		response.FailWithMessage("用户ID不能为空", c)
+		return
+	}
+
+	userId, err := strconv.ParseUint(userIdStr, 10, 32)
+	if err != nil {
+		response.FailWithMessage("用户ID格式错误", c)
+		return
+	}
+
+	// 获取邀请关系
+	relation, err := getUserInvitationRelation(c, uint(userId))
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get user invitation relation",
+			zap.Error(err),
+			zap.Uint64("userId", userId))
+		response.FailWithMessage("获取邀请关系失败", c)
+		return
+	}
+
+	// 获取上级用户详细信息
+	var result map[string]interface{}
+	if relation != nil {
+		result = make(map[string]interface{})
+
+		// 获取1级上级信息
+		if level1Id, ok := relation["level1"].(float64); ok && level1Id > 0 {
+			level1User, err := getUserFromRedis(c, int(level1Id))
+			if err == nil {
+				result["level1_user"] = level1User
+			}
+		}
+
+		// 获取2级上级信息
+		if level2Id, ok := relation["level2"].(float64); ok && level2Id > 0 {
+			level2User, err := getUserFromRedis(c, int(level2Id))
+			if err == nil {
+				result["level2_user"] = level2User
+			}
+		}
+
+		result["relation"] = relation
+	}
+
+	response.OkWithDetailed(result, "获取邀请关系成功", c)
+}
+
+// processUserRebate Process user rebate
+func processUserRebate(c *gin.Context, record apiReq.SettleRecord) {
+	// Convert UserCode to user ID
+	userId, err := strconv.ParseUint(record.UserCode, 10, 32)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to convert user ID",
+			zap.Error(err),
+			zap.String("UserCode", record.UserCode))
+		return
+	}
+
+	// Get user invitation relationship
+	relation, err := getUserInvitationRelation(c, uint(userId))
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get user invitation relationship",
+			zap.Error(err),
+			zap.Uint64("userId", userId),
+			zap.String("userCode", record.UserCode))
+		return
+	}
+
+	if relation == nil {
+		return
+	}
+
+	// Process level 1 superior rebate
+	if level1Id, ok := relation["level1"].(float64); ok && level1Id > 0 {
+		// Get level 1 superior rebate rate
+		rebateRate1, err := getUserRebateRate(c, int(level1Id))
+		if err != nil {
+			global.GVA_LOG.Error("Failed to get level 1 superior rebate rate",
+				zap.Error(err),
+				zap.Int("level1UserId", int(level1Id)))
+			return
+		}
+
+		// Check if rebate rate is greater than 0
+		if rebateRate1 > 0 {
+			// Calculate level 1 rebate amount
+			rawRebateAmount1 := record.Coin * rebateRate1
+			// Round to 2 decimal places
+			rebateAmount1 := math.Round(rawRebateAmount1*100) / 100
+
+			addRebateToUser(c, int(level1Id), rebateAmount1, "Level 1 Rebate", record, rebateRate1, 1)
+		}
+	}
+
+	// Process level 2 superior rebate
+	if level2Id, ok := relation["level2"].(float64); ok && level2Id > 0 {
+		// Get level 2 superior rebate rate
+		rebateRate2, err := getUserRebateRate(c, int(level2Id))
+		if err != nil {
+			global.GVA_LOG.Error("Failed to get level 2 superior rebate rate",
+				zap.Error(err),
+				zap.Int("level2UserId", int(level2Id)))
+			return
+		}
+
+		// Check if rebate rate is greater than 0
+		if rebateRate2 > 0 {
+			// Calculate level 2 rebate amount
+			rawRebateAmount2 := record.Coin * rebateRate2
+			// Round to 2 decimal places
+			rebateAmount2 := math.Round(rawRebateAmount2*100) / 100
+
+			addRebateToUser(c, int(level2Id), rebateAmount2, "Level 2 Rebate", record, rebateRate2, 2)
+		}
+	}
+}
+
+// getUserInvitationRelation Get user invitation relationship
+func getUserInvitationRelation(c *gin.Context, userId uint) (map[string]interface{}, error) {
+	key := fmt.Sprintf("invitation_relation_%d", userId)
+
+	result, err := global.GVA_REDIS.Get(c, key).Result()
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get invitation relationship from Redis",
+			zap.Error(err),
+			zap.Uint("userId", userId),
+			zap.String("redisKey", key))
+		return nil, err
+	}
+
+	var invitationData map[string]interface{}
+	err = json.Unmarshal([]byte(result), &invitationData)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to parse invitation relationship JSON data",
+			zap.Error(err),
+			zap.Uint("userId", userId),
+			zap.String("rawData", result))
+		return nil, err
+	}
+
+	return invitationData, nil
+}
+
+// addRebateToUser Add rebate to user
+func addRebateToUser(c *gin.Context, userId int, rebateAmount float64, rebateType string, record apiReq.SettleRecord, rebateRate float64, rebateLevel int) {
+	// Get user information
+	redisKey := fmt.Sprintf("user_%d", userId)
+
+	redisuser, err := global.GVA_REDIS.Get(c, redisKey).Result()
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get user from Redis",
+			zap.Error(err),
+			zap.Int("userId", userId),
+			zap.String("redisKey", redisKey))
+		return
+	}
+
+	var userJson system.ApiSysUser
+	err = json.Unmarshal([]byte(redisuser), &userJson)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to unmarshal user data",
+			zap.Error(err),
+			zap.Int("userId", userId),
+			zap.String("redisData", redisuser))
+		return
+	}
+
+	// Calculate new balance
+	originalBalance := userJson.Balance
+
+	// Round rebate amount to 2 decimal places
+	roundedRebateAmount := math.Round(rebateAmount*100) / 100
+
+	// Calculate new balance
+	newBalance := userJson.Balance + roundedRebateAmount
+
+	if newBalance < 0 {
+		global.GVA_LOG.Error("Rebate would result in negative balance, set to 0",
+			zap.Int("userId", userId),
+			zap.Float64("originalBalance", originalBalance),
+			zap.Float64("rebateAmount", roundedRebateAmount),
+			zap.String("rebateType", rebateType))
+		newBalance = 0
+	}
+
+	// Final balance rounded to 2 decimal places
+	finalBalance := math.Round(newBalance*100) / 100
+	userJson.Balance = finalBalance
+
+	// Update user information to Redis
+	updatedUserJson, err := json.Marshal(userJson)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to marshal updated user data",
+			zap.Error(err),
+			zap.Int("userId", userId))
+		return
+	}
+
+	err = global.GVA_REDIS.Set(c, redisKey, string(updatedUserJson), 0).Err()
+	if err != nil {
+		global.GVA_LOG.Error("Failed to save user data to Redis",
+			zap.Error(err),
+			zap.Int("userId", userId),
+			zap.String("redisKey", redisKey))
+		return
+	}
+
+	// 保存返佣记录到数据库
+	saveRebateRecordToDB(c, userId, record, rebateType, rebateLevel, rebateRate, rebateAmount, originalBalance, userJson.Balance)
+}
+
+// getUserFromRedis 从Redis获取用户信息
+func getUserFromRedis(c *gin.Context, userId int) (*system.ApiSysUser, error) {
+	redisuser, err := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", userId)).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	var userJson system.ApiSysUser
+	err = json.Unmarshal([]byte(redisuser), &userJson)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userJson, nil
+}
+
+// getUserRebateRate Get rebate rate from user Redis information
+func getUserRebateRate(c *gin.Context, userId int) (float64, error) {
+	// Get user information
+	user, err := getUserFromRedis(c, userId)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get user information",
+			zap.Error(err),
+			zap.Int("userId", userId))
+		return 0, err
+	}
+
+	// Check if user level is 0, if so no rebate
+	if user.Level == 0 {
+		return 0, nil
+	}
+
+	// Get rebate rate from user's level field
+	// level field stores percentage value (e.g., 3 means 3%, 5 means 5%)
+	rebateRate := float64(user.Level) / 100.0 // level=3 means 3%, so level/100
+
+	// Boundary check: ensure rebate rate is within reasonable range (0-100%)
+	if rebateRate < 0 {
+		global.GVA_LOG.Warn("Rebate rate is negative, set to 0",
+			zap.Int("userId", userId),
+			zap.Int("userLevel", user.Level),
+			zap.Float64("originalRate", rebateRate))
+		rebateRate = 0
+	} else if rebateRate > 1.0 {
+		global.GVA_LOG.Warn("Rebate rate exceeds 100%, set to 100%",
+			zap.Int("userId", userId),
+			zap.Int("userLevel", user.Level),
+			zap.Float64("originalRate", rebateRate))
+		rebateRate = 1.0
+	}
+
+	return rebateRate, nil
+}
+
+// saveRebateRecordToDB Save rebate record to database
+func saveRebateRecordToDB(c *gin.Context, userId int, record apiReq.SettleRecord, rebateType string, rebateLevel int, rebateRate float64, rebateAmount float64, balanceBefore float64, balanceAfter float64) {
+	// Convert UserCode to user ID
+	fromUserId, err := strconv.ParseUint(record.UserCode, 10, 32)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to convert fromUserId",
+			zap.Error(err),
+			zap.String("userCode", record.UserCode))
+		return
+	}
+
+	// Convert BetInfo to JSON
+	betInfoJSON, err := json.Marshal(record.BetInfo)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to serialize BetInfo",
+			zap.Error(err),
+			zap.Any("betInfo", record.BetInfo))
+		return
+	}
+
+	// Create rebate record
+	rebateRecord := api.UserRebates{
+		UserId:            uint(userId),
+		FromUserId:        uint(fromUserId),
+		FromUserCode:      record.UserCode,
+		RebateType:        rebateType,
+		RebateLevel:       rebateLevel,
+		Coin:              record.Coin,
+		Win:               record.Win,
+		RebateRate:        rebateRate,
+		RebateAmount:      rebateAmount,
+		UserBalanceBefore: balanceBefore,
+		UserBalanceAfter:  balanceAfter,
+		SessionId:         record.SessionID,
+		GameType:          record.GameType,
+		Area:              record.Area,
+		BetInfo:           betInfoJSON,
+		Status:            1, // 1-Success
+		Remark:            fmt.Sprintf("User %s bet %.2f, got %.2f%% rebate", record.UserCode, record.Coin, rebateRate*100),
+	}
+
+	// Save to database
+	err = global.GVA_DB.Create(&rebateRecord).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to save rebate record to database",
+			zap.Error(err),
+			zap.Int("userId", userId),
+			zap.String("rebateType", rebateType),
+			zap.String("errorType", fmt.Sprintf("%T", err)),
+			zap.String("errorDetails", err.Error()))
+		return
+	}
+}
+
+// getMapKeys 获取map的所有key
+func getMapKeys(m map[string]string) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
 }

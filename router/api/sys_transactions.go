@@ -30,5 +30,6 @@ func (s *SysTransactionsRouter) InitSysTransactionsRouter(Router *gin.RouterGrou
 		sysTransactionsRouterWithoutAuth.POST("checkwin", sysTransactionsApi.CheckWin)                                // sysTransactions
 		sysTransactionsRouterWithoutAuth.POST("exchange", sysTransactionsApi.Exchange)                                // sysTransactions
 		sysTransactionsRouterWithoutAuth.POST("config", sysTransactionsApi.Config)                                    // sysTransactions
+		sysTransactionsRouterWithoutAuth.POST("autoFanxian", sysTransactionsApi.GetSettleListFromRedis)               // sysTransactions
 	}
 }

@@ -265,7 +265,6 @@ func (paymentCallbacksApi *PaymentCallbacksApi) TradeCallback(c *gin.Context) {
 			"success": "ok",
 		})
 	}
-	return
 }
 
 // PaymentCallback
@@ -341,5 +340,4 @@ func (paymentCallbacksApi *PaymentCallbacksApi) PaymentCallback(c *gin.Context) 
 			"success": "ok",
 		})
 	}
-	return
 }

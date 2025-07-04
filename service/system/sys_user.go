@@ -244,7 +244,7 @@ func (userService *UserService) DeleteUser(id int) (err error) {
 
 func (userService *UserService) SetUserInfo(req system.SysUser) error {
 	return global.GVA_DB.Model(&system.SysUser{}).
-		Select("updated_at", "nick_name", "header_img", "phone", "email", "enable").
+		Select("updated_at", "nick_name", "header_img", "phone", "email", "enable", "level").
 		Where("id=?", req.ID).
 		Updates(map[string]interface{}{
 			"updated_at": time.Now(),
@@ -252,6 +252,7 @@ func (userService *UserService) SetUserInfo(req system.SysUser) error {
 			"header_img": req.HeaderImg,
 			"phone":      req.Phone,
 			"email":      req.Email,
+			"level":      req.Level,
 			"enable":     req.Enable,
 		}).Error
 }
@@ -306,6 +307,11 @@ func (userService *UserService) FindUserById(id int) (user *system.SysUser, err 
 	err = global.GVA_DB.Where("id = ?", id).First(&u).Error
 	return &u, err
 }
+func (userService *UserService) FindUserByUId(id uint) (user *system.SysUser, err error) {
+	var u system.SysUser
+	err = global.GVA_DB.Where("id = ?", id).First(&u).Error
+	return &u, err
+}
 
 //@author: [SliverHorn](https://github.com/SliverHorn)
 //@function: FindUserByUuid
@@ -355,7 +361,7 @@ func (userService *UserService) VerifyWithdrawPassword(u *system.SysUser, newPas
 		return err
 	}
 	if ok := utils.BcryptCheck(u.Password, user.WithdrawPassword); !ok {
-		return errors.New("old password error")
+		return errors.New("WITHDRAW_PASSWORD_ERROR")
 	}
 
 	return nil
@@ -367,7 +373,7 @@ func (userService *UserService) SetWithdrawPassword(u *system.SysUser, newPasswo
 		return user, err
 	}
 	if ok := utils.BcryptCheck(loginPassword, user.Password); !ok {
-		return user, errors.New("login password error")
+		return user, errors.New("LOGIN_PASSWORD_ERROR")
 	}
 	user.WithdrawPassword = utils.BcryptHash(newPassword)
 	err = global.GVA_DB.Save(&user).Error
@@ -377,7 +383,7 @@ func (userService *UserService) SetWithdrawPassword(u *system.SysUser, newPasswo
 func (userService *UserService) ApiRegister(u system.SysUser) (userInter system.SysUser, err error) {
 	var user system.SysUser
 	if !errors.Is(global.GVA_DB.Where("username = ?", u.Username).First(&user).Error, gorm.ErrRecordNotFound) { //
-		return userInter, errors.New("")
+		return userInter, errors.New("USERNAME_DUPLICATE")
 	}
 	//  uuid hash
 	u.Password = utils.BcryptHash(u.Password)
@@ -392,7 +398,7 @@ func (userService *UserService) BindEmail(ID uint, email string) (err error) {
 func (userService *UserService) CheckEmail(email string) (err error) {
 	var user system.SysUser
 	if !errors.Is(global.GVA_DB.Where("email = ?", email).First(&user).Error, gorm.ErrRecordNotFound) { //
-		return errors.New("email chongfu")
+		return errors.New("EMAIL_DUPLICATE")
 	}
 	return nil
 }

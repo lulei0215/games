@@ -1,6 +1,7 @@
 package i18n
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -22,6 +23,14 @@ const (
 	MsgUserNotFound      MessageKey = "user_not_found"
 	MsgInsufficientFunds MessageKey = "insufficient_funds"
 	MsgInvalidRequest    MessageKey = "invalid_request"
+
+	// 登录相关消息
+	MsgLoginPasswordError    MessageKey = "login_password_error"
+	MsgWithdrawPasswordError MessageKey = "withdraw_password_error"
+	MsgOldPasswordError      MessageKey = "old_password_error"
+	MsgPasswordError         MessageKey = "password_error"
+	MsgEmailDuplicate        MessageKey = "email_duplicate"
+	MsgUsernameDuplicate     MessageKey = "username_duplicate"
 
 	// 支付相关消息
 	MsgPaymentSuccess    MessageKey = "payment_success"
@@ -54,6 +63,14 @@ var Messages = map[string]map[MessageKey]string{
 		MsgInsufficientFunds: "Insufficient funds",
 		MsgInvalidRequest:    "Invalid request",
 
+		// 登录相关消息
+		MsgLoginPasswordError:    "Login password error",
+		MsgWithdrawPasswordError: "Withdraw password error",
+		MsgOldPasswordError:      "Old password error",
+		MsgPasswordError:         "Password error",
+		MsgEmailDuplicate:        "Email already exists",
+		MsgUsernameDuplicate:     "Username already exists",
+
 		// 支付相关消息
 		MsgPaymentSuccess:    "Payment successful",
 		MsgPaymentFailed:     "Payment failed",
@@ -81,6 +98,14 @@ var Messages = map[string]map[MessageKey]string{
 		MsgUserNotFound:      "Usuário não encontrado",
 		MsgInsufficientFunds: "Saldo insuficiente",
 		MsgInvalidRequest:    "Solicitação inválida",
+
+		// 登录相关消息
+		MsgLoginPasswordError:    "Erro na senha de login",
+		MsgWithdrawPasswordError: "Erro na senha de saque",
+		MsgOldPasswordError:      "Erro na senha antiga",
+		MsgPasswordError:         "Erro na senha",
+		MsgEmailDuplicate:        "Email já existe",
+		MsgUsernameDuplicate:     "Nome de usuário já existe",
 
 		// 支付相关消息
 		MsgPaymentSuccess:    "Pagamento bem-sucedido",
@@ -166,6 +191,6 @@ func GetLangFromHeader(acceptLang string) string {
 			return normalized
 		}
 	}
-
+	fmt.Println("DefaultLang", DefaultLang)
 	return DefaultLang
 }

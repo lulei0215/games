@@ -81,6 +81,7 @@ type ChangeUserInfo struct {
 	Email        string                `json:"email"  gorm:"comment:"`                                                           //
 	HeaderImg    string                `json:"headerImg" gorm:"default:https://qmplusimg.henrongyi.top/gva_header.jpg;comment:"` //
 	SideMode     string                `json:"sideMode"  gorm:"comment:"`                                                        //
+	Level        int                   `json:"level"  gorm:"comment:"`                                                           //
 	Enable       int                   `json:"enable" gorm:"comment:"`                                                           //
 	Authorities  []system.SysAuthority `json:"-" gorm:"many2many:sys_user_authority;"`
 }

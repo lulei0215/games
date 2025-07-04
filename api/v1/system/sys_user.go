@@ -15,6 +15,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
 	systemReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
 	systemRes "github.com/flipped-aurora/gin-vue-admin/server/model/system/response"
+	"github.com/flipped-aurora/gin-vue-admin/server/utils/i18n"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
@@ -163,7 +164,25 @@ func (b *BaseApi) Register(c *gin.Context) {
 	userReturn, err := userService.Register(*user)
 	if err != nil {
 		global.GVA_LOG.Error("!", zap.Error(err))
-		response.FailWithDetailed(systemRes.SysUserResponse{User: userReturn}, "", c)
+
+		// 获取语言设置
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+
+		// 根据错误类型返回多语言消息
+		var errorMsg string
+		if err.Error() == "USERNAME_DUPLICATE" {
+			errorMsg = i18n.GetMessage(lang, i18n.MsgUsernameDuplicate)
+		} else {
+			errorMsg = err.Error()
+		}
+
+		response.FailWithDetailed(systemRes.SysUserResponse{User: userReturn}, errorMsg, c)
 		return
 	}
 	response.OkWithDetailed(systemRes.SysUserResponse{User: userReturn}, "", c)
@@ -248,9 +267,23 @@ func (b *BaseApi) VerifyWithdrawPassword(c *gin.Context) {
 
 	u := &system.SysUser{GVA_MODEL: global.GVA_MODEL{ID: uid}, Password: req.Password}
 	err = userService.VerifyWithdrawPassword(u, req.Password)
+
 	if err != nil {
 		global.GVA_LOG.Error("!", zap.Error(err))
-		response.FailWithMessage("，", c)
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+		var errorMsg string
+		if err.Error() == "WITHDRAW_PASSWORD_ERROR" {
+			errorMsg = i18n.GetMessage(lang, i18n.MsgWithdrawPasswordError)
+		} else {
+			errorMsg = err.Error()
+		}
+		response.FailWithMessage(errorMsg, c)
 		return
 	}
 	response.OkWithMessage("ok", c)
@@ -278,16 +311,27 @@ func (b *BaseApi) SetWithdrawPassword(c *gin.Context) {
 	user, err := userService.SetWithdrawPassword(u, req.Password, req.LoginPassword)
 	if err != nil {
 		global.GVA_LOG.Error("!", zap.Error(err))
-		response.FailWithMessage("，", c)
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+		var errorMsg string
+		if err.Error() == "LOGIN_PASSWORD_ERROR" {
+			errorMsg = i18n.GetMessage(lang, i18n.MsgLoginPasswordError)
+		} else {
+			errorMsg = err.Error()
+		}
+		response.FailWithMessage(errorMsg, c)
 		return
 	}
 
-	// 将用户数据序列化为JSON
 	userJson, err := json.Marshal(user)
 	if err != nil {
 		global.GVA_LOG.Error("Failed to marshal user data", zap.Error(err))
 	} else {
-		// 保存到Redis，设置过期时间为24小时
 		err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%d", user.ID), string(userJson), 0).Err()
 		if err != nil {
 			global.GVA_LOG.Error("Failed to save user data to Redis", zap.Error(err))
@@ -464,6 +508,11 @@ func (b *BaseApi) SetUserInfo(c *gin.Context) {
 			return
 		}
 	}
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
 	err = userService.SetUserInfo(system.SysUser{
 		GVA_MODEL: global.GVA_MODEL{
 			ID: user.ID,
@@ -471,9 +520,32 @@ func (b *BaseApi) SetUserInfo(c *gin.Context) {
 		NickName:  user.NickName,
 		HeaderImg: user.HeaderImg,
 		Phone:     user.Phone,
+		Level:     user.Level,
 		Email:     user.Email,
 		Enable:    user.Enable,
 	})
+	if err != nil {
+		global.GVA_LOG.Error("Failed to update user info", zap.Error(err))
+		response.FailWithMessage("更新用户信息失败", c)
+		return
+	}
+	updatedUser, err := userService.FindUserByUId(user.ID)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get updated user info", zap.Error(err))
+		response.FailWithMessage("获取更新后的用户信息失败", c)
+		return
+	}
+
+	userJson, err := json.Marshal(updatedUser)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to marshal updated user data", zap.Error(err))
+	} else {
+		err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%d", user.ID), string(userJson), 0).Err()
+		if err != nil {
+			global.GVA_LOG.Error("Failed to update user data in Redis", zap.Error(err))
+		}
+	}
+
 	if err != nil {
 		global.GVA_LOG.Error("!", zap.Error(err))
 		response.FailWithMessage("", c)
@@ -623,13 +695,41 @@ func (b *BaseApi) ApiLogin(c *gin.Context) {
 	if err != nil {
 		global.GVA_LOG.Error("! !", zap.Error(err))
 		global.BlackCache.Increment(key, 1)
-		response.FailWithMessage("", c)
+
+		// 获取语言设置
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+
+		// 根据错误类型返回多语言消息
+		var errorMsg string
+		if err.Error() == "password error" {
+			errorMsg = i18n.GetMessage(lang, i18n.MsgLoginPasswordError)
+		} else {
+			errorMsg = i18n.GetMessage(lang, i18n.MsgFailed)
+		}
+
+		response.FailWithMessage(errorMsg, c)
 		return
 	}
 	if user.Enable != 1 {
 		global.GVA_LOG.Error("! !")
 		// +1
-		response.FailWithMessage("", c)
+
+		// 获取语言设置
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+
+		response.FailWithMessage(i18n.GetMessage(lang, i18n.MsgFailed), c)
 		return
 	}
 	b.ApiTokenNext(c, *user)
@@ -648,14 +748,34 @@ func (b *BaseApi) ApiTokenNext(c *gin.Context, user system.SysUser) {
 	token, err := j.CreateToken(claims)
 	if err != nil {
 		global.GVA_LOG.Error("get token error!", zap.Error(err))
-		response.FailWithMessage("get token error", c)
+
+		// 获取语言设置
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+
+		response.FailWithMessage(i18n.GetMessage(lang, i18n.MsgFailed), c)
 		return
 	}
 
 	// token
 	if err := utils.SetRedisJWT(token, user.Username); err != nil {
 		global.GVA_LOG.Error("set fail!", zap.Error(err))
-		response.FailWithMessage("set fail", c)
+
+		// 获取语言设置
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+
+		response.FailWithMessage(i18n.GetMessage(lang, i18n.MsgFailed), c)
 		return
 	}
 
@@ -673,11 +793,21 @@ func (b *BaseApi) ApiTokenNext(c *gin.Context, user system.SysUser) {
 			}
 		}
 	}
+
+	// 获取语言设置
+	lang := c.GetHeader("X-Language")
+	if lang == "" {
+		acceptLang := c.GetHeader("Accept-Language")
+		lang = i18n.GetLangFromHeader(acceptLang)
+	} else {
+		lang = i18n.NormalizeLang(lang)
+	}
+
 	response.OkWithDetailed(systemRes.LoginResponse{
 		User:      user,
 		Token:     token,
 		ExpiresAt: claims.RegisteredClaims.ExpiresAt.Unix() * 1000,
-	}, "ok", c)
+	}, i18n.GetMessage(lang, i18n.MsgSuccess), c)
 }
 func (b *BaseApi) ApiRegister(c *gin.Context) {
 	var r systemReq.Register
@@ -704,13 +834,40 @@ func (b *BaseApi) ApiRegister(c *gin.Context) {
 	userReturn, err := userService.ApiRegister(*user)
 	if err != nil {
 		global.GVA_LOG.Error("!", zap.Error(err))
-		response.FailWithDetailed(systemRes.SysUserResponse{User: userReturn}, "", c)
+
+		// 获取语言设置
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+
+		// 根据错误类型返回多语言消息
+		var errorMsg string
+		if err.Error() == "USERNAME_DUPLICATE" {
+			errorMsg = i18n.GetMessage(lang, i18n.MsgUsernameDuplicate)
+		} else {
+			errorMsg = err.Error()
+		}
+
+		response.FailWithMessage(errorMsg, c)
 		return
 	}
 	if r.Uuid != "" {
 		parentUser, err := userService.FindUserByUuid(r.Uuid)
 		if err != nil || parentUser.ID == 0 {
-			response.FailWithMessage("parent_user-1 fail", c)
+			// 获取语言设置
+			lang := c.GetHeader("X-Language")
+			if lang == "" {
+				acceptLang := c.GetHeader("Accept-Language")
+				lang = i18n.GetLangFromHeader(acceptLang)
+			} else {
+				lang = i18n.NormalizeLang(lang)
+			}
+
+			response.FailWithMessage(i18n.GetMessage(lang, i18n.MsgFailed), c)
 			return
 		}
 		userAgentRelation2, err := userAgentRelationService.GetUserAgentRelation(c, fmt.Sprint(parentUser.ID))
@@ -721,8 +878,269 @@ func (b *BaseApi) ApiRegister(c *gin.Context) {
 			userAgentRelation.ParentId2 = int(userAgentRelation2.ParentId1)
 		}
 		userAgentRelationService.CreateUserAgentRelation(c, &userAgentRelation)
+
+		// 记录邀请关系创建信息
+		global.GVA_LOG.Info("Creating invitation relation for new user",
+			zap.Uint("newUserId", userReturn.ID),
+			zap.String("newUsername", userReturn.Username),
+			zap.Uint("parentUserId", parentUser.ID),
+			zap.String("parentUsername", parentUser.Username),
+			zap.Int("parentId1", int(parentUser.ID)),
+			zap.Int("parentId2", userAgentRelation.ParentId2),
+			zap.String("invitationChain", fmt.Sprintf("新用户%d(%s) -> 1级上级%d(%s) -> 2级上级%d",
+				userReturn.ID, userReturn.Username,
+				parentUser.ID, parentUser.Username,
+				userAgentRelation.ParentId2)))
+
+		// 保存邀请关系到Redis
+		saveUserInvitationRelation(c, userReturn.ID, int(parentUser.ID), userAgentRelation.ParentId2)
 	}
-	response.OkWithDetailed(systemRes.SysUserResponse{User: userReturn}, "", c)
+
+	// 获取语言设置
+	lang := c.GetHeader("X-Language")
+	if lang == "" {
+		acceptLang := c.GetHeader("Accept-Language")
+		lang = i18n.GetLangFromHeader(acceptLang)
+	} else {
+		lang = i18n.NormalizeLang(lang)
+	}
+
+	// 返回注册成功的多语言消息
+	successMsg := i18n.GetMessage(lang, i18n.MsgSuccess)
+	response.OkWithMessage(successMsg, c)
+}
+
+// saveUserInvitationRelation 保存用户邀请关系到Redis
+func saveUserInvitationRelation(c *gin.Context, userId uint, parentId1 int, parentId2 int) {
+	// 记录邀请关系信息
+	global.GVA_LOG.Info("Saving user invitation relation",
+		zap.Uint("userId", userId),
+		zap.Int("parentId1", parentId1),
+		zap.Int("parentId2", parentId2),
+		zap.String("relationInfo", fmt.Sprintf("用户%d的1级上级:%d, 2级上级:%d", userId, parentId1, parentId2)))
+
+	// 构建邀请关系数据
+	invitationData := map[string]interface{}{
+		"level1": parentId1, // 1级上级
+		"level2": parentId2, // 2级上级
+	}
+
+	// 序列化为JSON
+	invitationJson, err := json.Marshal(invitationData)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to marshal invitation relation",
+			zap.Error(err),
+			zap.Uint("userId", userId),
+			zap.Int("parentId1", parentId1),
+			zap.Int("parentId2", parentId2))
+		return
+	}
+
+	// 保存到Redis，key格式: invitation_关系_{用户ID}
+	key := fmt.Sprintf("invitation_relation_%d", userId)
+	err = global.GVA_REDIS.Set(c, key, string(invitationJson), 0).Err()
+	if err != nil {
+		global.GVA_LOG.Error("Failed to save invitation relation to Redis",
+			zap.Error(err),
+			zap.String("redisKey", key),
+			zap.Uint("userId", userId))
+	} else {
+		global.GVA_LOG.Info("Successfully saved invitation relation to Redis",
+			zap.String("redisKey", key),
+			zap.String("invitationData", string(invitationJson)),
+			zap.Uint("userId", userId))
+	}
+
+	// 同时保存反向关系，方便通过上级ID查找下级
+	// 1级上级的下级列表
+	if parentId1 > 0 {
+		level1Key := fmt.Sprintf("invitation_children_level1_%d", parentId1)
+		err := global.GVA_REDIS.SAdd(c, level1Key, fmt.Sprintf("%d", userId)).Err()
+		if err != nil {
+			global.GVA_LOG.Error("Failed to save level1 children relation to Redis",
+				zap.Error(err),
+				zap.String("redisKey", level1Key),
+				zap.Int("parentId1", parentId1),
+				zap.Uint("userId", userId))
+		} else {
+			global.GVA_LOG.Info("Successfully saved level1 children relation to Redis",
+				zap.String("redisKey", level1Key),
+				zap.Int("parentId1", parentId1),
+				zap.Uint("userId", userId))
+		}
+	} else {
+		global.GVA_LOG.Info("No level1 parent, skipping level1 children relation",
+			zap.Uint("userId", userId),
+			zap.Int("parentId1", parentId1))
+	}
+
+	// 2级上级的下级列表
+	if parentId2 > 0 {
+		level2Key := fmt.Sprintf("invitation_children_level2_%d", parentId2)
+		err := global.GVA_REDIS.SAdd(c, level2Key, fmt.Sprintf("%d", userId)).Err()
+		if err != nil {
+			global.GVA_LOG.Error("Failed to save level2 children relation to Redis",
+				zap.Error(err),
+				zap.String("redisKey", level2Key),
+				zap.Int("parentId2", parentId2),
+				zap.Uint("userId", userId))
+		} else {
+			global.GVA_LOG.Info("Successfully saved level2 children relation to Redis",
+				zap.String("redisKey", level2Key),
+				zap.Int("parentId2", parentId2),
+				zap.Uint("userId", userId))
+		}
+	} else {
+		global.GVA_LOG.Info("No level2 parent, skipping level2 children relation",
+			zap.Uint("userId", userId),
+			zap.Int("parentId2", parentId2))
+	}
+
+	// 记录完整的邀请关系总结
+	global.GVA_LOG.Info("Invitation relation saved successfully",
+		zap.Uint("userId", userId),
+		zap.Int("parentId1", parentId1),
+		zap.Int("parentId2", parentId2),
+		zap.String("summary", fmt.Sprintf("用户%d的邀请关系已保存: 1级上级=%d, 2级上级=%d", userId, parentId1, parentId2)))
+}
+
+// getUserInvitationRelation 获取用户邀请关系
+func getUserInvitationRelation(c *gin.Context, userId uint) (map[string]interface{}, error) {
+	key := fmt.Sprintf("invitation_relation_%d", userId)
+	result, err := global.GVA_REDIS.Get(c, key).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	var invitationData map[string]interface{}
+	err = json.Unmarshal([]byte(result), &invitationData)
+	if err != nil {
+		return nil, err
+	}
+
+	return invitationData, nil
+}
+
+// getUserChildren 获取用户的下级列表
+func getUserChildren(c *gin.Context, userId int, level int) ([]string, error) {
+	key := fmt.Sprintf("invitation_children_level%d_%d", level, userId)
+	result, err := global.GVA_REDIS.SMembers(c, key).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+// GetUserInvitationRelation 获取用户邀请关系API
+func (b *BaseApi) GetUserInvitationRelation(c *gin.Context) {
+	// 从请求参数中获取用户ID
+	userIdStr := c.Query("userId")
+	if userIdStr == "" {
+		response.FailWithMessage("用户ID不能为空", c)
+		return
+	}
+
+	userId, err := strconv.ParseUint(userIdStr, 10, 32)
+	if err != nil {
+		response.FailWithMessage("用户ID格式错误", c)
+		return
+	}
+
+	// 获取邀请关系
+	relation, err := getUserInvitationRelation(c, uint(userId))
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get user invitation relation",
+			zap.Error(err),
+			zap.Uint64("userId", userId))
+		response.FailWithMessage("获取邀请关系失败", c)
+		return
+	}
+
+	// 获取上级用户详细信息
+	var result map[string]interface{}
+	if relation != nil {
+		result = make(map[string]interface{})
+
+		// 获取1级上级信息
+		if level1Id, ok := relation["level1"].(float64); ok && level1Id > 0 {
+			level1User, err := userService.FindUserByUId(uint(level1Id))
+			if err == nil {
+				result["level1_user"] = level1User
+			}
+		}
+
+		// 获取2级上级信息
+		if level2Id, ok := relation["level2"].(float64); ok && level2Id > 0 {
+			level2User, err := userService.FindUserByUId(uint(level2Id))
+			if err == nil {
+				result["level2_user"] = level2User
+			}
+		}
+
+		result["relation"] = relation
+	}
+
+	response.OkWithDetailed(result, "获取邀请关系成功", c)
+}
+
+// GetUserChildren 获取用户下级列表API
+func (b *BaseApi) GetUserChildren(c *gin.Context) {
+	// 从请求参数中获取用户ID和层级
+	userIdStr := c.Query("userId")
+	levelStr := c.Query("level")
+
+	if userIdStr == "" {
+		response.FailWithMessage("用户ID不能为空", c)
+		return
+	}
+
+	if levelStr == "" {
+		levelStr = "1" // 默认获取1级下级
+	}
+
+	userId, err := strconv.Atoi(userIdStr)
+	if err != nil {
+		response.FailWithMessage("用户ID格式错误", c)
+		return
+	}
+
+	level, err := strconv.Atoi(levelStr)
+	if err != nil || (level != 1 && level != 2) {
+		response.FailWithMessage("层级参数错误，只能是1或2", c)
+		return
+	}
+
+	// 获取下级列表
+	childrenIds, err := getUserChildren(c, userId, level)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get user children",
+			zap.Error(err),
+			zap.Int("userId", userId),
+			zap.Int("level", level))
+		response.FailWithMessage("获取下级列表失败", c)
+		return
+	}
+
+	// 获取下级用户详细信息
+	var childrenUsers []interface{}
+	for _, childIdStr := range childrenIds {
+		childId, err := strconv.ParseUint(childIdStr, 10, 32)
+		if err != nil {
+			continue
+		}
+
+		childUser, err := userService.FindUserByUId(uint(childId))
+		if err == nil {
+			childrenUsers = append(childrenUsers, childUser)
+		}
+	}
+
+	response.OkWithDetailed(gin.H{
+		"children": childrenUsers,
+		"total":    len(childrenUsers),
+		"level":    level,
+	}, "获取下级列表成功", c)
 }
 
 func GenerateVerificationCode() string {
@@ -741,7 +1159,16 @@ func GenerateVerificationCode() string {
 func (b *BaseApi) SendCode(c *gin.Context) {
 	uid := utils.GetRedisUserID(c)
 	if uid == 0 {
-		response.Result(401, nil, "", c)
+		// 获取语言设置
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+
+		response.Result(401, nil, i18n.GetMessage(lang, i18n.MsgFailed), c)
 		return
 	}
 	var r systemReq.SendEmailCodeRequest
@@ -758,7 +1185,24 @@ func (b *BaseApi) SendCode(c *gin.Context) {
 	}
 	err = userService.CheckEmail(r.Email)
 	if err != nil {
-		response.FailWithMessage(err.Error(), c)
+		// 获取语言设置
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+
+		// 根据错误类型返回多语言消息
+		var errorMsg string
+		if err.Error() == "EMAIL_DUPLICATE" {
+			errorMsg = i18n.GetMessage(lang, i18n.MsgEmailDuplicate)
+		} else {
+			errorMsg = err.Error()
+		}
+
+		response.FailWithMessage(errorMsg, c)
 		return
 	}
 	code := GenerateVerificationCode()
@@ -766,18 +1210,47 @@ func (b *BaseApi) SendCode(c *gin.Context) {
 	err = global.GVA_REDIS.Set(c, fmt.Sprintf("email_code_%d:%s", uid, r.Email), code, 5*time.Minute).Err()
 	if err != nil {
 		global.GVA_LOG.Error("save fail !", zap.Error(err))
-		response.FailWithMessage("send fail", c)
+
+		// 获取语言设置
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+
+		response.FailWithMessage(i18n.GetMessage(lang, i18n.MsgFailed), c)
 		return
 	}
 
 	err = SendVerificationEmail(r.Email, code)
 	if err != nil {
 		global.GVA_LOG.Error("send fail!", zap.Error(err))
-		response.FailWithMessage("send fail", c)
+
+		// 获取语言设置
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+
+		response.FailWithMessage(i18n.GetMessage(lang, i18n.MsgFailed), c)
 		return
 	}
 
-	response.OkWithMessage("send ok", c)
+	// 获取语言设置
+	lang := c.GetHeader("X-Language")
+	if lang == "" {
+		acceptLang := c.GetHeader("Accept-Language")
+		lang = i18n.GetLangFromHeader(acceptLang)
+	} else {
+		lang = i18n.NormalizeLang(lang)
+	}
+
+	response.OkWithMessage(i18n.GetMessage(lang, i18n.MsgSuccess), c)
 }
 
 func SendVerificationEmail(email, code string) error {
@@ -800,7 +1273,16 @@ func SendVerificationEmail(email, code string) error {
 func (b *BaseApi) BindeMail(c *gin.Context) {
 	uid := utils.GetRedisUserID(c)
 	if uid == 0 {
-		response.Result(401, nil, "user fail", c)
+		// 获取语言设置
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+
+		response.Result(401, nil, i18n.GetMessage(lang, i18n.MsgFailed), c)
 		return
 	}
 	var r systemReq.BindEmailRequest
@@ -812,12 +1294,30 @@ func (b *BaseApi) BindeMail(c *gin.Context) {
 
 	storedCode, err := global.GVA_REDIS.Get(c, fmt.Sprintf("email_code_%d:%s", uid, r.Email)).Result()
 	if err != nil {
-		response.FailWithMessage("code error", c)
+		// 获取语言设置
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+
+		response.FailWithMessage(i18n.GetMessage(lang, i18n.MsgFailed), c)
 		return
 	}
 
 	if storedCode != r.Code {
-		response.FailWithMessage("code error", c)
+		// 获取语言设置
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+
+		response.FailWithMessage(i18n.GetMessage(lang, i18n.MsgFailed), c)
 		return
 	}
 
@@ -826,11 +1326,30 @@ func (b *BaseApi) BindeMail(c *gin.Context) {
 	err = userService.BindEmail(uid, r.Email)
 	if err != nil {
 		global.GVA_LOG.Error("bind email fail!", zap.Error(err))
-		response.FailWithDetailed(nil, "", c)
+
+		// 获取语言设置
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+
+		response.FailWithMessage(i18n.GetMessage(lang, i18n.MsgFailed), c)
 		return
 	}
 
-	response.OkWithDetailed(nil, "ok", c)
+	// 获取语言设置
+	lang := c.GetHeader("X-Language")
+	if lang == "" {
+		acceptLang := c.GetHeader("Accept-Language")
+		lang = i18n.GetLangFromHeader(acceptLang)
+	} else {
+		lang = i18n.NormalizeLang(lang)
+	}
+
+	response.OkWithMessage(i18n.GetMessage(lang, i18n.MsgSuccess), c)
 }
 func (b *BaseApi) Decrypt(c *gin.Context) {
 	type DecryptRequest struct {
