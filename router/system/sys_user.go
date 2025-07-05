@@ -21,9 +21,11 @@ func (s *UserRouter) InitUserRouter(Router *gin.RouterGroup, RouterPub *gin.Rout
 		userRouter.POST("setUserAuthorities", baseApi.SetUserAuthorities) //
 		userRouter.POST("resetPassword", baseApi.ResetPassword)           //
 		userRouter.PUT("setSelfSetting", baseApi.SetSelfSetting)          //
+		//
 	}
 	{
-		userRouterWithoutRecord.POST("getUserList", baseApi.GetUserList)               //
+		userRouterWithoutRecord.POST("getUserList", baseApi.GetUserList)
+		userRouterPub.POST("dashboard", baseApi.Dashboard)                             //
 		userRouterWithoutRecord.GET("getUserInfo", baseApi.GetUserInfo)                //
 		userRouterPub.POST("resetWithdrawPassword", baseApi.ResetWithdrawPassword)     //
 		userRouterPub.POST("changeWithdrawPassword", baseApi.ChangeWithdrawPassword)   //

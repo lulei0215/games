@@ -214,7 +214,7 @@ func (sysTransactionsApi *SysTransactionsApi) Get(c *gin.Context) {
 	}, "", c)
 }
 
-// jiesuan
+// Settlement
 func (sysTransactionsApi *SysTransactionsApi) Settle(c *gin.Context) {
 
 	var r apiReq.DecryptRequest
@@ -287,14 +287,14 @@ func (sysTransactionsApi *SysTransactionsApi) Settle(c *gin.Context) {
 		}
 	}
 
-	// 将整个 SettleRecords 结构体保存到Redis Hash中，使用时间戳作为key
+	// Save the entire SettleRecords structure to Redis Hash using timestamp as key
 	timestamp := time.Now().Unix()
 	settleKey := fmt.Sprintf("Settle_%d", timestamp)
 	derJson, err := json.Marshal(der.List)
 	if err != nil {
 		global.GVA_LOG.Error("Failed to marshal SettleRecords", zap.Error(err))
 	} else {
-		// 将数据保存到Redis Hash中
+		// Save data to Redis Hash
 		err = global.GVA_REDIS.HSet(c, "Settle_Records", settleKey, string(derJson)).Err()
 		if err != nil {
 			global.GVA_LOG.Error("Failed to save SettleRecords to Redis", zap.Error(err))
@@ -304,7 +304,7 @@ func (sysTransactionsApi *SysTransactionsApi) Settle(c *gin.Context) {
 	response.OkWithMessage("ok", c)
 }
 
-// kaijiang
+// Lottery draw
 func (sysTransactionsApi *SysTransactionsApi) Lottery(c *gin.Context) {
 
 	var r apiReq.DecryptRequest
@@ -378,7 +378,7 @@ func (sysTransactionsApi *SysTransactionsApi) Lottery(c *gin.Context) {
 	response.OkWithDetailed(res, "", c)
 }
 
-// jiaoyan
+// Verify win
 func (sysTransactionsApi *SysTransactionsApi) CheckWin(c *gin.Context) {
 	var verifyInput utils.VerifyInput
 	err := c.ShouldBindJSON(&verifyInput)
@@ -399,7 +399,7 @@ func (sysTransactionsApi *SysTransactionsApi) CheckWin(c *gin.Context) {
 	response.OkWithMessage("ok", c)
 }
 
-// sol兑换金币  金币兑换 sol
+// SOL exchange coins, coins exchange SOL
 func (sysTransactionsApi *SysTransactionsApi) Exchange(c *gin.Context) {
 
 	var verifyInput apiReq.MonitorTransfer
@@ -414,31 +414,31 @@ func (sysTransactionsApi *SysTransactionsApi) Exchange(c *gin.Context) {
 }
 func (sysTransactionsApi *SysTransactionsApi) Config(c *gin.Context) {
 
-	// 从POST请求中获取config字段
+	// Get config field from POST request
 	var requestData struct {
 		Config string `json:"config"`
 	}
 
 	if err := c.ShouldBindJSON(&requestData); err != nil {
-		response.FailWithMessage("请求参数错误", c)
+		response.FailWithMessage("Request parameter error", c)
 		return
 	}
 
 	if requestData.Config == "" {
-		response.FailWithMessage("config字段不能为空", c)
+		response.FailWithMessage("Config field cannot be empty", c)
 		return
 	}
 
 	storedCode, err := global.GVA_REDIS.Get(c, requestData.Config).Result()
 	if err != nil {
-		response.FailWithMessage("code error", c)
+		response.FailWithMessage("Code error", c)
 		return
 	}
 
-	// 将JSON字符串解析为map
+	// Parse JSON string to map
 	var configData map[string]interface{}
 	if err := json.Unmarshal([]byte(storedCode), &configData); err != nil {
-		response.FailWithMessage("JSON解析失败", c)
+		response.FailWithMessage("JSON parsing failed", c)
 		return
 	}
 
@@ -517,37 +517,37 @@ func (sysTransactionsApi *SysTransactionsApi) GetSettleListFromRedis(c *gin.Cont
 	}, "Get settlement list successfully, processed data cleaned", c)
 }
 
-// GetUserInvitationRelation 获取用户邀请关系API
+// GetUserInvitationRelation Get user invitation relationship API
 func (sysTransactionsApi *SysTransactionsApi) GetUserInvitationRelation(c *gin.Context) {
-	// 从请求参数中获取用户ID
+	// Get user ID from request parameters
 	userIdStr := c.Query("userId")
 	if userIdStr == "" {
-		response.FailWithMessage("用户ID不能为空", c)
+		response.FailWithMessage("User ID cannot be empty", c)
 		return
 	}
 
 	userId, err := strconv.ParseUint(userIdStr, 10, 32)
 	if err != nil {
-		response.FailWithMessage("用户ID格式错误", c)
+		response.FailWithMessage("User ID format error", c)
 		return
 	}
 
-	// 获取邀请关系
+	// Get invitation relationship
 	relation, err := getUserInvitationRelation(c, uint(userId))
 	if err != nil {
 		global.GVA_LOG.Error("Failed to get user invitation relation",
 			zap.Error(err),
 			zap.Uint64("userId", userId))
-		response.FailWithMessage("获取邀请关系失败", c)
+		response.FailWithMessage("Failed to get invitation relationship", c)
 		return
 	}
 
-	// 获取上级用户详细信息
+	// Get superior user detailed information
 	var result map[string]interface{}
 	if relation != nil {
 		result = make(map[string]interface{})
 
-		// 获取1级上级信息
+		// Get level 1 superior information
 		if level1Id, ok := relation["level1"].(float64); ok && level1Id > 0 {
 			level1User, err := getUserFromRedis(c, int(level1Id))
 			if err == nil {
@@ -555,7 +555,7 @@ func (sysTransactionsApi *SysTransactionsApi) GetUserInvitationRelation(c *gin.C
 			}
 		}
 
-		// 获取2级上级信息
+		// Get level 2 superior information
 		if level2Id, ok := relation["level2"].(float64); ok && level2Id > 0 {
 			level2User, err := getUserFromRedis(c, int(level2Id))
 			if err == nil {
@@ -566,7 +566,7 @@ func (sysTransactionsApi *SysTransactionsApi) GetUserInvitationRelation(c *gin.C
 		result["relation"] = relation
 	}
 
-	response.OkWithDetailed(result, "获取邀请关系成功", c)
+	response.OkWithDetailed(result, "Get invitation relationship successfully", c)
 }
 
 // processUserRebate Process user rebate
@@ -733,7 +733,7 @@ func addRebateToUser(c *gin.Context, userId int, rebateAmount float64, rebateTyp
 	saveRebateRecordToDB(c, userId, record, rebateType, rebateLevel, rebateRate, rebateAmount, originalBalance, userJson.Balance)
 }
 
-// getUserFromRedis 从Redis获取用户信息
+// getUserFromRedis Get user information from Redis
 func getUserFromRedis(c *gin.Context, userId int) (*system.ApiSysUser, error) {
 	redisuser, err := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", userId)).Result()
 	if err != nil {
@@ -841,7 +841,7 @@ func saveRebateRecordToDB(c *gin.Context, userId int, record apiReq.SettleRecord
 	}
 }
 
-// getMapKeys 获取map的所有key
+// getMapKeys Get all keys from map
 func getMapKeys(m map[string]string) []string {
 	keys := make([]string, 0, len(m))
 	for k := range m {

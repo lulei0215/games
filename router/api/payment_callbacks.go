@@ -9,8 +9,8 @@ type PaymentCallbacksRouter struct{}
 
 // InitPaymentCallbacksRouter  paymentCallbacks
 func (s *PaymentCallbacksRouter) InitPaymentCallbacksRouter(Router *gin.RouterGroup, PublicRouter *gin.RouterGroup) {
-	paymentCallbacksRouter := Router.Group("callback").Use(middleware.OperationRecord())
-	paymentCallbacksRouterWithoutRecord := Router.Group("callback")
+	paymentCallbacksRouter := Router.Group("paymentCallbacks").Use(middleware.OperationRecord())
+	paymentCallbacksRouterWithoutRecord := Router.Group("paymentCallbacks")
 	paymentCallbacksRouterWithoutAuth := PublicRouter.Group("callback")
 	{
 		paymentCallbacksRouter.POST("createPaymentCallbacks", paymentCallbacksApi.CreatePaymentCallbacks)             // paymentCallbacks
@@ -25,6 +25,7 @@ func (s *PaymentCallbacksRouter) InitPaymentCallbacksRouter(Router *gin.RouterGr
 	{
 		paymentCallbacksRouterWithoutAuth.GET("getPaymentCallbacksPublic", paymentCallbacksApi.GetPaymentCallbacksPublic) // paymentCallbacks
 		paymentCallbacksRouterWithoutAuth.POST("trade", paymentCallbacksApi.TradeCallback)                                // paymentCallbacks
-		paymentCallbacksRouterWithoutAuth.POST("payment", paymentCallbacksApi.PaymentCallback)                            // paymentCallbacks
+		paymentCallbacksRouterWithoutAuth.POST("payment", paymentCallbacksApi.PaymentCallback)
+		// paymentCallbacks
 	}
 }

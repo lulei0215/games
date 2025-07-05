@@ -2,12 +2,40 @@ package request
 
 import (
 	"sync"
+	"time"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
 )
 
 type PaymentTransactionsSearch struct {
 	request.PageInfo
+	Id              uint       `json:"id" form:"id"`                           // 主键ID
+	UserId          uint       `json:"userId" form:"userId"`                   // 用户ID
+	MerchantOrderNo string     `json:"merchantOrderNo" form:"merchantOrderNo"` // 商户订单号
+	OrderNo         string     `json:"orderNo" form:"orderNo"`                 // 平台订单号
+	TransactionType int        `json:"transactionType" form:"transactionType"` // 交易类型
+	Amount          int        `json:"amount" form:"amount"`                   // 交易金额
+	Currency        string     `json:"currency" form:"currency"`               // 货币类型
+	Status          string     `json:"status" form:"status"`                   // 交易状态
+	PayType         string     `json:"payType" form:"payType"`                 // 支付方式
+	AccountType     string     `json:"accountType" form:"accountType"`         // 账户类型
+	AccountNo       string     `json:"accountNo" form:"accountNo"`             // 账号
+	AccountName     string     `json:"accountName" form:"accountName"`         // 账户名
+	Content         string     `json:"content" form:"content"`                 // 交易内容/备注
+	ClientIp        string     `json:"clientIp" form:"clientIp"`               // 客户端IP地址
+	CallbackUrl     string     `json:"callbackUrl" form:"callbackUrl"`         // 回调地址
+	RedirectUrl     string     `json:"redirectUrl" form:"redirectUrl"`         // 跳转地址
+	PayUrl          string     `json:"payUrl" form:"payUrl"`                   // 支付链接
+	PayRaw          string     `json:"payRaw" form:"payRaw"`                   // 支付原始数据
+	ErrorMsg        string     `json:"errorMsg" form:"errorMsg"`               // 错误信息
+	RefCpf          string     `json:"refCpf" form:"refCpf"`                   // 参考CPF
+	RefName         string     `json:"refName" form:"refName"`                 // 参考姓名
+	CreatedAtStart  *time.Time `json:"createdAtStart" form:"createdAtStart"`   // 创建时间开始
+	CreatedAtEnd    *time.Time `json:"createdAtEnd" form:"createdAtEnd"`       // 创建时间结束
+	UpdatedAtStart  *time.Time `json:"updatedAtStart" form:"updatedAtStart"`   // 更新时间开始
+	UpdatedAtEnd    *time.Time `json:"updatedAtEnd" form:"updatedAtEnd"`       // 更新时间结束
+	DeletedAtStart  *time.Time `json:"deletedAtStart" form:"deletedAtStart"`   // 删除时间开始
+	DeletedAtEnd    *time.Time `json:"deletedAtEnd" form:"deletedAtEnd"`       // 删除时间结束
 }
 type CreateTradeData struct {
 	Amount   int64  `json:"amount"`

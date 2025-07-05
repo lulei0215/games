@@ -53,7 +53,80 @@ func (paymentCallbacksService *PaymentCallbacksService) GetPaymentCallbacksInfoL
 	// db
 	db := global.GVA_DB.Model(&api.PaymentCallbacks{})
 	var paymentCallbackss []api.PaymentCallbacks
-	//
+
+	// 添加所有字段的查询条件
+	if info.Id > 0 {
+		db = db.Where("id = ?", info.Id)
+	}
+	if info.MerchantOrderNo != "" {
+		db = db.Where("merchant_order_no LIKE ?", "%"+info.MerchantOrderNo+"%")
+	}
+	if info.OrderNo != "" {
+		db = db.Where("order_no LIKE ?", "%"+info.OrderNo+"%")
+	}
+	if info.CallbackType > 0 {
+		db = db.Where("callback_type = ?", info.CallbackType)
+	}
+	if info.MerchantId != "" {
+		db = db.Where("merchant_id LIKE ?", "%"+info.MerchantId+"%")
+	}
+	if info.Amount > 0 {
+		db = db.Where("amount = ?", info.Amount)
+	}
+	if info.Currency != "" {
+		db = db.Where("currency LIKE ?", "%"+info.Currency+"%")
+	}
+	if info.Status != "" {
+		db = db.Where("status LIKE ?", "%"+info.Status+"%")
+	}
+	if info.PayType != "" {
+		db = db.Where("pay_type LIKE ?", "%"+info.PayType+"%")
+	}
+	if info.RefCpf != "" {
+		db = db.Where("ref_cpf LIKE ?", "%"+info.RefCpf+"%")
+	}
+	if info.RefName != "" {
+		db = db.Where("ref_name LIKE ?", "%"+info.RefName+"%")
+	}
+	if info.ErrorMsg != "" {
+		db = db.Where("error_msg LIKE ?", "%"+info.ErrorMsg+"%")
+	}
+	if info.CallbackData != "" {
+		db = db.Where("callback_data LIKE ?", "%"+info.CallbackData+"%")
+	}
+	if info.Sign != "" {
+		db = db.Where("sign LIKE ?", "%"+info.Sign+"%")
+	}
+	if info.IpAddress != "" {
+		db = db.Where("ip_address LIKE ?", "%"+info.IpAddress+"%")
+	}
+	if info.UserAgent != "" {
+		db = db.Where("user_agent LIKE ?", "%"+info.UserAgent+"%")
+	}
+	if info.ErrorReason != "" {
+		db = db.Where("error_reason LIKE ?", "%"+info.ErrorReason+"%")
+	}
+	if info.Remark != "" {
+		db = db.Where("remark LIKE ?", "%"+info.Remark+"%")
+	}
+	if info.ProcessedTime != nil {
+		db = db.Where("processed_time = ?", info.ProcessedTime)
+	}
+	if info.LastRetryTime != nil {
+		db = db.Where("last_retry_time = ?", info.LastRetryTime)
+	}
+	if info.CreatedAtStart != nil {
+		db = db.Where("created_at >= ?", info.CreatedAtStart)
+	}
+	if info.CreatedAtEnd != nil {
+		db = db.Where("created_at <= ?", info.CreatedAtEnd)
+	}
+	if info.UpdatedAtStart != nil {
+		db = db.Where("updated_at >= ?", info.UpdatedAtStart)
+	}
+	if info.UpdatedAtEnd != nil {
+		db = db.Where("updated_at <= ?", info.UpdatedAtEnd)
+	}
 
 	err = db.Count(&total).Error
 	if err != nil {

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
+	"github.com/flipped-aurora/gin-vue-admin/server/model/api"
 	apiReq "github.com/flipped-aurora/gin-vue-admin/server/model/api/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/request"
@@ -85,6 +86,257 @@ func (b *BaseApi) Login(c *gin.Context) {
 	// +1
 	global.BlackCache.Increment(key, 1)
 	response.FailWithMessage("", c)
+}
+func (b *BaseApi) Dashboard(c *gin.Context) {
+	// 获取今日开始和结束时间
+	now := time.Now()
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	todayEnd := todayStart.Add(24 * time.Hour)
+
+	// 统计数据
+	var dashboardData = make(map[string]interface{})
+
+	// 1. 今日注册人数
+	var todayRegisterCount int64
+	err := global.GVA_DB.Model(&system.SysUser{}).
+		Where("created_at >= ? AND created_at < ?", todayStart, todayEnd).
+		Count(&todayRegisterCount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get today register count", zap.Error(err))
+		todayRegisterCount = 0
+	}
+
+	// 2. 今日充值人数和总额
+	var todayRechargeCount int64
+	var todayRechargeAmount float64
+	err = global.GVA_DB.Model(&api.PaymentTransactions{}).
+		Where("created_at >= ? AND created_at < ? AND transaction_type = ? AND status IN (?)",
+			todayStart, todayEnd, 1, []string{"PAID", "SUCCESS", "COMPLETED"}).
+		Count(&todayRechargeCount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get today recharge count", zap.Error(err))
+		todayRechargeCount = 0
+	}
+
+	err = global.GVA_DB.Model(&api.PaymentTransactions{}).
+		Where("created_at >= ? AND created_at < ? AND transaction_type = ? AND status IN (?)",
+			todayStart, todayEnd, 1, []string{"PAID", "SUCCESS", "COMPLETED"}).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&todayRechargeAmount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get today recharge amount", zap.Error(err))
+		todayRechargeAmount = 0
+	}
+	// 除以100并保留2位小数
+	todayRechargeAmount = float64(int64(todayRechargeAmount/100*100)) / 100
+
+	// 3. 今日提现申请数量和金额
+	var todayWithdrawCount int64
+	var todayWithdrawAmount float64
+	err = global.GVA_DB.Model(&api.PaymentTransactions{}).
+		Where("created_at >= ? AND created_at < ? AND transaction_type = ?", todayStart, todayEnd, 2).
+		Count(&todayWithdrawCount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get today withdraw count", zap.Error(err))
+		todayWithdrawCount = 0
+	}
+
+	err = global.GVA_DB.Model(&api.PaymentTransactions{}).
+		Where("created_at >= ? AND created_at < ? AND transaction_type = ?", todayStart, todayEnd, 2).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&todayWithdrawAmount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get today withdraw amount", zap.Error(err))
+		todayWithdrawAmount = 0
+	}
+	// 除以100并保留2位小数
+	todayWithdrawAmount = float64(int64(todayWithdrawAmount/100*100)) / 100
+
+	// 4. 总用户数
+	var totalUserCount int64
+	err = global.GVA_DB.Model(&system.SysUser{}).Count(&totalUserCount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get total user count", zap.Error(err))
+		totalUserCount = 0
+	}
+
+	// 5. 总充值金额
+	var totalRechargeAmount float64
+	err = global.GVA_DB.Model(&api.PaymentTransactions{}).
+		Where("transaction_type = ? AND status IN (?)", 1, []string{"PAID", "SUCCESS", "COMPLETED"}).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&totalRechargeAmount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get total recharge amount", zap.Error(err))
+		totalRechargeAmount = 0
+	}
+	// 除以100并保留2位小数
+	totalRechargeAmount = float64(int64(totalRechargeAmount/100*100)) / 100
+
+	// 6. 总提现金额
+	var totalWithdrawAmount float64
+	err = global.GVA_DB.Model(&api.PaymentTransactions{}).
+		Where("transaction_type = ? AND status IN (?)", 2, []string{"SUCCESS", "COMPLETED"}).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&totalWithdrawAmount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get total withdraw amount", zap.Error(err))
+		totalWithdrawAmount = 0
+	}
+	// 除以100并保留2位小数
+	totalWithdrawAmount = float64(int64(totalWithdrawAmount/100*100)) / 100
+
+	// 7. 今日返利总额
+	var todayRebateAmount float64
+	err = global.GVA_DB.Model(&api.UserRebates{}).
+		Where("created_at >= ? AND created_at < ?", todayStart, todayEnd).
+		Select("COALESCE(SUM(rebate_amount), 0)").
+		Scan(&todayRebateAmount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get today rebate amount", zap.Error(err))
+		todayRebateAmount = 0
+	}
+	// 除以100并保留2位小数
+	todayRebateAmount = float64(int64(todayRebateAmount/100*100)) / 100
+
+	// 8. 总返利金额
+	var totalRebateAmount float64
+	err = global.GVA_DB.Model(&api.UserRebates{}).
+		Select("COALESCE(SUM(rebate_amount), 0)").
+		Scan(&totalRebateAmount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get total rebate amount", zap.Error(err))
+		totalRebateAmount = 0
+	}
+	// 除以100并保留2位小数
+	totalRebateAmount = float64(int64(totalRebateAmount/100*100)) / 100
+
+	// 9. 今日活跃用户数（有登录记录的用户）
+	var todayActiveUsers int64
+	err = global.GVA_DB.Model(&system.SysUser{}).
+		Where("updated_at >= ? AND updated_at < ?", todayStart, todayEnd).
+		Count(&todayActiveUsers).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get today active users", zap.Error(err))
+		todayActiveUsers = 0
+	}
+
+	// 10. 待审核提现数量
+	var pendingWithdrawCount int64
+	err = global.GVA_DB.Model(&api.PaymentTransactions{}).
+		Where("transaction_type = ? AND status IN (?)", 2, []string{"WAITING_PAY", "PAYING"}).
+		Count(&pendingWithdrawCount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get pending withdraw count", zap.Error(err))
+		pendingWithdrawCount = 0
+	}
+
+	// 11. 待审核提现金额
+	var pendingWithdrawAmount float64
+	err = global.GVA_DB.Model(&api.PaymentTransactions{}).
+		Where("transaction_type = ? AND status IN (?)", 2, []string{"WAITING_PAY", "PAYING"}).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&pendingWithdrawAmount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get pending withdraw amount", zap.Error(err))
+		pendingWithdrawAmount = 0
+	}
+	// 除以100并保留2位小数
+	pendingWithdrawAmount = float64(int64(pendingWithdrawAmount/100*100)) / 100
+
+	// 12. 今日充值失败数量和金额
+	var todayRechargeFailedCount int64
+	var todayRechargeFailedAmount float64
+	err = global.GVA_DB.Model(&api.PaymentTransactions{}).
+		Where("created_at >= ? AND created_at < ? AND transaction_type = ? AND status = ?",
+			todayStart, todayEnd, 1, "PAY_FAILED").
+		Count(&todayRechargeFailedCount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get today recharge failed count", zap.Error(err))
+		todayRechargeFailedCount = 0
+	}
+
+	err = global.GVA_DB.Model(&api.PaymentTransactions{}).
+		Where("created_at >= ? AND created_at < ? AND transaction_type = ? AND status = ?",
+			todayStart, todayEnd, 1, "PAY_FAILED").
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&todayRechargeFailedAmount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get today recharge failed amount", zap.Error(err))
+		todayRechargeFailedAmount = 0
+	}
+	// 除以100并保留2位小数
+	todayRechargeFailedAmount = float64(int64(todayRechargeFailedAmount/100*100)) / 100
+
+	// 13. 今日提现失败数量和金额
+	var todayWithdrawFailedCount int64
+	var todayWithdrawFailedAmount float64
+	err = global.GVA_DB.Model(&api.PaymentTransactions{}).
+		Where("created_at >= ? AND created_at < ? AND transaction_type = ? AND status IN (?)",
+			todayStart, todayEnd, 2, []string{"FAILED", "REJECTED"}).
+		Count(&todayWithdrawFailedCount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get today withdraw failed count", zap.Error(err))
+		todayWithdrawFailedCount = 0
+	}
+
+	err = global.GVA_DB.Model(&api.PaymentTransactions{}).
+		Where("created_at >= ? AND created_at < ? AND transaction_type = ? AND status IN (?)",
+			todayStart, todayEnd, 2, []string{"FAILED", "REJECTED"}).
+		Select("COALESCE(SUM(amount), 0)").
+		Scan(&todayWithdrawFailedAmount).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get today withdraw failed amount", zap.Error(err))
+		todayWithdrawFailedAmount = 0
+	}
+	// 除以100并保留2位小数
+	todayWithdrawFailedAmount = float64(int64(todayWithdrawFailedAmount/100*100)) / 100
+
+	// 组装返回数据
+	dashboardData = map[string]interface{}{
+		"today_register_count":         todayRegisterCount,        // 今日注册人数
+		"today_recharge_count":         todayRechargeCount,        // 今日充值人数
+		"today_recharge_amount":        todayRechargeAmount,       // 今日充值总额
+		"today_recharge_failed_count":  todayRechargeFailedCount,  // 今日充值失败数量
+		"today_recharge_failed_amount": todayRechargeFailedAmount, // 今日充值失败金额
+		"today_withdraw_count":         todayWithdrawCount,        // 今日提现申请数量
+		"today_withdraw_amount":        todayWithdrawAmount,       // 今日提现申请金额
+		"today_withdraw_failed_count":  todayWithdrawFailedCount,  // 今日提现失败数量
+		"today_withdraw_failed_amount": todayWithdrawFailedAmount, // 今日提现失败金额
+		"total_user_count":             totalUserCount,            // 总用户数
+		"total_recharge_amount":        totalRechargeAmount,       // 总充值金额
+		"total_withdraw_amount":        totalWithdrawAmount,       // 总提现金额
+		"today_rebate_amount":          todayRebateAmount,         // 今日返利总额
+		"total_rebate_amount":          totalRebateAmount,         // 总返利金额
+		"today_active_users":           todayActiveUsers,          // 今日活跃用户数
+		"pending_withdraw_count":       pendingWithdrawCount,      // 待审核提现数量
+		"pending_withdraw_amount":      pendingWithdrawAmount,     // 待审核提现金额
+		"today_start":                  todayStart.Format("2006-01-02 15:04:05"),
+		"today_end":                    todayEnd.Format("2006-01-02 15:04:05"),
+	}
+
+	// 记录统计信息
+	global.GVA_LOG.Info("Dashboard statistics generated",
+		zap.Int64("today_register_count", todayRegisterCount),
+		zap.Int64("today_recharge_count", todayRechargeCount),
+		zap.Float64("today_recharge_amount", todayRechargeAmount),
+		zap.Int64("today_recharge_failed_count", todayRechargeFailedCount),
+		zap.Float64("today_recharge_failed_amount", todayRechargeFailedAmount),
+		zap.Int64("today_withdraw_count", todayWithdrawCount),
+		zap.Float64("today_withdraw_amount", todayWithdrawAmount),
+		zap.Int64("today_withdraw_failed_count", todayWithdrawFailedCount),
+		zap.Float64("today_withdraw_failed_amount", todayWithdrawFailedAmount),
+		zap.Int64("total_user_count", totalUserCount),
+		zap.Float64("total_recharge_amount", totalRechargeAmount),
+		zap.Float64("total_withdraw_amount", totalWithdrawAmount),
+		zap.Float64("today_rebate_amount", todayRebateAmount),
+		zap.Float64("total_rebate_amount", totalRebateAmount),
+		zap.Int64("today_active_users", todayActiveUsers),
+		zap.Int64("pending_withdraw_count", pendingWithdrawCount),
+		zap.Float64("pending_withdraw_amount", pendingWithdrawAmount),
+	)
+
+	response.OkWithDetailed(dashboardData, "获取统计数据成功", c)
 }
 
 // TokenNext jwt

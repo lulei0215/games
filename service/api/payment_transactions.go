@@ -56,7 +56,89 @@ func (paymentTransactionsService *PaymentTransactionsService) GetPaymentTransact
 	// db
 	db := global.GVA_DB.Model(&api.PaymentTransactions{})
 	var paymentTransactionss []api.PaymentTransactions
-	//
+
+	// 添加所有字段的查询条件
+	if info.Id > 0 {
+		db = db.Where("id = ?", info.Id)
+	}
+	if info.UserId > 0 {
+		db = db.Where("user_id = ?", info.UserId)
+	}
+	if info.MerchantOrderNo != "" {
+		db = db.Where("merchant_order_no LIKE ?", "%"+info.MerchantOrderNo+"%")
+	}
+	if info.OrderNo != "" {
+		db = db.Where("order_no LIKE ?", "%"+info.OrderNo+"%")
+	}
+	if info.TransactionType > 0 {
+		db = db.Where("transaction_type = ?", info.TransactionType)
+	}
+	if info.Amount > 0 {
+		db = db.Where("amount = ?", info.Amount)
+	}
+	if info.Currency != "" {
+		db = db.Where("currency LIKE ?", "%"+info.Currency+"%")
+	}
+	if info.Status != "" {
+		db = db.Where("status LIKE ?", "%"+info.Status+"%")
+	}
+	if info.PayType != "" {
+		db = db.Where("pay_type LIKE ?", "%"+info.PayType+"%")
+	}
+	if info.AccountType != "" {
+		db = db.Where("account_type LIKE ?", "%"+info.AccountType+"%")
+	}
+	if info.AccountNo != "" {
+		db = db.Where("account_no LIKE ?", "%"+info.AccountNo+"%")
+	}
+	if info.AccountName != "" {
+		db = db.Where("account_name LIKE ?", "%"+info.AccountName+"%")
+	}
+	if info.Content != "" {
+		db = db.Where("content LIKE ?", "%"+info.Content+"%")
+	}
+	if info.ClientIp != "" {
+		db = db.Where("client_ip LIKE ?", "%"+info.ClientIp+"%")
+	}
+	if info.CallbackUrl != "" {
+		db = db.Where("callback_url LIKE ?", "%"+info.CallbackUrl+"%")
+	}
+	if info.RedirectUrl != "" {
+		db = db.Where("redirect_url LIKE ?", "%"+info.RedirectUrl+"%")
+	}
+	if info.PayUrl != "" {
+		db = db.Where("pay_url LIKE ?", "%"+info.PayUrl+"%")
+	}
+	if info.PayRaw != "" {
+		db = db.Where("pay_raw LIKE ?", "%"+info.PayRaw+"%")
+	}
+	if info.ErrorMsg != "" {
+		db = db.Where("error_msg LIKE ?", "%"+info.ErrorMsg+"%")
+	}
+	if info.RefCpf != "" {
+		db = db.Where("ref_cpf LIKE ?", "%"+info.RefCpf+"%")
+	}
+	if info.RefName != "" {
+		db = db.Where("ref_name LIKE ?", "%"+info.RefName+"%")
+	}
+	if info.CreatedAtStart != nil {
+		db = db.Where("created_at >= ?", info.CreatedAtStart)
+	}
+	if info.CreatedAtEnd != nil {
+		db = db.Where("created_at <= ?", info.CreatedAtEnd)
+	}
+	if info.UpdatedAtStart != nil {
+		db = db.Where("updated_at >= ?", info.UpdatedAtStart)
+	}
+	if info.UpdatedAtEnd != nil {
+		db = db.Where("updated_at <= ?", info.UpdatedAtEnd)
+	}
+	if info.DeletedAtStart != nil {
+		db = db.Where("deleted_at >= ?", info.DeletedAtStart)
+	}
+	if info.DeletedAtEnd != nil {
+		db = db.Where("deleted_at <= ?", info.DeletedAtEnd)
+	}
 
 	err = db.Count(&total).Error
 	if err != nil {
