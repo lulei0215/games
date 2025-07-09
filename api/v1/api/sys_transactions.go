@@ -229,50 +229,52 @@ func (sysTransactionsApi *SysTransactionsApi) Settle(c *gin.Context) {
 		return
 	}
 
-	// // 验签逻辑
-	// if settleList.Sign == "" {
-	// 	response.FailWithMessage("签名不能为空", c)
-	// 	return
-	// }
+	// 验签逻辑
+	if settleList.Sign == "" {
+		response.FailWithMessage("签名不能为空", c)
+		return
+	}
 
-	// // 构建验签参数（与TypeScript保持一致）
-	// verifyParams := make(map[string]interface{})
+	// 构建验签参数（与TypeScript保持一致）
+	verifyParams := make(map[string]interface{})
 
-	// // 添加timestamp
-	// if settleList.Timestamp != "" {
-	// 	verifyParams["timestamp"] = settleList.Timestamp
-	// }
+	// 添加timestamp
+	if settleList.Timestamp != "" {
+		verifyParams["timestamp"] = settleList.Timestamp
+	}
 
-	// // 添加list（复杂对象会被转换为[object Object]）
-	// if len(settleList.List) > 0 {
-	// 	verifyParams["list"] = settleList.List
-	// }
+	// 添加list（复杂对象会被转换为[object Object]）
+	if len(settleList.List) > 0 {
+		verifyParams["list"] = settleList.List
+	}
 
-	// // 调试信息：输出构建的参数
-	// global.GVA_LOG.Info("验签参数构建完成",
-	// 	zap.Any("verifyParams", verifyParams),
-	// 	zap.String("receivedSign", settleList.Sign))
+	// 调试信息：输出构建的参数
+	global.GVA_LOG.Info("验签参数构建完成",
+		zap.Any("verifyParams", verifyParams),
+		zap.String("receivedSign", settleList.Sign))
 
-	// // 使用验签工具类验证签名
-	// isValid := signUtils.VerifySign(verifyParams, settleList.Sign)
+	// 使用验签工具类验证签名
+	isValid := signUtils.VerifySign(verifyParams, settleList.Sign)
 
-	// if !isValid {
-	// 	// 生成正确的签名用于调试
-	// 	correctSign := signUtils.GenerateSign(verifyParams)
+	if !isValid {
+		// 生成正确的签名用于调试
+		correctSign := signUtils.GenerateSign(verifyParams)
 
-	// 	global.GVA_LOG.Error("签名验证失败",
-	// 		zap.String("receivedSign", settleList.Sign),
-	// 		zap.String("correctSign", correctSign),
-	// 		zap.Any("verifyParams", verifyParams))
+		global.GVA_LOG.Error("签名验证失败",
+			zap.String("receivedSign", settleList.Sign),
+			zap.String("correctSign", correctSign),
+			zap.Any("verifyParams", verifyParams))
 
-	// 	response.FailWithDetailed(gin.H{
-	// 		"error":        "签名验证失败",
-	// 		"receivedSign": settleList.Sign,
-	// 		"correctSign":  correctSign,
-	// 		"verifyParams": verifyParams,
-	// 	}, "签名验证失败", c)
-	// 	return
-	// }
+		// 返回详细的错误信息，包括签名字符串
+		response.FailWithDetailed(gin.H{
+			"error":        "签名验证失败",
+			"receivedSign": settleList.Sign,
+			"correctSign":  correctSign,
+			"verifyParams": verifyParams,
+			"signString":   getSignString(verifyParams), // 添加签名字符串用于调试
+		}, "签名验证失败", c)
+		return
+	}
 
 	// 处理结算逻辑
 	for _, record := range settleList.List {
