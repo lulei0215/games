@@ -39,15 +39,21 @@ type RobotRequest struct {
 	Limit int `json:"limit" binding:"required"`
 }
 
+type BetInfoData struct {
+	Room       int `json:"room"`
+	BetAmount  int `json:"betAmount"`
+	TargetRoom int `json:"targetRoom"`
+}
+
 type SettleRecord struct {
-	SessionID string  `json:"session_id" gorm:"column:session_id"`
-	UserCode  string  `json:"usercode" gorm:"column:usercode"`
-	Coin      float64 `json:"coin" gorm:"column:coin"`
-	BetInfo   BetInfo `json:"bet_info" gorm:"column:bet_info"` // 如果需要可定义为 map[string]interface{}
-	Win       float64 `json:"win" gorm:"column:win"`
-	GameType  int     `json:"gametype" gorm:"column:gametype"`
-	Area      string  `json:"area" gorm:"column:area"`
-	Balance   float64 `json:"balance" gorm:"column:balance"`
+	SessionID string        `json:"session_id" gorm:"column:session_id"`
+	UserCode  string        `json:"usercode" gorm:"column:usercode"`
+	Coin      float64       `json:"coin" gorm:"column:coin"`
+	BetInfo   []BetInfoData `json:"bet_info" gorm:"column:bet_info"` // 如果需要可定义为 map[string]interface{}
+	Win       float64       `json:"win" gorm:"column:win"`
+	GameType  int           `json:"gametype" gorm:"column:gametype"`
+	Area      string        `json:"area" gorm:"column:area"`
+	Balance   float64       `json:"balance" gorm:"column:balance"`
 }
 
 type BetInfo struct {
@@ -71,4 +77,10 @@ type MonitorTransferApi struct {
 	Password string  `json:"password"  gorm:"column:password"`
 	Amount   float64 `json:"amount"  gorm:"column:amount"`
 	TotpCode string  `json:"totpcode"  gorm:"column:totpcode"`
+}
+
+type SettleList struct {
+	List      []SettleRecord `json:"list"`
+	Timestamp string         `json:"timestamp" gorm:"column:timestamp"`
+	Sign      string         `json:"sign" gorm:"column:sign"`
 }

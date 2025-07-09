@@ -308,6 +308,96 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment(c *gin.Conte
 		return
 	}
 
+	ctx := c.Request.Context()
+
+	var r apiReq.CreatePaymentData
+	err := c.ShouldBindJSON(&r)
+	if err != nil {
+		utils.FailWithMessageI18n(i18n.MsgInvalidRequest, c)
+		return
+	}
+	err = utils.Verify(r, utils.CreateTradeVerify)
+	if err != nil {
+		utils.FailWithMessageI18n(i18n.MsgInvalidAmount, c)
+		return
+	}
+
+	var user system.ApiSysUser
+	redisuser, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", uid)).Result()
+	if redisuser == "" {
+		utils.UnauthorizedI18n(c)
+		return
+	}
+	err = json.Unmarshal([]byte(redisuser), &user)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to unmarshal user data", zap.Error(err))
+		utils.UnauthorizedI18n(c)
+		return
+	}
+	if user.Balance < float64(r.Amount) {
+		utils.FailWithMessageI18n(i18n.MsgInsufficientFunds, c)
+		return
+	}
+
+	userWithdrawalAccounts, err := userWithdrawalAccountsService.GetUserWithdrawalAccounts(ctx, r.Id)
+	if err != nil {
+
+		utils.FailWithMessageI18n(i18n.MsgAccountNotFound, c)
+		return
+	}
+
+	paymentTransactions := api.PaymentTransactions{
+		UserId:          uint(uid),
+		MerchantOrderNo: "",
+		OrderNo:         fmt.Sprintf("ORDER_%d", time.Now().Unix()),
+		TransactionType: 2,
+		Amount:          int(r.Amount * 100),
+		Currency:        "BRL",
+		Status:          "WAITING_PAY",
+		PayType:         "PIX",
+		AccountType:     userWithdrawalAccounts.AccountType,
+		AccountNo:       userWithdrawalAccounts.AccountNumber,
+		AccountName:     userWithdrawalAccounts.AccountName,
+		Content:         "CreatePayment",
+		ClientIp:        c.ClientIP(),
+		CallbackUrl:     "",
+		RedirectUrl:     "",
+		PayUrl:          "",
+		PayRaw:          "",
+		ErrorMsg:        "",
+		RefCpf:          userWithdrawalAccounts.CpfNumber,
+		RefName:         userWithdrawalAccounts.AccountName,
+	}
+
+	err = paymentTransactionsService.Create(ctx, paymentTransactions)
+	if err != nil {
+
+		utils.FailWithMessageI18n(i18n.MsgCreateRecordFailed, c)
+		return
+	}
+
+	user.Balance = user.Balance - float64(r.Amount)
+	userJson, err := json.Marshal(user)
+	if err != nil {
+		global.GVA_LOG.Error("CreatePayment Failed to marshal user data", zap.Error(err))
+	} else {
+		err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%d", user.ID), string(userJson), 0).Err()
+		if err != nil {
+			global.GVA_LOG.Error("CreatePayment Failed to save user data to Redis", zap.Error(err))
+		}
+	}
+
+	utils.OkWithMessageI18n(i18n.MsgWithdrawalPending, c)
+}
+
+func (paymentTransactionsApi *PaymentTransactionsApi) AdminCreatePayment(c *gin.Context) {
+
+	uid := utils.GetRedisUserID(c)
+	if uid == 0 {
+		utils.UnauthorizedI18n(c)
+		return
+	}
+
 	pc := payment.InitPayment()
 
 	ctx := c.Request.Context()

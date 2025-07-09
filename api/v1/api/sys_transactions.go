@@ -12,8 +12,13 @@ import (
 	apiReq "github.com/flipped-aurora/gin-vue-admin/server/model/api/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
 
+	"reflect"
+	"sort"
+	"strings"
+
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
+	signUtils "github.com/flipped-aurora/gin-vue-admin/server/utils/sign"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -217,40 +222,60 @@ func (sysTransactionsApi *SysTransactionsApi) Get(c *gin.Context) {
 // Settlement
 func (sysTransactionsApi *SysTransactionsApi) Settle(c *gin.Context) {
 
-	var r apiReq.DecryptRequest
-	if err := c.ShouldBindJSON(&r); err != nil {
-		response.FailWithMessage("Invalid request format: "+err.Error(), c)
-		return
-	}
-
-	jsonData, err := json.MarshalIndent(r, "", "    ")
+	var settleList apiReq.SettleList
+	err := c.ShouldBindJSON(&settleList)
 	if err != nil {
-		response.FailWithMessage("Failed to process request data", c)
+		response.FailWithMessage(err.Error(), c)
 		return
 	}
 
-	decrypted, err := utils.CBCDecrypt(string(jsonData))
-	if err != nil {
-		global.GVA_LOG.Error("Decryption failed", zap.Error(err))
-		response.FailWithMessage("Decryption failed: "+err.Error(), c)
-		return
-	}
-	type SettleRecords struct {
-		List []apiReq.SettleRecord `json:"list"`
-	}
+	// // 验签逻辑
+	// if settleList.Sign == "" {
+	// 	response.FailWithMessage("签名不能为空", c)
+	// 	return
+	// }
 
-	decryptedStr, ok := decrypted.(string)
-	if !ok {
-		response.FailWithMessage("Decryption result is not a string", c)
-		return
-	}
-	var der SettleRecords
-	if err := json.Unmarshal([]byte(decryptedStr), &der); err != nil {
-		response.FailWithMessage("Failed to unmarshal decrypted data: "+err.Error(), c)
-		return
-	}
+	// // 构建验签参数（与TypeScript保持一致）
+	// verifyParams := make(map[string]interface{})
 
-	for _, record := range der.List {
+	// // 添加timestamp
+	// if settleList.Timestamp != "" {
+	// 	verifyParams["timestamp"] = settleList.Timestamp
+	// }
+
+	// // 添加list（复杂对象会被转换为[object Object]）
+	// if len(settleList.List) > 0 {
+	// 	verifyParams["list"] = settleList.List
+	// }
+
+	// // 调试信息：输出构建的参数
+	// global.GVA_LOG.Info("验签参数构建完成",
+	// 	zap.Any("verifyParams", verifyParams),
+	// 	zap.String("receivedSign", settleList.Sign))
+
+	// // 使用验签工具类验证签名
+	// isValid := signUtils.VerifySign(verifyParams, settleList.Sign)
+
+	// if !isValid {
+	// 	// 生成正确的签名用于调试
+	// 	correctSign := signUtils.GenerateSign(verifyParams)
+
+	// 	global.GVA_LOG.Error("签名验证失败",
+	// 		zap.String("receivedSign", settleList.Sign),
+	// 		zap.String("correctSign", correctSign),
+	// 		zap.Any("verifyParams", verifyParams))
+
+	// 	response.FailWithDetailed(gin.H{
+	// 		"error":        "签名验证失败",
+	// 		"receivedSign": settleList.Sign,
+	// 		"correctSign":  correctSign,
+	// 		"verifyParams": verifyParams,
+	// 	}, "签名验证失败", c)
+	// 	return
+	// }
+
+	// 处理结算逻辑
+	for _, record := range settleList.List {
 		fmt.Println("der:", record.Coin)
 
 		redisuser, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%s", record.UserCode)).Result()
@@ -290,7 +315,7 @@ func (sysTransactionsApi *SysTransactionsApi) Settle(c *gin.Context) {
 	// Save the entire SettleRecords structure to Redis Hash using timestamp as key
 	timestamp := time.Now().Unix()
 	settleKey := fmt.Sprintf("Settle_%d", timestamp)
-	derJson, err := json.Marshal(der.List)
+	derJson, err := json.Marshal(settleList.List)
 	if err != nil {
 		global.GVA_LOG.Error("Failed to marshal SettleRecords", zap.Error(err))
 	} else {
@@ -848,4 +873,122 @@ func getMapKeys(m map[string]string) []string {
 		keys = append(keys, k)
 	}
 	return keys
+}
+
+// VerifySettleSign 验证结算签名
+// @Tags SysTransactions
+// @Summary 验证结算签名
+// @Accept application/json
+// @Produce application/json
+// @Param data body apiReq.SettleList true "结算数据"
+// @Success 200 {object} response.Response{msg=string} ""
+// @Router /sysTransactions/verifySettleSign [post]
+func (sysTransactionsApi *SysTransactionsApi) VerifySettleSign(c *gin.Context) {
+	var settleList apiReq.SettleList
+	err := c.ShouldBindJSON(&settleList)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	// 验签逻辑
+	if settleList.Sign == "" {
+		response.FailWithMessage("签名不能为空", c)
+		return
+	}
+
+	// 构建验签参数（与TypeScript保持一致）
+	verifyParams := make(map[string]interface{})
+
+	// 添加timestamp
+	if settleList.Timestamp != "" {
+		verifyParams["timestamp"] = settleList.Timestamp
+	}
+
+	// 添加list（复杂对象会被转换为[object Object]）
+	if len(settleList.List) > 0 {
+		verifyParams["list"] = settleList.List
+	}
+
+	// 调试信息：输出构建的参数
+	global.GVA_LOG.Info("验签参数构建完成",
+		zap.Any("verifyParams", verifyParams),
+		zap.String("receivedSign", settleList.Sign))
+
+	// 使用验签工具类验证签名
+	isValid := signUtils.VerifySign(verifyParams, settleList.Sign)
+
+	if !isValid {
+		// 生成正确的签名用于调试
+		correctSign := signUtils.GenerateSign(verifyParams)
+
+		global.GVA_LOG.Error("签名验证失败",
+			zap.String("receivedSign", settleList.Sign),
+			zap.String("correctSign", correctSign),
+			zap.Any("verifyParams", verifyParams))
+
+		// 返回详细的错误信息，包括签名字符串
+		response.FailWithDetailed(gin.H{
+			"error":        "签名验证失败",
+			"receivedSign": settleList.Sign,
+			"correctSign":  correctSign,
+			"verifyParams": verifyParams,
+			"signString":   getSignString(verifyParams), // 添加签名字符串用于调试
+		}, "签名验证失败", c)
+		return
+	}
+
+	global.GVA_LOG.Info("签名验证成功",
+		zap.String("sign", settleList.Sign),
+		zap.Any("params", verifyParams))
+
+	response.OkWithMessage("验签成功", c)
+}
+
+// getSignString 获取签名字符串用于调试
+func getSignString(params map[string]interface{}) string {
+	// 复制验签工具的逻辑来生成签名字符串
+
+	// 1. 按照ASCII码排序参数
+	var keys []string
+	for key := range params {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	// 2. 拼接参数字符串
+	var signStr strings.Builder
+	for _, key := range keys {
+		value := params[key]
+		if value != nil && value != "" {
+			// 对于复杂对象，使用[object Object]格式（与TypeScript保持一致）
+			var valueStr string
+			if isComplexValueForDebug(value) {
+				valueStr = "[object Object]"
+			} else {
+				valueStr = fmt.Sprintf("%v", value)
+			}
+			signStr.WriteString(fmt.Sprintf("%s=%s&", key, valueStr))
+		}
+	}
+
+	// 3. 加上签名key
+	signStr.WriteString(fmt.Sprintf("key=%s", "GAME_2025_SIGN_KEY_8F7E6D5C4B3A2918_9A8B7C6D5E4F3210"))
+
+	return signStr.String()
+}
+
+// isComplexValueForDebug 判断是否为复杂值（用于调试）
+func isComplexValueForDebug(value interface{}) bool {
+	switch v := value.(type) {
+	case []interface{}, map[string]interface{}:
+		return true
+	default:
+		// 使用反射检查是否为切片或结构体
+		val := reflect.ValueOf(v)
+		if val.Kind() == reflect.Slice || val.Kind() == reflect.Struct {
+			return true
+		}
+		return false
+	}
 }

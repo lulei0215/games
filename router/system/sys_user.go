@@ -40,5 +40,6 @@ func (s *UserRouter) InitUserRouter(Router *gin.RouterGroup, RouterPub *gin.Rout
 		userRouterPub.POST("info", baseApi.Info)                                       //
 		userRouterPub.POST("list", baseApi.RobotList)                                  //
 		userRouterPub.GET("info", baseApi.GetInfo)                                     //
+		// userRouterPub.POST("updLang", baseApi.UpdateLang)                              //
 	}
 }

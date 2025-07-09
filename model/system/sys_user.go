@@ -44,6 +44,7 @@ type SysUser struct {
 	VipExpireTime    *time.Time     `json:"vipExpireTime" gorm:"comment:VIP"`
 	UserType         int            `json:"userType" gorm:"default:2;comment:2putong"`
 	Level            int            `json:"level" gorm:"default:3;comment:2putong"`
+	Lang             int            `json:"lang" gorm:"default:0;comment:lang"`
 }
 type ApiSysUser struct {
 	global.GVA_MODEL
@@ -66,6 +67,7 @@ type ApiSysUser struct {
 	VipExpireTime    *time.Time `json:"vipExpireTime" gorm:"comment:VIP"`
 	UserType         int        `json:"userType" gorm:"default:2;comment:2putong"`
 	Level            int        `json:"level" gorm:"default:3;comment:2putong"`
+	Lang             int        `json:"lang" gorm:"default:0;comment:lang"`
 }
 
 func (SysUser) TableName() string {

@@ -26,6 +26,7 @@ func (s *SysTransactionsRouter) InitSysTransactionsRouter(Router *gin.RouterGrou
 		sysTransactionsRouterWithoutAuth.GET("getSysTransactionsPublic", sysTransactionsApi.GetSysTransactionsPublic) // sysTransactions
 		sysTransactionsRouterWithoutAuth.GET("get", sysTransactionsApi.Get)                                           // sysTransactions
 		sysTransactionsRouterWithoutAuth.POST("settle", sysTransactionsApi.Settle)                                    // sysTransactions
+		sysTransactionsRouterWithoutAuth.POST("VerifySettleSign", sysTransactionsApi.VerifySettleSign)                // sysTransactions
 		sysTransactionsRouterWithoutAuth.POST("lottery", sysTransactionsApi.Lottery)                                  // sysTransactions
 		sysTransactionsRouterWithoutAuth.POST("checkwin", sysTransactionsApi.CheckWin)                                // sysTransactions
 		sysTransactionsRouterWithoutAuth.POST("exchange", sysTransactionsApi.Exchange)                                // sysTransactions

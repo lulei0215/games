@@ -985,7 +985,6 @@ func (b *BaseApi) ApiLogin(c *gin.Context) {
 		return
 	}
 	b.ApiTokenNext(c, *user)
-	return
 }
 
 // TokenNext jwt
@@ -1673,13 +1672,13 @@ func (b *BaseApi) Info(c *gin.Context) {
 	}
 
 	// jiami
-	encrypted, err := utils.CBCEncrypt(user)
-	if err != nil {
-		global.GVA_LOG.Error("Encryption failed", zap.Error(err))
-		response.FailWithMessage("Encryption failed: "+err.Error(), c)
-		return
-	}
-	response.OkWithDetailed(encrypted, "ok", c)
+	// encrypted, err := utils.CBCEncrypt(user)
+	// if err != nil {
+	// 	global.GVA_LOG.Error("Encryption failed", zap.Error(err))
+	// 	response.FailWithMessage("Encryption failed: "+err.Error(), c)
+	// 	return
+	// }
+	response.OkWithDetailed(user, "ok", c)
 }
 func (b *BaseApi) GetInfo(c *gin.Context) {
 
