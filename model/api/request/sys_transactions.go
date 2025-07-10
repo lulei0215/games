@@ -81,6 +81,36 @@ type MonitorTransferApi struct {
 
 type SettleList struct {
 	List      []SettleRecord `json:"list"`
+	Cards      []SettleRecord `json:"cards"`
 	Timestamp string         `json:"timestamp" gorm:"column:timestamp"`
 	Sign      string         `json:"sign" gorm:"column:sign"`
 }
+// type CardsData struct {
+// 	Room       [][]int `json:"room"`
+// }
+// type CardsInfo struct {
+// 	Suit       int `json:"suit"`
+// 	Value       int `json:"value"`
+// }
+// [
+// 	[
+// 		{
+// 			"suit": 4,
+// 			"value": 12
+// 		},
+// 		{
+// 			"suit": 3,
+// 			"value": 9
+// 		}
+// 	],
+// 	[
+// 		{
+// 			"suit": 1,
+// 			"value": 14
+// 		},
+// 		{
+// 			"suit": 2,
+// 			"value": 9
+// 		}
+// 	]
+// ]

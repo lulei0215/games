@@ -632,15 +632,12 @@ func processUserRebate(c *gin.Context, record apiReq.SettleRecord) {
 			return
 		}
 
-		// Check if rebate rate is greater than 0
-		if rebateRate1 > 0 {
-			// Calculate level 1 rebate amount
-			rawRebateAmount1 := record.Coin * rebateRate1
-			// Round to 2 decimal places
-			rebateAmount1 := math.Round(rawRebateAmount1*100) / 100
+		// Calculate level 1 rebate amount (even if rate is 0)
+		rawRebateAmount1 := record.Coin * rebateRate1
+		// Round to 2 decimal places
+		rebateAmount1 := math.Round(rawRebateAmount1*100) / 100
 
-			addRebateToUser(c, int(level1Id), rebateAmount1, "Level 1 Rebate", record, rebateRate1, 1)
-		}
+		addRebateToUser(c, int(level1Id), rebateAmount1, "Level 1 Rebate", record, rebateRate1, 1)
 	}
 
 	// Process level 2 superior rebate
@@ -654,15 +651,12 @@ func processUserRebate(c *gin.Context, record apiReq.SettleRecord) {
 			return
 		}
 
-		// Check if rebate rate is greater than 0
-		if rebateRate2 > 0 {
-			// Calculate level 2 rebate amount
-			rawRebateAmount2 := record.Coin * rebateRate2
-			// Round to 2 decimal places
-			rebateAmount2 := math.Round(rawRebateAmount2*100) / 100
+		// Calculate level 2 rebate amount (even if rate is 0)
+		rawRebateAmount2 := record.Coin * rebateRate2
+		// Round to 2 decimal places
+		rebateAmount2 := math.Round(rawRebateAmount2*100) / 100
 
-			addRebateToUser(c, int(level2Id), rebateAmount2, "Level 2 Rebate", record, rebateRate2, 2)
-		}
+		addRebateToUser(c, int(level2Id), rebateAmount2, "Level 2 Rebate", record, rebateRate2, 2)
 	}
 }
 
@@ -756,8 +750,16 @@ func addRebateToUser(c *gin.Context, userId int, rebateAmount float64, rebateTyp
 		return
 	}
 
+	// 根据返佣率决定状态
+	var status int
+	if rebateRate > 0 {
+		status = 1
+	} else {
+		status = 0
+	}
+
 	// 保存返佣记录到数据库
-	saveRebateRecordToDB(c, userId, record, rebateType, rebateLevel, rebateRate, rebateAmount, originalBalance, userJson.Balance)
+	saveRebateRecordToDB(c, userId, record, rebateType, rebateLevel, rebateRate, rebateAmount, originalBalance, userJson.Balance, status)
 }
 
 // getUserFromRedis Get user information from Redis
@@ -815,7 +817,7 @@ func getUserRebateRate(c *gin.Context, userId int) (float64, error) {
 }
 
 // saveRebateRecordToDB Save rebate record to database
-func saveRebateRecordToDB(c *gin.Context, userId int, record apiReq.SettleRecord, rebateType string, rebateLevel int, rebateRate float64, rebateAmount float64, balanceBefore float64, balanceAfter float64) {
+func saveRebateRecordToDB(c *gin.Context, userId int, record apiReq.SettleRecord, rebateType string, rebateLevel int, rebateRate float64, rebateAmount float64, balanceBefore float64, balanceAfter float64, status int) {
 	// Convert UserCode to user ID
 	fromUserId, err := strconv.ParseUint(record.UserCode, 10, 32)
 	if err != nil {
@@ -851,7 +853,7 @@ func saveRebateRecordToDB(c *gin.Context, userId int, record apiReq.SettleRecord
 		GameType:          record.GameType,
 		Area:              record.Area,
 		BetInfo:           betInfoJSON,
-		Status:            1, // 1-Success
+		Status:            status, // 使用传入的status参数
 		Remark:            fmt.Sprintf("User %s bet %.2f, got %.2f%% rebate", record.UserCode, record.Coin, rebateRate*100),
 	}
 
@@ -866,15 +868,6 @@ func saveRebateRecordToDB(c *gin.Context, userId int, record apiReq.SettleRecord
 			zap.String("errorDetails", err.Error()))
 		return
 	}
-}
-
-// getMapKeys Get all keys from map
-func getMapKeys(m map[string]string) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	return keys
 }
 
 // VerifySettleSign 验证结算签名
