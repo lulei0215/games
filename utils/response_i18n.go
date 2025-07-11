@@ -43,22 +43,22 @@ func ResultI18n(code int, data interface{}, msgKey i18n.MessageKey, c *gin.Conte
 
 // OkI18n 成功响应
 func OkI18n(c *gin.Context) {
-	ResultI18n(200, map[string]interface{}{}, i18n.MsgSuccess, c)
+	ResultI18n(0, map[string]interface{}{}, i18n.MsgSuccess, c)
 }
 
 // OkWithDataI18n 成功响应带数据
 func OkWithDataI18n(data interface{}, c *gin.Context) {
-	ResultI18n(200, data, i18n.MsgSuccess, c)
+	ResultI18n(0, data, i18n.MsgSuccess, c)
 }
 
 // OkWithMessageI18n 成功响应带自定义消息
 func OkWithMessageI18n(msgKey i18n.MessageKey, c *gin.Context) {
-	ResultI18n(200, map[string]interface{}{}, msgKey, c)
+	ResultI18n(0, map[string]interface{}{}, msgKey, c)
 }
 
 // OkWithDetailedI18n 成功响应带数据和自定义消息
 func OkWithDetailedI18n(data interface{}, msgKey i18n.MessageKey, c *gin.Context) {
-	ResultI18n(200, data, msgKey, c)
+	ResultI18n(0, data, msgKey, c)
 }
 
 // FailI18n 失败响应

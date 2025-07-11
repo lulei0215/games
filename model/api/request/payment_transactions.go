@@ -47,8 +47,13 @@ type CreateTradeData struct {
 	Redirect string `json:"redirect"`
 }
 type CreatePaymentData struct {
-	Amount int64  `json:"amount"`
-	Id     string `json:"id"`
+	Amount        int64  `json:"amount"`
+	AccountId     int64  `json:"accountId"`
+	AccountName   string `json:"accountName"`
+	AccountNumber string `json:"accountNumber"`
+	AccountType   string `json:"accountType"`
+	CpfNumber     string `json:"cpfNumber"`
+	PaymentType   string `json:"paymentType"`
 }
 
 // 创建交易响应结构体

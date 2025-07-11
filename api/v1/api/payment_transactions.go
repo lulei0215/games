@@ -301,8 +301,8 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreateTrade(c *gin.Context
 
 // CreatePayment
 func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment(c *gin.Context) {
-
 	uid := utils.GetRedisUserID(c)
+	global.GVA_LOG.Info("Step 1: GetRedisUserID", zap.Uint("userId", uid))
 	if uid == 0 {
 		utils.UnauthorizedI18n(c)
 		return
@@ -312,39 +312,44 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment(c *gin.Conte
 
 	var r apiReq.CreatePaymentData
 	err := c.ShouldBindJSON(&r)
+	global.GVA_LOG.Info("Step 2: ShouldBindJSON", zap.Any("requestData", r), zap.Error(err))
 	if err != nil {
 		utils.FailWithMessageI18n(i18n.MsgInvalidRequest, c)
 		return
 	}
+
+	global.GVA_LOG.Info("Step 3: Verify", zap.Any("requestData", r))
 	err = utils.Verify(r, utils.CreateTradeVerify)
+	global.GVA_LOG.Info("Step 3.1: Verify result", zap.Error(err))
 	if err != nil {
 		utils.FailWithMessageI18n(i18n.MsgInvalidAmount, c)
 		return
 	}
 
 	var user system.ApiSysUser
-	redisuser, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", uid)).Result()
+	redisuser, redisErr := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", uid)).Result()
+	global.GVA_LOG.Info("Step 4: Get user from Redis", zap.String("redisuser", redisuser), zap.Error(redisErr))
 	if redisuser == "" {
 		utils.UnauthorizedI18n(c)
 		return
 	}
 	err = json.Unmarshal([]byte(redisuser), &user)
+	global.GVA_LOG.Info("Step 5: Unmarshal user", zap.Any("user", user), zap.Error(err))
 	if err != nil {
 		global.GVA_LOG.Error("Failed to unmarshal user data", zap.Error(err))
 		utils.UnauthorizedI18n(c)
 		return
 	}
-	fmt.Println("user.Balance", user.Balance)
-	fmt.Println("user.ID", user.ID)
-	fmt.Println("r.Amount", r.Amount)
+	global.GVA_LOG.Info("Step 6: Check user balance", zap.Float64("user.Balance", user.Balance), zap.Float64("amount", float64(r.Amount)))
 	if user.Balance < float64(r.Amount) {
 		utils.FailWithMessageI18n(i18n.MsgInsufficientFunds, c)
 		return
 	}
 
-	userWithdrawalAccounts, err := userWithdrawalAccountsService.GetUserWithdrawalAccounts(ctx, r.Id)
+	global.GVA_LOG.Info("Step 7: GetUserWithdrawalAccounts", zap.Int64("accountId", r.AccountId))
+	userWithdrawalAccounts, err := userWithdrawalAccountsService.GetUserWithdrawalAccounts(ctx, strconv.FormatInt(r.AccountId, 10))
+	global.GVA_LOG.Info("Step 7.1: GetUserWithdrawalAccounts result", zap.Any("userWithdrawalAccounts", userWithdrawalAccounts), zap.Error(err))
 	if err != nil {
-
 		utils.FailWithMessageI18n(i18n.MsgAccountNotFound, c)
 		return
 	}
@@ -371,26 +376,40 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment(c *gin.Conte
 		RefCpf:          userWithdrawalAccounts.CpfNumber,
 		RefName:         userWithdrawalAccounts.AccountName,
 	}
+	global.GVA_LOG.Info("Step 8: paymentTransactions struct", zap.Any("paymentTransactions", paymentTransactions))
 
 	err = paymentTransactionsService.Create(ctx, paymentTransactions)
+	global.GVA_LOG.Info("Step 9: Create paymentTransactionsService", zap.Error(err))
 	if err != nil {
-
 		utils.FailWithMessageI18n(i18n.MsgCreateRecordFailed, c)
 		return
 	}
 
-	user.Balance = user.Balance - float64(r.Amount)
-	userJson, err := json.Marshal(user)
+	// 使用工具函数安全地扣减用户余额
+	err = utils.DeductUserBalance(c, user.ID, float64(r.Amount), "CreatePayment")
+	global.GVA_LOG.Info("Step 10: DeductUserBalance", zap.Error(err))
 	if err != nil {
-		global.GVA_LOG.Error("CreatePayment Failed to marshal user data", zap.Error(err))
-	} else {
-		err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%d", user.ID), string(userJson), 0).Err()
-		if err != nil {
-			global.GVA_LOG.Error("CreatePayment Failed to save user data to Redis", zap.Error(err))
+		global.GVA_LOG.Error("Failed to deduct user balance",
+			zap.Error(err),
+			zap.Uint("userId", user.ID),
+			zap.Float64("amount", float64(r.Amount)))
+
+		if err.Error() == "insufficient balance" {
+			utils.FailWithMessageI18n(i18n.MsgInsufficientFunds, c)
+		} else if err.Error() == "user balance is being updated by another request" {
+			utils.FailWithMessageI18n(i18n.MsgSystemBusy, c)
+		} else {
+			utils.FailWithMessageI18n(i18n.MsgSystemError, c)
 		}
+		return
 	}
 
+	global.GVA_LOG.Info("Step 11: OkWithMessageI18n", zap.String("msg", "WithdrawalPending"))
 	utils.OkWithMessageI18n(i18n.MsgWithdrawalPending, c)
+}
+
+func String(i int64) string {
+	return strconv.FormatInt(i, 10)
 }
 
 func (paymentTransactionsApi *PaymentTransactionsApi) AdminCreatePayment(c *gin.Context) {
@@ -434,12 +453,26 @@ func (paymentTransactionsApi *PaymentTransactionsApi) AdminCreatePayment(c *gin.
 		return
 	}
 
-	userWithdrawalAccounts, err := userWithdrawalAccountsService.GetUserWithdrawalAccounts(ctx, r.Id)
-	if err != nil {
+	global.GVA_LOG.Info("AdminCreatePayment - Attempting to get user withdrawal accounts",
+		zap.Uint("userId", uid),
+		zap.Int64("accountId", r.AccountId),
+		zap.Any("requestData", r))
 
+	userWithdrawalAccounts, err := userWithdrawalAccountsService.GetUserWithdrawalAccounts(ctx, strconv.FormatInt(r.AccountId, 10))
+
+	if err != nil {
+		global.GVA_LOG.Error("AdminCreatePayment - Failed to get user withdrawal accounts",
+			zap.Error(err),
+			zap.Uint("userId", uid),
+			zap.Int64("accountId", r.AccountId))
 		utils.FailWithMessageI18n(i18n.MsgAccountNotFound, c)
 		return
 	}
+
+	global.GVA_LOG.Info("AdminCreatePayment - Successfully retrieved user withdrawal accounts",
+		zap.Uint("userId", uid),
+		zap.Int64("accountId", r.AccountId),
+		zap.Any("userWithdrawalAccounts", userWithdrawalAccounts))
 
 	formData := url.Values{}
 	formData.Set("merchantId", pc.MerchantId)
@@ -528,24 +561,30 @@ func (paymentTransactionsApi *PaymentTransactionsApi) AdminCreatePayment(c *gin.
 		return
 	}
 
-	user.Balance = user.Balance - float64(r.Amount)
-	userJson, err := json.Marshal(user)
+	// 使用工具函数安全地扣减用户余额
+	err = utils.DeductUserBalance(c, user.ID, float64(r.Amount), "AdminCreatePayment")
 	if err != nil {
-		global.GVA_LOG.Error("CreatePayment Failed to marshal user data", zap.Error(err))
-	} else {
-		err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%d", user.ID), string(userJson), 0).Err()
-		if err != nil {
-			global.GVA_LOG.Error("CreatePayment Failed to save user data to Redis", zap.Error(err))
+		global.GVA_LOG.Error("Failed to deduct user balance",
+			zap.Error(err),
+			zap.Uint("userId", user.ID),
+			zap.Float64("amount", float64(r.Amount)))
+
+		if err.Error() == "insufficient balance" {
+			utils.FailWithMessageI18n(i18n.MsgInsufficientFunds, c)
+		} else if err.Error() == "user balance is being updated by another request" {
+			utils.FailWithMessageI18n(i18n.MsgSystemBusy, c)
+		} else {
+			utils.FailWithMessageI18n(i18n.MsgSystemError, c)
 		}
+		return
 	}
 
-	global.GVA_LOG.Info("CreatePayment",
+	global.GVA_LOG.Info("AdminCreatePayment - Successfully processed payment",
 		zap.Uint("userId", uint(uid)),
 		zap.String("merchantOrderNo", paymentResponse.Data.MerchantOrderNo),
 		zap.String("orderNo", paymentResponse.Data.OrderNo),
 		zap.Int64("amount", paymentResponse.Data.Amount),
-		zap.String("status", paymentResponse.Data.Status),
-	)
+		zap.String("status", paymentResponse.Data.Status))
 
 	utils.OkWithMessageI18n(i18n.MsgWithdrawalPending, c)
 }

@@ -1,8 +1,10 @@
 package system
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"strconv"
 	"time"
@@ -80,6 +82,31 @@ func (b *BaseApi) Login(c *gin.Context) {
 			response.FailWithMessage("", c)
 			return
 		}
+
+		// 检查Redis中是否有用户数据
+		redisKey := fmt.Sprintf("user_%d", user.ID)
+		redisUser, err := global.GVA_REDIS.Get(c, redisKey).Result()
+		if err == nil && redisUser != "" {
+			// Redis中有用户数据，直接返回
+			var cachedUser system.SysUser
+			err = json.Unmarshal([]byte(redisUser), &cachedUser)
+			if err == nil {
+				global.GVA_LOG.Info("Using cached user data from Redis",
+					zap.Uint("userId", user.ID),
+					zap.String("username", user.Username))
+				b.TokenNext(c, cachedUser)
+				return
+			} else {
+				global.GVA_LOG.Error("Failed to unmarshal cached user data",
+					zap.Error(err),
+					zap.Uint("userId", user.ID))
+			}
+		}
+
+		// Redis中没有数据或解析失败，使用数据库数据
+		global.GVA_LOG.Info("Using database user data",
+			zap.Uint("userId", user.ID),
+			zap.String("username", user.Username))
 		b.TokenNext(c, *user)
 		return
 	}
@@ -984,6 +1011,31 @@ func (b *BaseApi) ApiLogin(c *gin.Context) {
 		response.FailWithMessage(i18n.GetMessage(lang, i18n.MsgFailed), c)
 		return
 	}
+
+	// 检查Redis中是否有用户数据
+	redisKey := fmt.Sprintf("user_%d", user.ID)
+	redisUser, err := global.GVA_REDIS.Get(c, redisKey).Result()
+	if err == nil && redisUser != "" {
+		// Redis中有用户数据，直接返回
+		var cachedUser system.SysUser
+		err = json.Unmarshal([]byte(redisUser), &cachedUser)
+		if err == nil {
+			global.GVA_LOG.Info("Using cached user data from Redis for API login",
+				zap.Uint("userId", user.ID),
+				zap.String("username", user.Username))
+			b.ApiTokenNext(c, cachedUser)
+			return
+		} else {
+			global.GVA_LOG.Error("Failed to unmarshal cached user data for API login",
+				zap.Error(err),
+				zap.Uint("userId", user.ID))
+		}
+	}
+
+	// Redis中没有数据或解析失败，使用数据库数据
+	global.GVA_LOG.Info("Using database user data for API login",
+		zap.Uint("userId", user.ID),
+		zap.String("username", user.Username))
 	b.ApiTokenNext(c, *user)
 }
 
@@ -1717,8 +1769,7 @@ func (b *BaseApi) AutoLogin(c *gin.Context) {
 
 	// 统计信息
 	var totalUsers int = len(users)
-	var newUsersSet int = 0
-	var existingUsers int = 0
+	var successUsers int = 0
 	var failedUsers int = 0
 
 	global.GVA_LOG.Info("Starting AutoLogin process",
@@ -1727,83 +1778,341 @@ func (b *BaseApi) AutoLogin(c *gin.Context) {
 	for _, user := range users {
 		redisKey := fmt.Sprintf("user_%d", user.ID)
 
-		existingUser, err := global.GVA_REDIS.Get(c, redisKey).Result()
+		// 直接使用system.SysUser结构
+		userJson, err := json.Marshal(user)
 		if err != nil {
-			// 转换为ApiSysUser结构
-			apiUser := system.ApiSysUser{
-				GVA_MODEL:        user.GVA_MODEL,
-				UUID:             user.UUID,
-				Username:         user.Username,
-				NickName:         user.NickName,
-				HeaderImg:        user.HeaderImg,
-				Phone:            user.Phone,
-				Email:            user.Email,
-				Enable:           user.Enable,
-				Level:            user.Level,
-				Balance:          user.Balance,
-				WithdrawPassword: user.WithdrawPassword,
-				Birthday:         user.Birthday,
-				Facebook:         user.Facebook,
-				Whatsapp:         user.Whatsapp,
-				Telegram:         user.Telegram,
-				Twitter:          user.Twitter,
-				VipLevel:         user.VipLevel,
-				VipExpireTime:    user.VipExpireTime,
-				UserType:         user.UserType,
-				Lang:             user.Lang,
-			}
+			global.GVA_LOG.Error("Failed to marshal user data",
+				zap.Error(err),
+				zap.Uint("userId", user.ID),
+				zap.String("username", user.Username))
+			failedUsers++
+			continue
+		}
 
-			userJson, err := json.Marshal(apiUser)
-			if err != nil {
-				global.GVA_LOG.Error("Failed to marshal user data",
-					zap.Error(err),
-					zap.Uint("userId", user.ID),
-					zap.String("username", user.Username))
-				failedUsers++
-				continue
-			}
-
-			err = global.GVA_REDIS.Set(c, redisKey, string(userJson), 0).Err()
-			if err != nil {
-				global.GVA_LOG.Error("Failed to save user data to Redis",
-					zap.Error(err),
-					zap.Uint("userId", user.ID),
-					zap.String("username", user.Username),
-					zap.String("redisKey", redisKey))
-				failedUsers++
-				continue
-			}
-
-			newUsersSet++
-			global.GVA_LOG.Info("Successfully set new user to Redis",
+		// 直接设置Redis，不判断是否存在
+		err = global.GVA_REDIS.Set(c, redisKey, string(userJson), 0).Err()
+		if err != nil {
+			global.GVA_LOG.Error("Failed to save user data to Redis",
+				zap.Error(err),
 				zap.Uint("userId", user.ID),
 				zap.String("username", user.Username),
 				zap.String("redisKey", redisKey))
-		} else {
-			// Redis中已存在该用户数据
-			existingUsers++
-			global.GVA_LOG.Debug("User already exists in Redis",
-				zap.Uint("userId", user.ID),
-				zap.String("username", user.Username),
-				zap.String("redisKey", redisKey),
-				zap.String("existingData", existingUser))
+			failedUsers++
+			continue
 		}
+
+		successUsers++
+		global.GVA_LOG.Info("Successfully set user to Redis",
+			zap.Uint("userId", user.ID),
+			zap.String("username", user.Username),
+			zap.String("redisKey", redisKey))
 	}
 
 	global.GVA_LOG.Info("AutoLogin process completed",
 		zap.Int("totalUsers", totalUsers),
-		zap.Int("newUsersSet", newUsersSet),
-		zap.Int("existingUsers", existingUsers),
+		zap.Int("successUsers", successUsers),
 		zap.Int("failedUsers", failedUsers))
 
 	response.OkWithDetailed(gin.H{
-		"total_users":    totalUsers,
-		"new_users_set":  newUsersSet,
-		"existing_users": existingUsers,
-		"failed_users":   failedUsers,
-		"message":        "AutoLogin process completed successfully",
+		"total_users":   totalUsers,
+		"success_users": successUsers,
+		"failed_users":  failedUsers,
+		"message":       "AutoLogin process completed successfully",
 	}, "AutoLogin process completed", c)
 }
+func (b *BaseApi) UpdateLang(c *gin.Context) {
+	uid := utils.GetRedisUserID(c)
+	if uid == 0 {
+		response.Result(401, nil, "", c)
+		return
+	}
+
+	body, _ := ioutil.ReadAll(c.Request.Body)
+	c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	var requestData struct {
+		Lang int `json:"lang" binding:"required"`
+	}
+
+	err := c.ShouldBindJSON(&requestData)
+
+	if requestData.Lang < 0 || requestData.Lang > 1 {
+		response.FailWithMessage("Invalid language code", c)
+		return
+	}
+
+	// 使用分布式锁确保并发安全
+	lockKey := fmt.Sprintf("user_lang_lock_%d", uid)
+	locked, err := global.GVA_REDIS.SetNX(c, lockKey, "1", 10*time.Second).Result()
+	if err != nil {
+		global.GVA_LOG.Error("Failed to acquire lock for language update", zap.Error(err))
+		response.FailWithMessage("System busy, please try again", c)
+		return
+	}
+	if !locked {
+		response.FailWithMessage("System busy, please try again", c)
+		return
+	}
+	defer global.GVA_REDIS.Del(c, lockKey)
+
+	// 获取当前用户数据
+	var user system.ApiSysUser
+	redisKey := fmt.Sprintf("user_%d", uid)
+	redisuser, err := global.GVA_REDIS.Get(c, redisKey).Result()
+
+	if err == nil && redisuser != "" {
+		// 反序列化现有用户数据
+		err = json.Unmarshal([]byte(redisuser), &user)
+		if err == nil {
+			// 更新语言设置
+			user.Lang = requestData.Lang
+
+			// 重新序列化并保存
+			userJson, err := json.Marshal(user)
+			if err == nil {
+				err = global.GVA_REDIS.Set(c, redisKey, string(userJson), 0).Err()
+				if err != nil {
+					global.GVA_LOG.Error("Failed to update user language in Redis",
+						zap.Error(err),
+						zap.Uint("userId", uid),
+						zap.Int("lang", requestData.Lang))
+				} else {
+					global.GVA_LOG.Info("Successfully updated user language in Redis",
+						zap.Uint("userId", uid),
+						zap.Int("lang", requestData.Lang))
+				}
+			}
+		}
+	}
+
+	global.GVA_LOG.Info("User language updated successfully",
+		zap.Uint("userId", uid),
+		zap.Int("lang", requestData.Lang))
+
+	response.OkWithMessage("Language updated successfully", c)
+}
+
+// UpdateRedisUserDataSafe 并发安全的Redis用户数据更新
+func (b *BaseApi) UpdateRedisUserDataSafe(c *gin.Context) {
+	uid := utils.GetRedisUserID(c)
+	if uid == 0 {
+		response.Result(401, nil, "", c)
+		return
+	}
+
+	// 接收POST请求中的用户数据
+	var requestData struct {
+		UserData map[string]interface{} `json:"user_data" binding:"required"`
+	}
+
+	err := c.ShouldBindJSON(&requestData)
+	if err != nil {
+		global.GVA_LOG.Error("UpdateRedisUserDataSafe request binding failed", zap.Error(err))
+		response.FailWithMessage("Invalid request format: "+err.Error(), c)
+		return
+	}
+
+	// 使用分布式锁确保并发安全
+	lockKey := fmt.Sprintf("user_data_lock_%d", uid)
+	locked, err := global.GVA_REDIS.SetNX(c, lockKey, "1", 10*time.Second).Result()
+	if err != nil {
+		global.GVA_LOG.Error("Failed to acquire lock for user data update", zap.Error(err))
+		response.FailWithMessage("System busy, please try again", c)
+		return
+	}
+	if !locked {
+		response.FailWithMessage("System busy, please try again", c)
+		return
+	}
+	defer global.GVA_REDIS.Del(c, lockKey)
+
+	// 获取当前Redis中的用户数据
+	var user system.ApiSysUser
+	redisKey := fmt.Sprintf("user_%d", uid)
+	redisuser, err := global.GVA_REDIS.Get(c, redisKey).Result()
+
+	if err != nil || redisuser == "" {
+		global.GVA_LOG.Error("User data not found in Redis",
+			zap.Error(err),
+			zap.Uint("userId", uid))
+		response.FailWithMessage("User data not found in Redis", c)
+		return
+	}
+
+	// 反序列化现有用户数据
+	err = json.Unmarshal([]byte(redisuser), &user)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to unmarshal user data from Redis",
+			zap.Error(err),
+			zap.Uint("userId", uid))
+		response.FailWithMessage("Failed to parse user data", c)
+		return
+	}
+
+	// 将用户数据转换为map以便更新
+	userMap := make(map[string]interface{})
+	userJson, _ := json.Marshal(user)
+	json.Unmarshal(userJson, &userMap)
+
+	// 更新指定的字段
+	for key, value := range requestData.UserData {
+		userMap[key] = value
+	}
+
+	// 将更新后的数据重新序列化
+	updatedUserJson, err := json.Marshal(userMap)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to marshal updated user data",
+			zap.Error(err),
+			zap.Uint("userId", uid))
+		response.FailWithMessage("Failed to process user data", c)
+		return
+	}
+
+	// 保存到Redis
+	err = global.GVA_REDIS.Set(c, redisKey, string(updatedUserJson), 0).Err()
+	if err != nil {
+		global.GVA_LOG.Error("Failed to update user data in Redis",
+			zap.Error(err),
+			zap.Uint("userId", uid))
+		response.FailWithMessage("Failed to update Redis data", c)
+		return
+	}
+
+	global.GVA_LOG.Info("Successfully updated user data in Redis",
+		zap.Uint("userId", uid),
+		zap.Any("updatedFields", requestData.UserData))
+
+	response.OkWithMessage("Redis user data updated successfully", c)
+}
+
+// UpdateRedisUserDataWithVersion 使用版本号防止并发冲突的Redis更新
+func (b *BaseApi) UpdateRedisUserDataWithVersion(c *gin.Context) {
+	uid := utils.GetRedisUserID(c)
+	if uid == 0 {
+		response.Result(401, nil, "", c)
+		return
+	}
+
+	// 接收POST请求中的用户数据和版本号
+	var requestData struct {
+		UserData map[string]interface{} `json:"user_data" binding:"required"`
+		Version  int64                  `json:"version" binding:"required"`
+	}
+
+	err := c.ShouldBindJSON(&requestData)
+	if err != nil {
+		global.GVA_LOG.Error("UpdateRedisUserDataWithVersion request binding failed", zap.Error(err))
+		response.FailWithMessage("Invalid request format: "+err.Error(), c)
+		return
+	}
+
+	// 获取当前Redis中的用户数据
+	var user system.ApiSysUser
+	redisKey := fmt.Sprintf("user_%d", uid)
+	versionKey := fmt.Sprintf("user_version_%d", uid)
+
+	redisuser, err := global.GVA_REDIS.Get(c, redisKey).Result()
+	if err != nil || redisuser == "" {
+		global.GVA_LOG.Error("User data not found in Redis",
+			zap.Error(err),
+			zap.Uint("userId", uid))
+		response.FailWithMessage("User data not found in Redis", c)
+		return
+	}
+
+	// 获取当前版本号
+	currentVersion, err := global.GVA_REDIS.Get(c, versionKey).Int64()
+	if err != nil {
+		currentVersion = 0
+	}
+
+	// 检查版本号是否匹配
+	if currentVersion != requestData.Version {
+		response.FailWithMessage("Data has been modified by another request, please refresh and try again", c)
+		return
+	}
+
+	// 反序列化现有用户数据
+	err = json.Unmarshal([]byte(redisuser), &user)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to unmarshal user data from Redis",
+			zap.Error(err),
+			zap.Uint("userId", uid))
+		response.FailWithMessage("Failed to parse user data", c)
+		return
+	}
+
+	// 将用户数据转换为map以便更新
+	userMap := make(map[string]interface{})
+	userJson, _ := json.Marshal(user)
+	json.Unmarshal(userJson, &userMap)
+
+	// 更新指定的字段
+	for key, value := range requestData.UserData {
+		userMap[key] = value
+	}
+
+	// 将更新后的数据重新序列化
+	updatedUserJson, err := json.Marshal(userMap)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to marshal updated user data",
+			zap.Error(err),
+			zap.Uint("userId", uid))
+		response.FailWithMessage("Failed to process user data", c)
+		return
+	}
+
+	// 使用Lua脚本原子性更新数据和版本号
+	luaScript := `
+		local userKey = KEYS[1]
+		local versionKey = KEYS[2]
+		local userData = ARGV[1]
+		local newVersion = ARGV[2]
+		local expectedVersion = ARGV[3]
+		
+		-- 检查版本号
+		local currentVersion = redis.call('GET', versionKey)
+		if currentVersion and tonumber(currentVersion) ~= tonumber(expectedVersion) then
+			return {err = "VERSION_MISMATCH"}
+		end
+		
+		-- 原子性更新数据和版本号
+		redis.call('SET', userKey, userData)
+		redis.call('SET', versionKey, newVersion)
+		return {ok = "SUCCESS"}
+	`
+
+	result, err := global.GVA_REDIS.Eval(c, luaScript, []string{redisKey, versionKey},
+		string(updatedUserJson), requestData.Version+1, requestData.Version).Result()
+
+	if err != nil {
+		global.GVA_LOG.Error("Failed to update user data with version control",
+			zap.Error(err),
+			zap.Uint("userId", uid))
+		response.FailWithMessage("Failed to update data", c)
+		return
+	}
+
+	// 检查Lua脚本执行结果
+	if resultMap, ok := result.([]interface{}); ok && len(resultMap) > 0 {
+		if errMsg, ok := resultMap[0].(string); ok && errMsg == "VERSION_MISMATCH" {
+			response.FailWithMessage("Data has been modified by another request, please refresh and try again", c)
+			return
+		}
+	}
+
+	global.GVA_LOG.Info("Successfully updated user data with version control",
+		zap.Uint("userId", uid),
+		zap.Any("updatedFields", requestData.UserData),
+		zap.Int64("newVersion", requestData.Version+1))
+
+	response.OkWithDetailed(gin.H{
+		"message": "User data updated successfully",
+		"version": requestData.Version + 1,
+	}, "User data updated successfully", c)
+}
+
 func (b *BaseApi) RobotList(c *gin.Context) {
 
 	var r apiReq.DecryptRequest

@@ -6,6 +6,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/api"
 	apiReq "github.com/flipped-aurora/gin-vue-admin/server/model/api/request"
+	"go.uber.org/zap"
 )
 
 type UserWithdrawalAccountsService struct{}
@@ -41,7 +42,21 @@ func (userWithdrawalAccountsService *UserWithdrawalAccountsService) UpdateUserWi
 // GetUserWithdrawalAccounts iduserWithdrawalAccounts表
 // Author [yourname](https://github.com/yourname)
 func (userWithdrawalAccountsService *UserWithdrawalAccountsService) GetUserWithdrawalAccounts(ctx context.Context, id string) (userWithdrawalAccounts api.UserWithdrawalAccounts, err error) {
+	global.GVA_LOG.Info("GetUserWithdrawalAccounts - Starting database query",
+		zap.String("accountId", id))
+
 	err = global.GVA_DB.Where("id = ?", id).First(&userWithdrawalAccounts).Error
+	if err != nil {
+		global.GVA_LOG.Error("GetUserWithdrawalAccounts - Database query failed",
+			zap.Error(err),
+			zap.String("accountId", id))
+		return
+	}
+
+	global.GVA_LOG.Info("GetUserWithdrawalAccounts - Successfully retrieved account",
+		zap.String("accountId", id),
+		zap.Any("userWithdrawalAccounts", userWithdrawalAccounts))
+
 	return
 }
 

@@ -51,6 +51,8 @@ const (
 	MsgUpdateStatusFailed MessageKey = "update_status_failed"
 	MsgRedisUpdateFailed  MessageKey = "redis_update_failed"
 	MsgDatabaseError      MessageKey = "database_error"
+	MsgSystemBusy         MessageKey = "system_busy"
+	MsgSystemError        MessageKey = "system_error"
 )
 
 // Messages 多语言消息映射
@@ -90,6 +92,8 @@ var Messages = map[string]map[MessageKey]string{
 		MsgUpdateStatusFailed: "Failed to update transaction status",
 		MsgRedisUpdateFailed:  "Failed to update user balance",
 		MsgDatabaseError:      "Database operation failed",
+		MsgSystemBusy:         "System is busy, please try again later",
+		MsgSystemError:        "System error, please contact support",
 	},
 	LangPortuguese: {
 		// 通用消息
@@ -126,6 +130,8 @@ var Messages = map[string]map[MessageKey]string{
 		MsgUpdateStatusFailed: "Falha ao atualizar status da transação",
 		MsgRedisUpdateFailed:  "Falha ao atualizar saldo do usuário",
 		MsgDatabaseError:      "Operação de banco de dados falhou",
+		MsgSystemBusy:         "Sistema ocupado, tente novamente mais tarde",
+		MsgSystemError:        "Erro do sistema, entre em contato com o suporte",
 	},
 }
 
