@@ -40,20 +40,46 @@ type RobotRequest struct {
 }
 
 type BetInfoData struct {
-	Room       int `json:"room"`
-	BetAmount  int `json:"betAmount"`
-	TargetRoom int `json:"targetRoom"`
+	Room       int         `json:"room"`
+	BetAmount  int         `json:"betAmount"`
+	TargetRoom interface{} `json:"targetRoom"` // 支持单个数字或数组
+}
+
+// 新增卡片相关结构体
+type Card struct {
+	Suit  int `json:"suit"`
+	Value int `json:"value"`
+}
+
+type RankInfo struct {
+	Rank   int    `json:"rank"`
+	Type   string `json:"type"`
+	Values []int  `json:"values"`
+}
+
+type RoleCard struct {
+	Cards    []Card   `json:"cards"`
+	RankInfo RankInfo `json:"rank_info"`
+}
+
+type RoleCardResult struct {
+	Card   RoleCard `json:"card"`
+	Result string   `json:"result"`
 }
 
 type SettleRecord struct {
 	SessionID string        `json:"session_id" gorm:"column:session_id"`
 	UserCode  string        `json:"usercode" gorm:"column:usercode"`
 	Coin      float64       `json:"coin" gorm:"column:coin"`
-	BetInfo   []BetInfoData `json:"bet_info" gorm:"column:bet_info"` // 如果需要可定义为 map[string]interface{}
+	BetInfo   []BetInfoData `json:"bet_info" gorm:"column:bet_info"`
 	Win       float64       `json:"win" gorm:"column:win"`
 	GameType  int           `json:"gametype" gorm:"column:gametype"`
 	Area      string        `json:"area" gorm:"column:area"`
 	Balance   float64       `json:"balance" gorm:"column:balance"`
+	// 新增字段
+	Cards     [][]Card         `json:"cards,omitempty" gorm:"column:cards"`           // 可选字段，用于新数据结构
+	Result    []Card           `json:"result,omitempty" gorm:"column:result"`         // 可选字段，用于新数据结构
+	RoleCards []RoleCardResult `json:"role_cards,omitempty" gorm:"column:role_cards"` // 可选字段，用于新数据结构
 }
 
 type BetInfo struct {
@@ -80,37 +106,10 @@ type MonitorTransferApi struct {
 }
 
 type SettleList struct {
-	List      []SettleRecord `json:"list"`
-	Cards      []SettleRecord `json:"cards"`
-	Timestamp string         `json:"timestamp" gorm:"column:timestamp"`
-	Sign      string         `json:"sign" gorm:"column:sign"`
+	List      []SettleRecord   `json:"list"`
+	Timestamp string           `json:"timestamp" gorm:"column:timestamp"`
+	Sign      string           `json:"sign" gorm:"column:sign"`
+	Cards     [][]Card         `json:"cards,omitempty" gorm:"column:cards"`           // 可选字段，用于新数据结构
+	Result    []Card           `json:"result,omitempty" gorm:"column:result"`         // 可选字段，用于新数据结构
+	RoleCards []RoleCardResult `json:"role_cards,omitempty" gorm:"column:role_cards"` // 可选字段，用于新数据结构
 }
-// type CardsData struct {
-// 	Room       [][]int `json:"room"`
-// }
-// type CardsInfo struct {
-// 	Suit       int `json:"suit"`
-// 	Value       int `json:"value"`
-// }
-// [
-// 	[
-// 		{
-// 			"suit": 4,
-// 			"value": 12
-// 		},
-// 		{
-// 			"suit": 3,
-// 			"value": 9
-// 		}
-// 	],
-// 	[
-// 		{
-// 			"suit": 1,
-// 			"value": 14
-// 		},
-// 		{
-// 			"suit": 2,
-// 			"value": 9
-// 		}
-// 	]
-// ]

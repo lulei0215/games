@@ -13,7 +13,7 @@ type UserRebates struct {
 	UserId            uint           `json:"userId" form:"userId" gorm:"comment:user_id;column:user_id;size:20;"`                                               //user_id
 	FromUserId        uint           `json:"fromUserId" form:"fromUserId" gorm:"comment:from_user_id;column:from_user_id;size:20;"`                             //from_user_id
 	FromUserCode      string         `json:"fromUserCode" form:"fromUserCode" gorm:"comment:from_user_code;column:from_user_code;size:50;"`                     //from_user_code
-	RebateType        string         `json:"rebateType" form:"rebateType" gorm:"comment:rebate_type;column:rebate_type;size:20;"`                               //rebate_type
+	RebateType        string         `json:"rebateType" form:"rebateType" gorm:"comment:rebate_type;column:rebate_type;size:200;"`                              //rebate_type
 	RebateLevel       int            `json:"rebateLevel" form:"rebateLevel" gorm:"comment:rebate_level;column:rebate_level;"`                                   //rebate_level
 	Coin              float64        `json:"coin" form:"coin" gorm:"comment:coin;column:coin;size:10;"`                                                         //coin
 	Win               float64        `json:"win" form:"win" gorm:"comment:win;column:win;size:10;"`                                                             //win

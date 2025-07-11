@@ -1,8 +1,10 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/api"
@@ -165,6 +167,7 @@ func (paymentCallbacksApi *PaymentCallbacksApi) GetPaymentCallbacksList(c *gin.C
 		return
 	}
 	response.OkWithDetailed(response.PageResult{
+
 		List:     list,
 		Total:    total,
 		Page:     pageInfo.Page,
@@ -196,10 +199,35 @@ func (paymentCallbacksApi *PaymentCallbacksApi) GetPaymentCallbacksPublic(c *gin
 func (paymentCallbacksApi *PaymentCallbacksApi) TradeCallback(c *gin.Context) {
 	pc := payment.InitPayment()
 
-	var callbackData apiReq.TradeCallbackRequest
-	err := c.ShouldBindJSON(&callbackData)
+	// Print all raw POST data
+	body, err := c.GetRawData()
 	if err != nil {
-		fmt.Println("2", callbackData)
+		fmt.Printf("Error reading raw data: %v\n", err)
+	} else {
+		fmt.Printf("=== TradeCallback Raw POST Data ===\n")
+		fmt.Printf("Raw Body: %s\n", string(body))
+		fmt.Printf("Content-Type: %s\n", c.GetHeader("Content-Type"))
+		fmt.Printf("User-Agent: %s\n", c.GetHeader("User-Agent"))
+		fmt.Printf("Client IP: %s\n", c.ClientIP())
+		fmt.Printf("Request URL: %s\n", c.Request.URL.String())
+		fmt.Printf("Request Method: %s\n", c.Request.Method)
+		fmt.Printf("All Headers:\n")
+		for key, values := range c.Request.Header {
+			fmt.Printf("  %s: %v\n", key, values)
+		}
+		fmt.Printf("=== End Raw POST Data ===\n")
+	}
+
+	// Re-set the request body for JSON binding
+	if len(body) > 0 {
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+	}
+
+	var callbackData apiReq.TradeCallbackRequest
+	err = c.ShouldBindJSON(&callbackData)
+	if err != nil {
+		fmt.Printf("JSON binding error: %v\n", err)
+		fmt.Printf("Attempted to bind data: %+v\n", callbackData)
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
@@ -272,9 +300,35 @@ func (paymentCallbacksApi *PaymentCallbacksApi) PaymentCallback(c *gin.Context) 
 
 	pc := payment.InitPayment()
 
-	var callbackData apiReq.PaymentCallbackRequest
-	err := c.ShouldBindJSON(&callbackData)
+	// Print all raw POST data
+	body, err := c.GetRawData()
 	if err != nil {
+		fmt.Printf("Error reading raw data: %v\n", err)
+	} else {
+		fmt.Printf("=== PaymentCallback Raw POST Data ===\n")
+		fmt.Printf("Raw Body: %s\n", string(body))
+		fmt.Printf("Content-Type: %s\n", c.GetHeader("Content-Type"))
+		fmt.Printf("User-Agent: %s\n", c.GetHeader("User-Agent"))
+		fmt.Printf("Client IP: %s\n", c.ClientIP())
+		fmt.Printf("Request URL: %s\n", c.Request.URL.String())
+		fmt.Printf("Request Method: %s\n", c.Request.Method)
+		fmt.Printf("All Headers:\n")
+		for key, values := range c.Request.Header {
+			fmt.Printf("  %s: %v\n", key, values)
+		}
+		fmt.Printf("=== End Raw POST Data ===\n")
+	}
+
+	// Re-set the request body for JSON binding
+	if len(body) > 0 {
+		c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
+	}
+
+	var callbackData apiReq.PaymentCallbackRequest
+	err = c.ShouldBindJSON(&callbackData)
+	if err != nil {
+		fmt.Printf("JSON binding error: %v\n", err)
+		fmt.Printf("Attempted to bind data: %+v\n", callbackData)
 		response.FailWithMessage(err.Error(), c)
 		return
 	}

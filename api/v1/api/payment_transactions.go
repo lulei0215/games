@@ -229,9 +229,9 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreateTrade(c *gin.Context
 	formData.Set("payType", "PIX_QRCODE")
 	formData.Set("currency", "BRL")
 	formData.Set("content", "CreateTrade")
-	formData.Set("clientIp", "192.168.1.100")
-	formData.Set("callback", "https://your-domain.com/callback")
-	formData.Set("redirect", "https://your-domain.com/success")
+	formData.Set("clientIp", "115.227.31.245")
+	formData.Set("callback", "http://115.227.31.245:8889/callback/trade")
+	formData.Set("redirect", "http://115.227.31.245:7072")
 
 	for k, v := range formData {
 		fmt.Printf("  %s: %s\n", k, v[0])
@@ -334,6 +334,9 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment(c *gin.Conte
 		utils.UnauthorizedI18n(c)
 		return
 	}
+	fmt.Println("user.Balance", user.Balance)
+	fmt.Println("user.ID", user.ID)
+	fmt.Println("r.Amount", r.Amount)
 	if user.Balance < float64(r.Amount) {
 		utils.FailWithMessageI18n(i18n.MsgInsufficientFunds, c)
 		return

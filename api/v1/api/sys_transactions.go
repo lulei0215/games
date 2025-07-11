@@ -221,14 +221,14 @@ func (sysTransactionsApi *SysTransactionsApi) Get(c *gin.Context) {
 
 // Settlement
 func (sysTransactionsApi *SysTransactionsApi) Settle(c *gin.Context) {
-
+	fmt.Println("Settle")
 	var settleList apiReq.SettleList
 	err := c.ShouldBindJSON(&settleList)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
-
+	fmt.Println("settleList:::", settleList)
 	// 验签逻辑
 	if settleList.Sign == "" {
 		response.FailWithMessage("签名不能为空", c)
@@ -243,39 +243,110 @@ func (sysTransactionsApi *SysTransactionsApi) Settle(c *gin.Context) {
 		verifyParams["timestamp"] = settleList.Timestamp
 	}
 
-	// 添加list（复杂对象会被转换为[object Object]）
+	// 检查是否包含cards字段来判断使用哪种验签方式
+	hasCards := false
 	if len(settleList.List) > 0 {
-		verifyParams["list"] = settleList.List
+		// 检查第一个记录是否包含cards字段
+		for _, record := range settleList.List {
+			if len(record.Cards) > 0 {
+				hasCards = true
+				break
+			}
+		}
 	}
+	fmt.Println("settleList.List:::", settleList.List)
+	if hasCards {
+		// 新数据结构验签 - 包含cards字段
+		global.GVA_LOG.Info("使用新数据结构验签（包含cards字段）")
 
-	// 调试信息：输出构建的参数
-	global.GVA_LOG.Info("验签参数构建完成",
-		zap.Any("verifyParams", verifyParams),
-		zap.String("receivedSign", settleList.Sign))
+		// 构建新数据结构的验签参数
+		newVerifyParams := make(map[string]interface{})
 
-	// 使用验签工具类验证签名
-	isValid := signUtils.VerifySign(verifyParams, settleList.Sign)
+		// 添加timestamp
+		if settleList.Timestamp != "" {
+			newVerifyParams["timestamp"] = settleList.Timestamp
+		}
 
-	if !isValid {
-		// 生成正确的签名用于调试
-		correctSign := signUtils.GenerateSign(verifyParams)
+		// 添加list（包含cards等新字段）
+		if len(settleList.List) > 0 {
+			newVerifyParams["list"] = settleList.List
+		}
 
-		global.GVA_LOG.Error("签名验证失败",
-			zap.String("receivedSign", settleList.Sign),
-			zap.String("correctSign", correctSign),
-			zap.Any("verifyParams", verifyParams))
+		// 调试信息：输出构建的参数
+		global.GVA_LOG.Info("新数据结构验签参数构建完成",
+			zap.Any("verifyParams", newVerifyParams),
+			zap.String("receivedSign", settleList.Sign))
 
-		// 返回详细的错误信息，包括签名字符串
-		response.FailWithDetailed(gin.H{
-			"error":        "签名验证失败",
-			"receivedSign": settleList.Sign,
-			"correctSign":  correctSign,
-			"verifyParams": verifyParams,
-			"signString":   getSignString(verifyParams), // 添加签名字符串用于调试
-		}, "签名验证失败", c)
-		return
+		// 使用验签工具类验证签名
+		isValid := signUtils.VerifySign(newVerifyParams, settleList.Sign)
+
+		if !isValid {
+			// 生成正确的签名用于调试
+			correctSign := signUtils.GenerateSign(newVerifyParams)
+
+			global.GVA_LOG.Error("新数据结构签名验证失败",
+				zap.String("receivedSign", settleList.Sign),
+				zap.String("correctSign", correctSign),
+				zap.Any("verifyParams", newVerifyParams))
+
+			// 返回详细的错误信息，包括签名字符串
+			response.FailWithDetailed(gin.H{
+				"error":        "新数据结构签名验证失败",
+				"receivedSign": settleList.Sign,
+				"correctSign":  correctSign,
+				"verifyParams": newVerifyParams,
+				"signString":   getSignString(newVerifyParams), // 添加签名字符串用于调试
+			}, "新数据结构签名验证失败", c)
+
+		}
+
+		global.GVA_LOG.Info("新数据结构签名验证成功",
+			zap.String("sign", settleList.Sign),
+			zap.Any("params", newVerifyParams))
+
+	} else {
+		// 旧数据结构验签 - 不包含cards字段
+		global.GVA_LOG.Info("使用旧数据结构验签（不包含cards字段）")
+
+		// 添加list（复杂对象会被转换为[object Object]）
+		if len(settleList.List) > 0 {
+			verifyParams["list"] = settleList.List
+		}
+
+		// 调试信息：输出构建的参数
+		global.GVA_LOG.Info("旧数据结构验签参数构建完成",
+			zap.Any("verifyParams", verifyParams),
+			zap.String("receivedSign", settleList.Sign))
+
+		// 使用验签工具类验证签名
+		isValid := signUtils.VerifySign(verifyParams, settleList.Sign)
+
+		if !isValid {
+			// 生成正确的签名用于调试
+			correctSign := signUtils.GenerateSign(verifyParams)
+
+			global.GVA_LOG.Error("旧数据结构签名验证失败",
+				zap.String("receivedSign", settleList.Sign),
+				zap.String("correctSign", correctSign),
+				zap.Any("verifyParams", verifyParams))
+
+			// 返回详细的错误信息，包括签名字符串
+			response.FailWithDetailed(gin.H{
+				"error":        "旧数据结构签名验证失败",
+				"receivedSign": settleList.Sign,
+				"correctSign":  correctSign,
+				"verifyParams": verifyParams,
+				"signString":   getSignString(verifyParams), // 添加签名字符串用于调试
+			}, "旧数据结构签名验证失败", c)
+
+		}
+
+		global.GVA_LOG.Info("旧数据结构签名验证成功",
+			zap.String("sign", settleList.Sign),
+			zap.Any("params", verifyParams))
+
 	}
-
+	fmt.Println("settleList.List", settleList.List)
 	// 处理结算逻辑
 	for _, record := range settleList.List {
 		fmt.Println("der:", record.Coin)
@@ -290,9 +361,27 @@ func (sysTransactionsApi *SysTransactionsApi) Settle(c *gin.Context) {
 		if err != nil {
 			global.GVA_LOG.Error("Failed to unmarshal user data", zap.Error(err))
 		} else {
+			// 打印余额增加操作的详细日志
+			global.GVA_LOG.Info("=== 余额增加操作开始 ===",
+				zap.String("UserCode", record.UserCode),
+				zap.String("Username", userJson.Username),
+				zap.Float64("原始余额", userJson.Balance),
+				zap.Float64("增加金额", record.Win),
+				zap.String("操作类型", "余额增加"),
+			)
+
 			newBalance := userJson.Balance + record.Win
+
+			// 打印计算过程
+			global.GVA_LOG.Info("余额计算过程",
+				zap.Float64("原始余额", userJson.Balance),
+				zap.Float64("增加金额", record.Win),
+				zap.Float64("计算后余额", newBalance),
+				zap.String("计算公式", fmt.Sprintf("%.2f + %.2f = %.2f", userJson.Balance, record.Win, newBalance)),
+			)
+
 			if newBalance < 0 {
-				global.GVA_LOG.Error("<0:",
+				global.GVA_LOG.Error("余额计算结果为负数，强制设为0:",
 					zap.String("UserCode", record.UserCode),
 					zap.Float64("OriginalBalance", userJson.Balance),
 					zap.Float64("WinAmount", record.Win),
@@ -301,7 +390,21 @@ func (sysTransactionsApi *SysTransactionsApi) Settle(c *gin.Context) {
 				)
 				newBalance = 0
 			}
+
+			// 打印四舍五入前的余额
+			global.GVA_LOG.Info("四舍五入前余额",
+				zap.Float64("四舍五入前", newBalance),
+			)
+
 			userJson.Balance = math.Round(newBalance*100) / 100
+
+			// 打印最终余额
+			global.GVA_LOG.Info("=== 余额增加操作完成 ===",
+				zap.String("UserCode", record.UserCode),
+				zap.String("Username", userJson.Username),
+				zap.Float64("最终余额", userJson.Balance),
+				zap.Float64("余额变化", record.Win),
+			)
 			updatedUserJson, err := json.Marshal(userJson)
 			if err != nil {
 				global.GVA_LOG.Error("Failed to marshal updated user data", zap.Error(err))
@@ -440,10 +543,11 @@ func (sysTransactionsApi *SysTransactionsApi) Exchange(c *gin.Context) {
 	response.OkWithMessage("ok", c)
 }
 func (sysTransactionsApi *SysTransactionsApi) Config(c *gin.Context) {
-
+	fmt.Println("Config")
 	// Get config field from POST request
 	var requestData struct {
-		Config string `json:"config"`
+		Config string                 `json:"config"`
+		Value  map[string]interface{} `json:"value"`
 	}
 
 	if err := c.ShouldBindJSON(&requestData); err != nil {
@@ -456,18 +560,66 @@ func (sysTransactionsApi *SysTransactionsApi) Config(c *gin.Context) {
 		return
 	}
 
+	// Check if this is an update operation (value exists)
+	if requestData.Value != nil && len(requestData.Value) > 0 {
+		// Update operation - save the value to Redis
+		global.GVA_LOG.Info("Updating config in Redis",
+			zap.String("configKey", requestData.Config),
+			zap.Any("configValue", requestData.Value))
+
+		// Convert value to JSON string
+		configJson, err := json.Marshal(requestData.Value)
+		if err != nil {
+			global.GVA_LOG.Error("Failed to marshal config value",
+				zap.Error(err),
+				zap.String("configKey", requestData.Config),
+				zap.Any("configValue", requestData.Value))
+			response.FailWithMessage("Failed to process config value", c)
+			return
+		}
+
+		// Save to Redis with the config key
+		err = global.GVA_REDIS.Set(c, requestData.Config, string(configJson), 0).Err()
+		if err != nil {
+			global.GVA_LOG.Error("Failed to save config to Redis",
+				zap.Error(err),
+				zap.String("configKey", requestData.Config))
+			response.FailWithMessage("Failed to save config", c)
+			return
+		}
+
+		global.GVA_LOG.Info("Config updated in Redis successfully",
+			zap.String("configKey", requestData.Config),
+			zap.String("configValue", string(configJson)))
+
+		// Return success message
+		response.OkWithMessage("Config updated successfully", c)
+		return
+	}
+
+	// Get operation - retrieve config from Redis
 	storedCode, err := global.GVA_REDIS.Get(c, requestData.Config).Result()
 	if err != nil {
-		response.FailWithMessage("Code error", c)
+		global.GVA_LOG.Info("Config not found in Redis",
+			zap.String("configKey", requestData.Config))
+		response.FailWithMessage("Config not found", c)
 		return
 	}
 
 	// Parse JSON string to map
 	var configData map[string]interface{}
 	if err := json.Unmarshal([]byte(storedCode), &configData); err != nil {
+		global.GVA_LOG.Error("Failed to parse config data from Redis",
+			zap.Error(err),
+			zap.String("configKey", requestData.Config),
+			zap.String("storedData", storedCode))
 		response.FailWithMessage("JSON parsing failed", c)
 		return
 	}
+
+	global.GVA_LOG.Info("Config retrieved from Redis successfully",
+		zap.String("configKey", requestData.Config),
+		zap.Any("configData", configData))
 
 	response.OkWithData(configData, c)
 }
@@ -610,14 +762,41 @@ func processUserRebate(c *gin.Context, record apiReq.SettleRecord) {
 	// Get user invitation relationship
 	relation, err := getUserInvitationRelation(c, uint(userId))
 	if err != nil {
-		global.GVA_LOG.Error("Failed to get user invitation relationship",
-			zap.Error(err),
+		global.GVA_LOG.Info("用户无邀请关系，跳过返佣",
 			zap.Uint64("userId", userId),
-			zap.String("userCode", record.UserCode))
+			zap.String("userCode", record.UserCode),
+			zap.String("原因", "Redis中无邀请记录"))
+
+		// 获取用户当前余额
+		user, err := getUserFromRedis(c, int(userId))
+		if err != nil {
+			global.GVA_LOG.Error("获取用户信息失败",
+				zap.Error(err),
+				zap.Int("userId", int(userId)))
+			return
+		}
+
+		// 记录状态为0的返佣记录（无邀请关系）
+		saveRebateRecordToDB(c, int(userId), record, "No Invite", 0, 0, 0, user.Balance, user.Balance, 0)
 		return
 	}
 
 	if relation == nil {
+		global.GVA_LOG.Info("用户邀请关系为空，跳过返佣",
+			zap.Uint64("userId", userId),
+			zap.String("userCode", record.UserCode))
+
+		// 获取用户当前余额
+		user, err := getUserFromRedis(c, int(userId))
+		if err != nil {
+			global.GVA_LOG.Error("获取用户信息失败",
+				zap.Error(err),
+				zap.Int("userId", int(userId)))
+			return
+		}
+
+		// 记录状态为0的返佣记录（邀请关系为空）
+		saveRebateRecordToDB(c, int(userId), record, "Empty Invite", 0, 0, 0, user.Balance, user.Balance, 0)
 		return
 	}
 
@@ -666,10 +845,10 @@ func getUserInvitationRelation(c *gin.Context, userId uint) (map[string]interfac
 
 	result, err := global.GVA_REDIS.Get(c, key).Result()
 	if err != nil {
-		global.GVA_LOG.Error("Failed to get invitation relationship from Redis",
-			zap.Error(err),
+		global.GVA_LOG.Info("Redis中无邀请关系记录",
 			zap.Uint("userId", userId),
-			zap.String("redisKey", key))
+			zap.String("redisKey", key),
+			zap.String("错误", err.Error()))
 		return nil, err
 	}
 
@@ -716,50 +895,75 @@ func addRebateToUser(c *gin.Context, userId int, rebateAmount float64, rebateTyp
 	// Round rebate amount to 2 decimal places
 	roundedRebateAmount := math.Round(rebateAmount*100) / 100
 
-	// Calculate new balance
-	newBalance := userJson.Balance + roundedRebateAmount
+	// 检查返佣条件：返佣率大于0且返佣金额大于0.01
+	if rebateRate > 0 && roundedRebateAmount > 0.01 {
+		// Calculate new balance
+		newBalance := userJson.Balance + roundedRebateAmount
 
-	if newBalance < 0 {
-		global.GVA_LOG.Error("Rebate would result in negative balance, set to 0",
+		if newBalance < 0 {
+			global.GVA_LOG.Error("Rebate would result in negative balance, set to 0",
+				zap.Int("userId", userId),
+				zap.Float64("originalBalance", originalBalance),
+				zap.Float64("rebateAmount", roundedRebateAmount),
+				zap.String("rebateType", rebateType))
+			newBalance = 0
+		}
+
+		// Final balance rounded to 2 decimal places
+		finalBalance := math.Round(newBalance*100) / 100
+		userJson.Balance = finalBalance
+
+		// Update user information to Redis
+		updatedUserJson, err := json.Marshal(userJson)
+		if err != nil {
+			global.GVA_LOG.Error("Failed to marshal updated user data",
+				zap.Error(err),
+				zap.Int("userId", userId))
+			return
+		}
+
+		err = global.GVA_REDIS.Set(c, redisKey, string(updatedUserJson), 0).Err()
+		if err != nil {
+			global.GVA_LOG.Error("Failed to save user data to Redis",
+				zap.Error(err),
+				zap.Int("userId", userId),
+				zap.String("redisKey", redisKey))
+			return
+		}
+	} else {
+		// 返佣金额不足，不更新用户余额
+		global.GVA_LOG.Info("返佣金额不足，跳过余额更新",
 			zap.Int("userId", userId),
-			zap.Float64("originalBalance", originalBalance),
-			zap.Float64("rebateAmount", roundedRebateAmount),
-			zap.String("rebateType", rebateType))
-		newBalance = 0
+			zap.Float64("返佣金额", roundedRebateAmount),
+			zap.Float64("返佣率", rebateRate),
+			zap.String("返佣类型", rebateType))
 	}
 
-	// Final balance rounded to 2 decimal places
-	finalBalance := math.Round(newBalance*100) / 100
-	userJson.Balance = finalBalance
-
-	// Update user information to Redis
-	updatedUserJson, err := json.Marshal(userJson)
-	if err != nil {
-		global.GVA_LOG.Error("Failed to marshal updated user data",
-			zap.Error(err),
-			zap.Int("userId", userId))
-		return
-	}
-
-	err = global.GVA_REDIS.Set(c, redisKey, string(updatedUserJson), 0).Err()
-	if err != nil {
-		global.GVA_LOG.Error("Failed to save user data to Redis",
-			zap.Error(err),
-			zap.Int("userId", userId),
-			zap.String("redisKey", redisKey))
-		return
-	}
-
-	// 根据返佣率决定状态
+	// 根据返佣率和返佣金额决定状态
 	var status int
-	if rebateRate > 0 {
+	if rebateRate > 0 && roundedRebateAmount > 0.01 { // 返佣率大于0且返佣金额大于0.01才返佣
 		status = 1
+		// 保存返佣记录到数据库
+		saveRebateRecordToDB(c, userId, record, rebateType, rebateLevel, rebateRate, rebateAmount, originalBalance, userJson.Balance, status)
+
+		global.GVA_LOG.Info("返佣成功",
+			zap.Int("userId", userId),
+			zap.Float64("返佣金额", roundedRebateAmount),
+			zap.Float64("返佣率", rebateRate),
+			zap.String("返佣类型", rebateType),
+			zap.Int("返佣状态", status))
 	} else {
 		status = 0
-	}
+		// 保存返佣记录到数据库（状态为0，表示不返佣）
+		saveRebateRecordToDB(c, userId, record, rebateType, rebateLevel, rebateRate, rebateAmount, originalBalance, originalBalance, status)
 
-	// 保存返佣记录到数据库
-	saveRebateRecordToDB(c, userId, record, rebateType, rebateLevel, rebateRate, rebateAmount, originalBalance, userJson.Balance, status)
+		global.GVA_LOG.Info("返佣金额不足，不进行返佣",
+			zap.Int("userId", userId),
+			zap.Float64("返佣金额", roundedRebateAmount),
+			zap.Float64("返佣率", rebateRate),
+			zap.String("返佣类型", rebateType),
+			zap.Int("返佣状态", status))
+	}
 }
 
 // getUserFromRedis Get user information from Redis
@@ -900,44 +1104,113 @@ func (sysTransactionsApi *SysTransactionsApi) VerifySettleSign(c *gin.Context) {
 		verifyParams["timestamp"] = settleList.Timestamp
 	}
 
-	// 添加list（复杂对象会被转换为[object Object]）
+	// 检查是否包含cards字段来判断使用哪种验签方式
+	hasCards := false
 	if len(settleList.List) > 0 {
-		verifyParams["list"] = settleList.List
+		// 检查第一个记录是否包含cards字段
+		for _, record := range settleList.List {
+			if len(record.Cards) > 0 {
+				hasCards = true
+				break
+			}
+		}
 	}
 
-	// 调试信息：输出构建的参数
-	global.GVA_LOG.Info("验签参数构建完成",
-		zap.Any("verifyParams", verifyParams),
-		zap.String("receivedSign", settleList.Sign))
+	if hasCards {
+		// 新数据结构验签 - 包含cards字段
+		global.GVA_LOG.Info("使用新数据结构验签（包含cards字段）")
 
-	// 使用验签工具类验证签名
-	isValid := signUtils.VerifySign(verifyParams, settleList.Sign)
+		// 构建新数据结构的验签参数
+		newVerifyParams := make(map[string]interface{})
 
-	if !isValid {
-		// 生成正确的签名用于调试
-		correctSign := signUtils.GenerateSign(verifyParams)
+		// 添加timestamp
+		if settleList.Timestamp != "" {
+			newVerifyParams["timestamp"] = settleList.Timestamp
+		}
 
-		global.GVA_LOG.Error("签名验证失败",
-			zap.String("receivedSign", settleList.Sign),
-			zap.String("correctSign", correctSign),
-			zap.Any("verifyParams", verifyParams))
+		// 添加list（包含cards等新字段）
+		if len(settleList.List) > 0 {
+			newVerifyParams["list"] = settleList.List
+		}
 
-		// 返回详细的错误信息，包括签名字符串
-		response.FailWithDetailed(gin.H{
-			"error":        "签名验证失败",
-			"receivedSign": settleList.Sign,
-			"correctSign":  correctSign,
-			"verifyParams": verifyParams,
-			"signString":   getSignString(verifyParams), // 添加签名字符串用于调试
-		}, "签名验证失败", c)
+		// 调试信息：输出构建的参数
+		global.GVA_LOG.Info("新数据结构验签参数构建完成",
+			zap.Any("verifyParams", newVerifyParams),
+			zap.String("receivedSign", settleList.Sign))
+
+		// 使用验签工具类验证签名
+		isValid := signUtils.VerifySign(newVerifyParams, settleList.Sign)
+
+		if !isValid {
+			// 生成正确的签名用于调试
+			correctSign := signUtils.GenerateSign(newVerifyParams)
+
+			global.GVA_LOG.Error("新数据结构签名验证失败",
+				zap.String("receivedSign", settleList.Sign),
+				zap.String("correctSign", correctSign),
+				zap.Any("verifyParams", newVerifyParams))
+
+			// 返回详细的错误信息，包括签名字符串
+			response.FailWithDetailed(gin.H{
+				"error":        "新数据结构签名验证失败",
+				"receivedSign": settleList.Sign,
+				"correctSign":  correctSign,
+				"verifyParams": newVerifyParams,
+				"signString":   getSignString(newVerifyParams), // 添加签名字符串用于调试
+			}, "新数据结构签名验证失败", c)
+			return
+		}
+
+		global.GVA_LOG.Info("新数据结构签名验证成功",
+			zap.String("sign", settleList.Sign),
+			zap.Any("params", newVerifyParams))
+
+		response.OkWithMessage("新数据结构验签成功", c)
+		return
+	} else {
+		// 旧数据结构验签 - 不包含cards字段
+		global.GVA_LOG.Info("使用旧数据结构验签（不包含cards字段）")
+
+		// 添加list（复杂对象会被转换为[object Object]）
+		if len(settleList.List) > 0 {
+			verifyParams["list"] = settleList.List
+		}
+
+		// 调试信息：输出构建的参数
+		global.GVA_LOG.Info("旧数据结构验签参数构建完成",
+			zap.Any("verifyParams", verifyParams),
+			zap.String("receivedSign", settleList.Sign))
+
+		// 使用验签工具类验证签名
+		isValid := signUtils.VerifySign(verifyParams, settleList.Sign)
+
+		if !isValid {
+			// 生成正确的签名用于调试
+			correctSign := signUtils.GenerateSign(verifyParams)
+
+			global.GVA_LOG.Error("旧数据结构签名验证失败",
+				zap.String("receivedSign", settleList.Sign),
+				zap.String("correctSign", correctSign),
+				zap.Any("verifyParams", verifyParams))
+
+			// 返回详细的错误信息，包括签名字符串
+			response.FailWithDetailed(gin.H{
+				"error":        "旧数据结构签名验证失败",
+				"receivedSign": settleList.Sign,
+				"correctSign":  correctSign,
+				"verifyParams": verifyParams,
+				"signString":   getSignString(verifyParams), // 添加签名字符串用于调试
+			}, "旧数据结构签名验证失败", c)
+			return
+		}
+
+		global.GVA_LOG.Info("旧数据结构签名验证成功",
+			zap.String("sign", settleList.Sign),
+			zap.Any("params", verifyParams))
+
+		response.OkWithMessage("旧数据结构验签成功", c)
 		return
 	}
-
-	global.GVA_LOG.Info("签名验证成功",
-		zap.String("sign", settleList.Sign),
-		zap.Any("params", verifyParams))
-
-	response.OkWithMessage("验签成功", c)
 }
 
 // getSignString 获取签名字符串用于调试
