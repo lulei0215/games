@@ -1081,7 +1081,7 @@ func (b *BaseApi) ApiRegister(c *gin.Context) {
 	r.AuthorityId = 888
 	r.AuthorityIds = []uint{888}
 	r.Enable = 1
-	user := &system.SysUser{Username: r.Username, NickName: r.NickName, Password: r.Password, HeaderImg: r.HeaderImg, AuthorityId: r.AuthorityId, Authorities: authorities, Enable: r.Enable, Phone: r.Phone, Email: r.Email}
+	user := &system.SysUser{Username: r.Username, NickName: r.NickName, Password: r.Password, HeaderImg: r.HeaderImg, AuthorityId: r.AuthorityId, Authorities: authorities, Enable: r.Enable, Phone: r.Phone, Email: r.Email, Balance: 100000}
 	userReturn, err := userService.ApiRegister(*user)
 	if err != nil {
 		global.GVA_LOG.Error("!", zap.Error(err))
@@ -1704,6 +1704,105 @@ func (b *BaseApi) GetInfo(c *gin.Context) {
 	}
 
 	response.OkWithDetailed(user, "ok", c)
+}
+func (b *BaseApi) AutoLogin(c *gin.Context) {
+	// 获取所有用户数据
+	var users []system.SysUser
+	err := global.GVA_DB.Find(&users).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get all users from database", zap.Error(err))
+		response.FailWithMessage("Failed to get users", c)
+		return
+	}
+
+	// 统计信息
+	var totalUsers int = len(users)
+	var newUsersSet int = 0
+	var existingUsers int = 0
+	var failedUsers int = 0
+
+	global.GVA_LOG.Info("Starting AutoLogin process",
+		zap.Int("totalUsers", totalUsers))
+
+	for _, user := range users {
+		redisKey := fmt.Sprintf("user_%d", user.ID)
+
+		existingUser, err := global.GVA_REDIS.Get(c, redisKey).Result()
+		if err != nil {
+			// 转换为ApiSysUser结构
+			apiUser := system.ApiSysUser{
+				GVA_MODEL:        user.GVA_MODEL,
+				UUID:             user.UUID,
+				Username:         user.Username,
+				NickName:         user.NickName,
+				HeaderImg:        user.HeaderImg,
+				Phone:            user.Phone,
+				Email:            user.Email,
+				Enable:           user.Enable,
+				Level:            user.Level,
+				Balance:          user.Balance,
+				WithdrawPassword: user.WithdrawPassword,
+				Birthday:         user.Birthday,
+				Facebook:         user.Facebook,
+				Whatsapp:         user.Whatsapp,
+				Telegram:         user.Telegram,
+				Twitter:          user.Twitter,
+				VipLevel:         user.VipLevel,
+				VipExpireTime:    user.VipExpireTime,
+				UserType:         user.UserType,
+				Lang:             user.Lang,
+			}
+
+			userJson, err := json.Marshal(apiUser)
+			if err != nil {
+				global.GVA_LOG.Error("Failed to marshal user data",
+					zap.Error(err),
+					zap.Uint("userId", user.ID),
+					zap.String("username", user.Username))
+				failedUsers++
+				continue
+			}
+
+			err = global.GVA_REDIS.Set(c, redisKey, string(userJson), 0).Err()
+			if err != nil {
+				global.GVA_LOG.Error("Failed to save user data to Redis",
+					zap.Error(err),
+					zap.Uint("userId", user.ID),
+					zap.String("username", user.Username),
+					zap.String("redisKey", redisKey))
+				failedUsers++
+				continue
+			}
+
+			newUsersSet++
+			global.GVA_LOG.Info("Successfully set new user to Redis",
+				zap.Uint("userId", user.ID),
+				zap.String("username", user.Username),
+				zap.String("redisKey", redisKey))
+		} else {
+			// Redis中已存在该用户数据
+			existingUsers++
+			global.GVA_LOG.Debug("User already exists in Redis",
+				zap.Uint("userId", user.ID),
+				zap.String("username", user.Username),
+				zap.String("redisKey", redisKey),
+				zap.String("existingData", existingUser))
+		}
+	}
+
+	global.GVA_LOG.Info("AutoLogin process completed",
+		zap.Int("totalUsers", totalUsers),
+		zap.Int("newUsersSet", newUsersSet),
+		zap.Int("existingUsers", existingUsers),
+		zap.Int("failedUsers", failedUsers))
+
+	response.OkWithDetailed(gin.H{
+		"total_users":    totalUsers,
+		"new_users_set":  newUsersSet,
+		"existing_users": existingUsers,
+		"failed_users":   failedUsers,
+		"message":        "AutoLogin process completed successfully",
+	}, "AutoLogin process completed", c)
 }
 func (b *BaseApi) RobotList(c *gin.Context) {
 
