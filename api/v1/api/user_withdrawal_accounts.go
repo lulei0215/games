@@ -1,6 +1,8 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/api"
 	apiReq "github.com/flipped-aurora/gin-vue-admin/server/model/api/request"
@@ -186,6 +188,7 @@ func (userWithdrawalAccountsApi *UserWithdrawalAccountsApi) Add(c *gin.Context) 
 	userWithdrawalAccounts.UserId = uid
 	userWithdrawalAccounts.IsDefault = 1
 	userWithdrawalAccounts.Status = 1
+	userWithdrawalAccounts.AccountType = fmt.Sprintf("PIX_%s", userWithdrawalAccounts.AccountType)
 	err = utils.Verify(userWithdrawalAccounts, utils.AddUserWithdrawalAccountsVerify)
 	if err != nil {
 		response.FailWithMessage(err.Error(), c)

@@ -218,56 +218,58 @@ func (paymentCallbacksApi *PaymentCallbacksApi) TradeCallback(c *gin.Context) {
 		fmt.Printf("=== End Raw POST Data ===\n")
 	}
 
-	// Re-set the request body for JSON binding
+	// Re-set the request body for form binding
 	if len(body) > 0 {
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 	}
 
-	var callbackData apiReq.TradeCallbackRequest
-	err = c.ShouldBindJSON(&callbackData)
+	// Handle form-encoded data instead of JSON
+	var callbackData apiReq.TradeCallbackFormRequest
+	err = c.ShouldBind(&callbackData)
 	if err != nil {
-		fmt.Printf("JSON binding error: %v\n", err)
+		fmt.Printf("Form binding error: %v\n", err)
 		fmt.Printf("Attempted to bind data: %+v\n", callbackData)
 		response.FailWithMessage(err.Error(), c)
 		return
 	}
+
 	//Sign
 	dataMap := map[string]interface{}{
-		"merchantId":      callbackData.Data.MerchantId,
-		"merchantOrderNo": callbackData.Data.MerchantOrderNo,
-		"orderNo":         callbackData.Data.OrderNo,
-		"amount":          callbackData.Data.Amount,
-		"status":          callbackData.Data.Status,
-		"currency":        callbackData.Data.Currency,
-		"payType":         callbackData.Data.PayType,
+		"merchantId":      callbackData.MerchantId,
+		"merchantOrderNo": callbackData.MerchantOrderNo,
+		"orderNo":         callbackData.OrderNo,
+		"amount":          callbackData.Amount,
+		"status":          callbackData.Status,
+		"currency":        callbackData.Currency,
+		"payType":         callbackData.PayType,
 	}
-	if callbackData.Data.RefCpf != "" {
-		dataMap["ref_cpf"] = callbackData.Data.RefCpf
+	if callbackData.RefCpf != "" {
+		dataMap["ref_cpf"] = callbackData.RefCpf
 	}
-	if callbackData.Data.RefName != "" {
-		dataMap["ref_name"] = callbackData.Data.RefName
+	if callbackData.RefName != "" {
+		dataMap["ref_name"] = callbackData.RefName
 	}
 
-	if !pc.VerifyCallbackSign(dataMap, callbackData.Data.Sign) {
+	if !pc.VerifyCallbackSign(dataMap, callbackData.Sign) {
 		return
 	}
 
 	callbackDataJson, _ := json.Marshal(callbackData)
 
 	paymentCallbacks := api.PaymentCallbacks{
-		MerchantId:      callbackData.Data.MerchantId.(string),
-		MerchantOrderNo: callbackData.Data.MerchantOrderNo,
-		OrderNo:         callbackData.Data.OrderNo,
+		MerchantId:      callbackData.MerchantId,
+		MerchantOrderNo: callbackData.MerchantOrderNo,
+		OrderNo:         callbackData.OrderNo,
 		CallbackType:    1,
-		Amount:          callbackData.Data.Amount,
-		Currency:        callbackData.Data.Currency,
-		Status:          callbackData.Data.Status,
-		PayType:         callbackData.Data.PayType,
-		RefCpf:          callbackData.Data.RefCpf,
-		RefName:         callbackData.Data.RefName,
+		Amount:          callbackData.Amount,
+		Currency:        callbackData.Currency,
+		Status:          callbackData.Status,
+		PayType:         callbackData.PayType,
+		RefCpf:          callbackData.RefCpf,
+		RefName:         callbackData.RefName,
 		ErrorMsg:        "",
 		CallbackData:    string(callbackDataJson),
-		Sign:            callbackData.Data.Sign,
+		Sign:            callbackData.Sign,
 		SignVerified:    true,
 		IpAddress:       c.ClientIP(),
 		UserAgent:       c.GetHeader("User-Agent"),
@@ -284,8 +286,8 @@ func (paymentCallbacksApi *PaymentCallbacksApi) TradeCallback(c *gin.Context) {
 	if err != nil {
 		return
 	}
-	if callbackData.Data.Status == "PAID" {
-		err = paymentTransactionsService.TradeOk(ctx, callbackData.Data.MerchantOrderNo, callbackData.Data.OrderNo, paymentCallbacks)
+	if callbackData.Status == "PAID" {
+		err = paymentTransactionsService.TradeOk(ctx, callbackData.MerchantOrderNo, callbackData.OrderNo, paymentCallbacks)
 		if err != nil {
 			return
 		}
@@ -324,8 +326,8 @@ func (paymentCallbacksApi *PaymentCallbacksApi) PaymentCallback(c *gin.Context) 
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(body))
 	}
 
-	var callbackData apiReq.PaymentCallbackRequest
-	err = c.ShouldBindJSON(&callbackData)
+	var callbackData apiReq.PaymentCallbackFormRequest
+	err = c.ShouldBind(&callbackData)
 	if err != nil {
 		fmt.Printf("JSON binding error: %v\n", err)
 		fmt.Printf("Attempted to bind data: %+v\n", callbackData)
@@ -334,39 +336,40 @@ func (paymentCallbacksApi *PaymentCallbacksApi) PaymentCallback(c *gin.Context) 
 	}
 
 	// Sign
+
 	dataMap := map[string]interface{}{
-		"merchantId":      callbackData.Data.MerchantId,
-		"merchantOrderNo": callbackData.Data.MerchantOrderNo,
-		"orderNo":         callbackData.Data.OrderNo,
-		"amount":          callbackData.Data.Amount,
-		"status":          callbackData.Data.Status,
-		"currency":        callbackData.Data.Currency,
+		"merchantId":      callbackData.MerchantId,
+		"merchantOrderNo": callbackData.MerchantOrderNo,
+		"orderNo":         callbackData.OrderNo,
+		"amount":          callbackData.Amount,
+		"status":          callbackData.Status,
+		"currency":        callbackData.Currency,
 	}
 	fmt.Println("3")
-	if callbackData.Data.ErrorMsg != "" {
-		dataMap["errorMsg"] = callbackData.Data.ErrorMsg
+	if callbackData.ErrorMsg != "" {
+		dataMap["errorMsg"] = callbackData.ErrorMsg
 	}
 
-	if !pc.VerifyCallbackSign(dataMap, callbackData.Data.Sign) {
+	if !pc.VerifyCallbackSign(dataMap, callbackData.Sign) {
 		return
 	}
 
 	callbackDataJson, _ := json.Marshal(callbackData)
 
 	paymentCallbacks := api.PaymentCallbacks{
-		MerchantId:      callbackData.Data.MerchantId.(string),
-		MerchantOrderNo: callbackData.Data.MerchantOrderNo,
-		OrderNo:         callbackData.Data.OrderNo,
+		MerchantId:      callbackData.MerchantId,
+		MerchantOrderNo: callbackData.MerchantOrderNo,
+		OrderNo:         callbackData.OrderNo,
 		CallbackType:    2,
-		Amount:          callbackData.Data.Amount,
-		Currency:        callbackData.Data.Currency,
-		Status:          callbackData.Data.Status,
+		Amount:          callbackData.Amount,
+		Currency:        callbackData.Currency,
+		Status:          callbackData.Status,
 		PayType:         "",
 		RefCpf:          "",
 		RefName:         "",
 		ErrorMsg:        "",
 		CallbackData:    string(callbackDataJson),
-		Sign:            callbackData.Data.Sign,
+		Sign:            callbackData.Sign,
 		SignVerified:    true,
 		IpAddress:       c.ClientIP(),
 		UserAgent:       c.GetHeader("User-Agent"),
@@ -385,8 +388,8 @@ func (paymentCallbacksApi *PaymentCallbacksApi) PaymentCallback(c *gin.Context) 
 		return
 	}
 	fmt.Println("6")
-	if callbackData.Data.Status == "SUCCESS" {
-		err = paymentTransactionsService.PaymentOk(ctx, callbackData.Data.MerchantOrderNo, callbackData.Data.OrderNo)
+	if callbackData.Status == "SUCCESS" {
+		err = paymentTransactionsService.PaymentOk(ctx, callbackData.MerchantOrderNo, callbackData.OrderNo)
 		if err != nil {
 			return
 		}

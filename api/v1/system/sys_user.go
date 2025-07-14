@@ -389,7 +389,8 @@ func (b *BaseApi) TokenNext(c *gin.Context, user system.SysUser) {
 			return
 		}
 	}
-	utils.SetToken(c, token, int(claims.RegisteredClaims.ExpiresAt.Unix()-time.Now().Unix()))
+	// 由于JWT永不过期，设置一个很长的过期时间
+	utils.SetToken(c, token, 365*24*60*60) // 1年
 	response.OkWithDetailed(systemRes.LoginResponse{
 		User:      user,
 		Token:     token,
@@ -1082,7 +1083,8 @@ func (b *BaseApi) ApiTokenNext(c *gin.Context, user system.SysUser) {
 		return
 	}
 
-	utils.SetToken(c, token, int(claims.RegisteredClaims.ExpiresAt.Unix()-time.Now().Unix()))
+	// 由于JWT永不过期，设置一个很长的过期时间
+	utils.SetToken(c, token, 365*24*60*60) // 1年
 
 	users, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", user.ID)).Result()
 	if users == "" {
@@ -1106,10 +1108,12 @@ func (b *BaseApi) ApiTokenNext(c *gin.Context, user system.SysUser) {
 		lang = i18n.NormalizeLang(lang)
 	}
 
+	// 由于JWT永不过期，设置一个很长的过期时间
+	expiresAt := time.Now().AddDate(1, 0, 0).Unix() * 1000 // 1年后
 	response.OkWithDetailed(systemRes.LoginResponse{
 		User:      user,
 		Token:     token,
-		ExpiresAt: claims.RegisteredClaims.ExpiresAt.Unix() * 1000,
+		ExpiresAt: expiresAt,
 	}, i18n.GetMessage(lang, i18n.MsgSuccess), c)
 }
 func (b *BaseApi) ApiRegister(c *gin.Context) {
@@ -1890,6 +1894,86 @@ func (b *BaseApi) UpdateLang(c *gin.Context) {
 		zap.Int("lang", requestData.Lang))
 
 	response.OkWithMessage("Language updated successfully", c)
+}
+func (b *BaseApi) UpdateAudio(c *gin.Context) {
+	uid := utils.GetRedisUserID(c)
+	if uid == 0 {
+		response.Result(401, nil, "", c)
+		return
+	}
+
+	body, _ := ioutil.ReadAll(c.Request.Body)
+	c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	var requestData struct {
+		Audio int `json:"audio" binding:"required"`
+	}
+
+	err := c.ShouldBindJSON(&requestData)
+
+	if requestData.Audio < 0 || requestData.Audio > 1 {
+		response.FailWithMessage("Invalid audio code", c)
+		return
+	}
+
+	// 使用分布式锁确保并发安全
+	lockKey := fmt.Sprintf("user_lang_lock_%d", uid)
+	locked, err := global.GVA_REDIS.SetNX(c, lockKey, "1", 10*time.Second).Result()
+	if err != nil {
+		global.GVA_LOG.Error("Failed to acquire lock for language update", zap.Error(err))
+		response.FailWithMessage("System busy, please try again", c)
+		return
+	}
+	if !locked {
+		response.FailWithMessage("System busy, please try again", c)
+		return
+	}
+	defer global.GVA_REDIS.Del(c, lockKey)
+
+	// 获取当前用户数据
+	var user system.ApiSysUser
+	redisKey := fmt.Sprintf("user_%d", uid)
+	redisuser, err := global.GVA_REDIS.Get(c, redisKey).Result()
+
+	fmt.Println("requestData.Audio", requestData.Audio)
+
+	// 更新数据库中的audio字段
+	err = global.GVA_DB.Model(&system.SysUser{}).Where("id = ?", uid).Update("audio", requestData.Audio).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to update user audio in database",
+			zap.Error(err),
+			zap.Uint("userId", uid),
+			zap.Int("Audio", requestData.Audio))
+		response.FailWithMessage("Failed to update audio in database", c)
+		return
+	}
+
+	if err == nil && redisuser != "" {
+		// 反序列化现有用户数据
+		err = json.Unmarshal([]byte(redisuser), &user)
+		if err == nil {
+			// 更新语言设置
+			user.Audio = requestData.Audio
+
+			// 重新序列化并保存
+			userJson, err := json.Marshal(user)
+			if err == nil {
+				err = global.GVA_REDIS.Set(c, redisKey, string(userJson), 0).Err()
+				if err != nil {
+					global.GVA_LOG.Error("Failed to update user UpdateAudio in Redis",
+						zap.Error(err),
+						zap.Uint("userId", uid),
+						zap.Int("Audio", requestData.Audio))
+				} else {
+					global.GVA_LOG.Info("Successfully updated user UpdateAudio in Redis",
+						zap.Uint("userId", uid),
+						zap.Int("Audio", requestData.Audio))
+				}
+			}
+		}
+	}
+
+	response.OkWithMessage("Audio updated successfully", c)
 }
 
 // UpdateRedisUserDataSafe 并发安全的Redis用户数据更新

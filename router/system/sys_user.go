@@ -42,6 +42,7 @@ func (s *UserRouter) InitUserRouter(Router *gin.RouterGroup, RouterPub *gin.Rout
 		userRouterPub.GET("info", baseApi.GetInfo)                                     //
 		userRouterPub.GET("autoLogin", baseApi.AutoLogin)                              //
 		userRouterPub.POST("updLang", baseApi.UpdateLang)                              //
+		userRouterPub.POST("updAudio", baseApi.UpdateAudio)                            //
 		userRouterPub.POST("updateRedisUserData", baseApi.UpdateRedisUserDataSafe)     //
 	}
 }

@@ -671,6 +671,22 @@ func (sysTransactionsApi *SysTransactionsApi) GetSettleListFromRedis(c *gin.Cont
 				"Coin":     record.Coin,
 				"Key":      key,
 			}
+			userBetRecord := api.UserBetRecord{
+				Usercode:  record.UserCode,
+				Win:       record.Win,
+				Coin:      record.Coin,
+				Gametype:  record.GameType,
+				Area:      record.Area,
+				Balance:   record.Balance,
+				SessionId: record.SessionID,
+				// BetInfo:   record.BetInfo,
+				// Result:    datatypes.JSON(record.Result),
+				// RoleCards: datatypes.JSON(record.RoleCards),
+				// CreatedAt: &time.Now(),
+				// UpdatedAt: &time.Now(),
+			}
+			userBetRecordService.CreateUserBetRecord(c, &userBetRecord)
+
 			processedList = append(processedList, processedRecord)
 			totalRecordsProcessed++
 		}

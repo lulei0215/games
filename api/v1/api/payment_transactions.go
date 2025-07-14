@@ -21,6 +21,11 @@ import (
 	"go.uber.org/zap"
 )
 
+// CancelPaymentData 取消提现请求结构体
+type CancelPaymentData struct {
+	OrderId string `json:"orderId" binding:"required"`
+}
+
 type PaymentTransactionsApi struct{}
 
 // CreatePaymentTransactions paymentTransactions
@@ -301,8 +306,8 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreateTrade(c *gin.Context
 
 // CreatePayment
 func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment(c *gin.Context) {
+
 	uid := utils.GetRedisUserID(c)
-	global.GVA_LOG.Info("Step 1: GetRedisUserID", zap.Uint("userId", uid))
 	if uid == 0 {
 		utils.UnauthorizedI18n(c)
 		return
@@ -312,54 +317,55 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment(c *gin.Conte
 
 	var r apiReq.CreatePaymentData
 	err := c.ShouldBindJSON(&r)
-	global.GVA_LOG.Info("Step 2: ShouldBindJSON", zap.Any("requestData", r), zap.Error(err))
 	if err != nil {
 		utils.FailWithMessageI18n(i18n.MsgInvalidRequest, c)
 		return
 	}
-
-	global.GVA_LOG.Info("Step 3: Verify", zap.Any("requestData", r))
 	err = utils.Verify(r, utils.CreateTradeVerify)
-	global.GVA_LOG.Info("Step 3.1: Verify result", zap.Error(err))
 	if err != nil {
 		utils.FailWithMessageI18n(i18n.MsgInvalidAmount, c)
 		return
 	}
 
 	var user system.ApiSysUser
-	redisuser, redisErr := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", uid)).Result()
-	global.GVA_LOG.Info("Step 4: Get user from Redis", zap.String("redisuser", redisuser), zap.Error(redisErr))
+	redisuser, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", uid)).Result()
 	if redisuser == "" {
 		utils.UnauthorizedI18n(c)
 		return
 	}
 	err = json.Unmarshal([]byte(redisuser), &user)
-	global.GVA_LOG.Info("Step 5: Unmarshal user", zap.Any("user", user), zap.Error(err))
 	if err != nil {
 		global.GVA_LOG.Error("Failed to unmarshal user data", zap.Error(err))
 		utils.UnauthorizedI18n(c)
 		return
 	}
-	global.GVA_LOG.Info("Step 6: Check user balance", zap.Float64("user.Balance", user.Balance), zap.Float64("amount", float64(r.Amount)))
 	if user.Balance < float64(r.Amount) {
 		utils.FailWithMessageI18n(i18n.MsgInsufficientFunds, c)
 		return
 	}
 
-	global.GVA_LOG.Info("Step 7: GetUserWithdrawalAccounts", zap.Int64("accountId", r.AccountId))
+	global.GVA_LOG.Info("AdminCreatePayment - Attempting to get user withdrawal accounts",
+		zap.Uint("userId", uid),
+		zap.Int64("accountId", r.AccountId),
+		zap.Any("requestData", r))
+
 	userWithdrawalAccounts, err := userWithdrawalAccountsService.GetUserWithdrawalAccounts(ctx, strconv.FormatInt(r.AccountId, 10))
-	global.GVA_LOG.Info("Step 7.1: GetUserWithdrawalAccounts result", zap.Any("userWithdrawalAccounts", userWithdrawalAccounts), zap.Error(err))
+
 	if err != nil {
+		global.GVA_LOG.Error("AdminCreatePayment - Failed to get user withdrawal accounts",
+			zap.Error(err),
+			zap.Uint("userId", uid),
+			zap.Int64("accountId", r.AccountId))
 		utils.FailWithMessageI18n(i18n.MsgAccountNotFound, c)
 		return
 	}
 
 	paymentTransactions := api.PaymentTransactions{
 		UserId:          uint(uid),
-		MerchantOrderNo: "",
-		OrderNo:         fmt.Sprintf("ORDER_%d", time.Now().Unix()),
+		MerchantOrderNo: fmt.Sprintf("ORDER_%d", time.Now().Unix()),
+		OrderNo:         "",
 		TransactionType: 2,
-		Amount:          int(r.Amount * 100),
+		Amount:          int(r.Amount) * 100,
 		Currency:        "BRL",
 		Status:          "WAITING_PAY",
 		PayType:         "PIX",
@@ -368,7 +374,7 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment(c *gin.Conte
 		AccountName:     userWithdrawalAccounts.AccountName,
 		Content:         "CreatePayment",
 		ClientIp:        c.ClientIP(),
-		CallbackUrl:     "",
+		CallbackUrl:     "http://115.227.31.245:8889/callback/payment",
 		RedirectUrl:     "",
 		PayUrl:          "",
 		PayRaw:          "",
@@ -376,18 +382,20 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment(c *gin.Conte
 		RefCpf:          userWithdrawalAccounts.CpfNumber,
 		RefName:         userWithdrawalAccounts.AccountName,
 	}
-	global.GVA_LOG.Info("Step 8: paymentTransactions struct", zap.Any("paymentTransactions", paymentTransactions))
 
 	err = paymentTransactionsService.Create(ctx, paymentTransactions)
-	global.GVA_LOG.Info("Step 9: Create paymentTransactionsService", zap.Error(err))
 	if err != nil {
+		global.GVA_LOG.Error("paymentTransactionsService.Create",
+			zap.Error(err),
+			zap.Any("paymentTransactions", paymentTransactions),
+			zap.Any("userWithdrawalAccounts", userWithdrawalAccounts),
+		)
 		utils.FailWithMessageI18n(i18n.MsgCreateRecordFailed, c)
 		return
 	}
 
 	// 使用工具函数安全地扣减用户余额
-	err = utils.DeductUserBalance(c, user.ID, float64(r.Amount), "CreatePayment")
-	global.GVA_LOG.Info("Step 10: DeductUserBalance", zap.Error(err))
+	err = utils.DeductUserBalance(c, user.ID, float64(r.Amount), "AdminCreatePayment")
 	if err != nil {
 		global.GVA_LOG.Error("Failed to deduct user balance",
 			zap.Error(err),
@@ -404,8 +412,119 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment(c *gin.Conte
 		return
 	}
 
-	global.GVA_LOG.Info("Step 11: OkWithMessageI18n", zap.String("msg", "WithdrawalPending"))
+	global.GVA_LOG.Info("AdminCreatePayment - Successfully processed payment",
+		zap.Uint("userId", uint(uid)),
+		zap.String("merchantOrderNo", paymentTransactions.MerchantOrderNo),
+		zap.String("orderNo", paymentTransactions.OrderNo),
+		zap.Int("amount", paymentTransactions.Amount),
+		zap.String("status", paymentTransactions.Status))
+
 	utils.OkWithMessageI18n(i18n.MsgWithdrawalPending, c)
+}
+
+// CancelPayment 取消提现
+func (paymentTransactionsApi *PaymentTransactionsApi) CancelPayment(c *gin.Context) {
+	uid := utils.GetRedisUserID(c)
+	global.GVA_LOG.Info("CancelPayment Step 1: GetRedisUserID", zap.Uint("userId", uid))
+	if uid == 0 {
+		utils.UnauthorizedI18n(c)
+		return
+	}
+
+	ctx := c.Request.Context()
+
+	var r CancelPaymentData
+	err := c.ShouldBindJSON(&r)
+	global.GVA_LOG.Info("CancelPayment Step 2: ShouldBindJSON", zap.Any("requestData", r), zap.Error(err))
+	if err != nil {
+		utils.FailWithMessageI18n(i18n.MsgInvalidRequest, c)
+		return
+	}
+
+	// 验证订单号不能为空
+	if r.OrderId == "" {
+		utils.FailWithMessageI18n(i18n.MsgInvalidRequest, c)
+		return
+	}
+
+	global.GVA_LOG.Info("CancelPayment Step 3: Get payment transaction by orderId", zap.String("orderId", r.OrderId))
+
+	// 根据订单号查询提现记录
+	paymentTransaction, err := paymentTransactionsService.GetByOrderNo(ctx, r.OrderId)
+	global.GVA_LOG.Info("CancelPayment Step 3.1: GetByOrderNo result", zap.Any("paymentTransaction", paymentTransaction), zap.Error(err))
+	if err != nil {
+		global.GVA_LOG.Error("Failed to get payment transaction", zap.Error(err))
+		utils.FailWithMessageI18n(i18n.MsgRecordNotFound, c)
+		return
+	}
+
+	// 检查记录是否存在
+	if paymentTransaction.Id == 0 {
+		utils.FailWithMessageI18n(i18n.MsgRecordNotFound, c)
+		return
+	}
+
+	// 检查用户权限 - 只能取消自己的提现
+	if paymentTransaction.UserId != uint(uid) {
+		global.GVA_LOG.Error("User trying to cancel another user's withdrawal",
+			zap.Uint("requestUserId", uid),
+			zap.Uint("recordUserId", paymentTransaction.UserId))
+		utils.FailWithMessageI18n(i18n.MsgUnauthorized, c)
+		return
+	}
+
+	// 检查状态 - 只能取消待处理的提现
+	if paymentTransaction.Status != "WAITING_PAY" {
+		global.GVA_LOG.Error("Cannot cancel withdrawal with status", zap.String("status", paymentTransaction.Status))
+		utils.FailWithMessageI18n(i18n.MsgCannotCancelWithdrawal, c)
+		return
+	}
+
+	global.GVA_LOG.Info("CancelPayment Step 4: Update payment transaction status to CANCELLED")
+
+	// 更新数据库状态为已取消
+	updateData := api.PaymentTransactions{
+		Status:  "CANCELLED",
+		Content: "CancelPayment",
+	}
+
+	err = paymentTransactionsService.UpdateByOrderNo(ctx, r.OrderId, updateData)
+	global.GVA_LOG.Info("CancelPayment Step 4.1: UpdateByOrderNo result", zap.Error(err))
+	if err != nil {
+		global.GVA_LOG.Error("Failed to update payment transaction status", zap.Error(err))
+		utils.FailWithMessageI18n(i18n.MsgUpdateStatusFailed, c)
+		return
+	}
+
+	global.GVA_LOG.Info("CancelPayment Step 5: Add balance back to user",
+		zap.Uint("userId", paymentTransaction.UserId),
+		zap.Float64("amount", float64(paymentTransaction.Amount)/100))
+
+	// 将提现金额加回用户余额
+	err = utils.AddUserBalance(c, paymentTransaction.UserId, float64(paymentTransaction.Amount)/100, "CancelPayment")
+	global.GVA_LOG.Info("CancelPayment Step 5.1: AddUserBalance result", zap.Error(err))
+	if err != nil {
+		global.GVA_LOG.Error("Failed to add balance back to user",
+			zap.Error(err),
+			zap.Uint("userId", paymentTransaction.UserId),
+			zap.Float64("amount", float64(paymentTransaction.Amount)/100))
+
+		// 如果加回余额失败，需要回滚状态更新
+		rollbackData := api.PaymentTransactions{
+			Status:  "WAITING_PAY",
+			Content: "RollbackAfterCancelFailed",
+		}
+		rollbackErr := paymentTransactionsService.UpdateByOrderNo(ctx, r.OrderId, rollbackData)
+		if rollbackErr != nil {
+			global.GVA_LOG.Error("Failed to rollback payment transaction status", zap.Error(rollbackErr))
+		}
+
+		utils.FailWithMessageI18n(i18n.MsgSystemError, c)
+		return
+	}
+
+	global.GVA_LOG.Info("CancelPayment Step 6: Success", zap.String("orderId", r.OrderId))
+	utils.OkWithMessageI18n(i18n.MsgWithdrawalCancelled, c)
 }
 
 func String(i int64) string {

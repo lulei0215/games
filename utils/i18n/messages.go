@@ -40,11 +40,15 @@ const (
 	MsgPaymentCancelled  MessageKey = "payment_cancelled"
 
 	// 提现相关消息
-	MsgWithdrawalSuccess MessageKey = "withdrawal_success"
-	MsgWithdrawalFailed  MessageKey = "withdrawal_failed"
-	MsgWithdrawalPending MessageKey = "withdrawal_pending"
-	MsgAccountNotFound   MessageKey = "account_not_found"
-	MsgInvalidAmount     MessageKey = "invalid_amount"
+	MsgWithdrawalSuccess      MessageKey = "withdrawal_success"
+	MsgWithdrawalFailed       MessageKey = "withdrawal_failed"
+	MsgWithdrawalPending      MessageKey = "withdrawal_pending"
+	MsgWithdrawalCancelled    MessageKey = "withdrawal_cancelled"
+	MsgAccountNotFound        MessageKey = "account_not_found"
+	MsgInvalidAmount          MessageKey = "invalid_amount"
+	MsgRecordNotFound         MessageKey = "record_not_found"
+	MsgUnauthorized           MessageKey = "unauthorized"
+	MsgCannotCancelWithdrawal MessageKey = "cannot_cancel_withdrawal"
 
 	// 错误消息
 	MsgCreateRecordFailed MessageKey = "create_record_failed"
@@ -81,11 +85,15 @@ var Messages = map[string]map[MessageKey]string{
 		MsgPaymentCancelled:  "Payment cancelled",
 
 		// 提现相关消息
-		MsgWithdrawalSuccess: "Withdrawal successful",
-		MsgWithdrawalFailed:  "Withdrawal failed",
-		MsgWithdrawalPending: "Withdrawal pending",
-		MsgAccountNotFound:   "Withdrawal account not found",
-		MsgInvalidAmount:     "Invalid amount",
+		MsgWithdrawalSuccess:      "Withdrawal successful",
+		MsgWithdrawalFailed:       "Withdrawal failed",
+		MsgWithdrawalPending:      "Withdrawal pending",
+		MsgWithdrawalCancelled:    "Withdrawal cancelled successfully",
+		MsgAccountNotFound:        "Withdrawal account not found",
+		MsgInvalidAmount:          "Invalid amount",
+		MsgRecordNotFound:         "Record not found",
+		MsgUnauthorized:           "Unauthorized access",
+		MsgCannotCancelWithdrawal: "Cannot cancel withdrawal with current status",
 
 		// 错误消息
 		MsgCreateRecordFailed: "Failed to create transaction record",
@@ -119,11 +127,15 @@ var Messages = map[string]map[MessageKey]string{
 		MsgPaymentCancelled:  "Pagamento cancelado",
 
 		// 提现相关消息
-		MsgWithdrawalSuccess: "Saque bem-sucedido",
-		MsgWithdrawalFailed:  "Saque falhou",
-		MsgWithdrawalPending: "Saque pendente",
-		MsgAccountNotFound:   "Conta de saque não encontrada",
-		MsgInvalidAmount:     "Quantia inválida",
+		MsgWithdrawalSuccess:      "Saque bem-sucedido",
+		MsgWithdrawalFailed:       "Saque falhou",
+		MsgWithdrawalPending:      "Saque pendente",
+		MsgWithdrawalCancelled:    "Saque cancelado com sucesso",
+		MsgAccountNotFound:        "Conta de saque não encontrada",
+		MsgInvalidAmount:          "Quantia inválida",
+		MsgRecordNotFound:         "Registro não encontrado",
+		MsgUnauthorized:           "Acesso não autorizado",
+		MsgCannotCancelWithdrawal: "Não é possível cancelar o saque com o status atual",
 
 		// 错误消息
 		MsgCreateRecordFailed: "Falha ao criar registro de transação",

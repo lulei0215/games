@@ -92,7 +92,7 @@ type QueryTradeResponse struct {
 	} `json:"data"`
 }
 
-// 交易回调通知结构体
+// 交易回调通知结构体 (JSON格式)
 type TradeCallbackRequest struct {
 	Success   bool   `json:"success"`
 	ErrorCode string `json:"errorCode"`
@@ -109,6 +109,30 @@ type TradeCallbackRequest struct {
 		RefName         string      `json:"ref_name,omitempty"`
 		Sign            string      `json:"sign"`
 	} `json:"data"`
+}
+
+// 交易回调通知结构体 (Form格式)
+type TradeCallbackFormRequest struct {
+	MerchantId      string `form:"merchantId"`
+	MerchantOrderNo string `form:"merchantOrderNo"`
+	OrderNo         string `form:"orderNo"`
+	Amount          int64  `form:"amount"`
+	Status          string `form:"status"`
+	Currency        string `form:"currency"`
+	PayType         string `form:"payType"`
+	RefCpf          string `form:"ref_cpf"`
+	RefName         string `form:"ref_name"`
+	Sign            string `form:"sign"`
+}
+type PaymentCallbackFormRequest struct {
+	MerchantId      string `form:"merchantId"`
+	MerchantOrderNo string `form:"merchantOrderNo"`
+	OrderNo         string `form:"orderNo"`
+	Amount          int64  `form:"amount"`
+	Status          string `form:"status"`
+	Currency        string `form:"currency"`
+	ErrorMsg        string `form:"errorMsg"`
+	Sign            string `form:"sign"`
 }
 
 // 创建提现响应结构体

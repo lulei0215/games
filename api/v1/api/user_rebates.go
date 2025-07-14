@@ -5,6 +5,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/model/api"
 	apiReq "github.com/flipped-aurora/gin-vue-admin/server/model/api/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/common/response"
+	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -167,6 +168,36 @@ func (userRebatesApi *UserRebatesApi) GetUserRebatesList(c *gin.Context) {
 		PageSize: pageInfo.PageSize,
 	}, "", c)
 }
+func (userRebatesApi *UserRebatesApi) GetMyRebatesList(c *gin.Context) {
+	uid := utils.GetRedisUserID(c)
+	if uid == 0 {
+		response.Result(401, nil, "", c)
+		return
+	}
+	// Context
+	// Context
+	ctx := c.Request.Context()
+
+	var pageInfo apiReq.UserRebatesSearch
+	err := c.ShouldBindQuery(&pageInfo)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	pageInfo.UserId = uid
+	list, total, err := userRebatesService.GetUserRebatesInfoList(ctx, pageInfo)
+	if err != nil {
+		global.GVA_LOG.Error("!", zap.Error(err))
+		response.FailWithMessage(":"+err.Error(), c)
+		return
+	}
+	response.OkWithDetailed(response.PageResult{
+		List:     list,
+		Total:    total,
+		Page:     pageInfo.Page,
+		PageSize: pageInfo.PageSize,
+	}, "", c)
+}
 
 // GetUserRebatesPublic userRebates
 // @Tags UserRebates
@@ -177,11 +208,11 @@ func (userRebatesApi *UserRebatesApi) GetUserRebatesList(c *gin.Context) {
 // @Router /userRebates/getUserRebatesPublic [get]
 func (userRebatesApi *UserRebatesApi) GetUserRebatesPublic(c *gin.Context) {
 	// Context
-	ctx := c.Request.Context()
+	// ctx := c.Request.Context()
 
-	//
-	// ，C，
-	userRebatesService.GetUserRebatesPublic(ctx)
+	// //
+	// // ，C，
+	// userRebatesService.GetUserRebatesPublic(ctx)
 	response.OkWithDetailed(gin.H{
 		"info": "userRebates",
 	}, "", c)

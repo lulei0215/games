@@ -11,6 +11,7 @@ type ApiGroup struct {
 	UserAgentRelationApi
 	GamesApi
 	UserRebatesApi
+	UserBetRecordApi
 }
 
 var (
@@ -22,4 +23,5 @@ var (
 	userAgentRelationService      = service.ServiceGroupApp.ApiServiceGroup.UserAgentRelationService
 	gamesService                  = service.ServiceGroupApp.ApiServiceGroup.GamesService
 	userRebatesService            = service.ServiceGroupApp.ApiServiceGroup.UserRebatesService
+	userBetRecordService          = service.ServiceGroupApp.ApiServiceGroup.UserBetRecordService
 )

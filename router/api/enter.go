@@ -11,6 +11,7 @@ type RouterGroup struct {
 	UserAgentRelationRouter
 	GamesRouter
 	UserRebatesRouter
+	UserBetRecordRouter
 }
 
 var (
@@ -22,4 +23,5 @@ var (
 	userAgentRelationApi      = api.ApiGroupApp.ApiApiGroup.UserAgentRelationApi
 	gamesApi                  = api.ApiGroupApp.ApiApiGroup.GamesApi
 	userRebatesApi            = api.ApiGroupApp.ApiApiGroup.UserRebatesApi
+	userBetRecordApi          = api.ApiGroupApp.ApiApiGroup.UserBetRecordApi
 )

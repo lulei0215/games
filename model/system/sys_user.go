@@ -68,6 +68,7 @@ type ApiSysUser struct {
 	UserType         int        `json:"userType" gorm:"default:2;comment:2putong"`
 	Level            int        `json:"level" gorm:"default:3;comment:2putong"`
 	Lang             int        `json:"lang" gorm:"default:0;comment:lang"`
+	Audio            int        `json:"audio" gorm:"default:1;comment:audio"`
 }
 
 func (SysUser) TableName() string {

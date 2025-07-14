@@ -53,7 +53,41 @@ func (gamesService *GamesService) GetGamesInfoList(ctx context.Context, info api
 	// db
 	db := global.GVA_DB.Model(&api.Games{})
 	var gamess []api.Games
-	//
+
+	// 添加搜索条件
+	if info.Name != "" {
+		db = db.Where("name LIKE ?", "%"+info.Name+"%")
+	}
+	if info.NameEn != "" {
+		db = db.Where("name_en LIKE ?", "%"+info.NameEn+"%")
+	}
+	if info.NamePt != "" {
+		db = db.Where("name_pt LIKE ?", "%"+info.NamePt+"%")
+	}
+	if info.Title != "" {
+		db = db.Where("title LIKE ?", "%"+info.Title+"%")
+	}
+	if info.TitleEn != "" {
+		db = db.Where("title_en LIKE ?", "%"+info.TitleEn+"%")
+	}
+	if info.TitlePt != "" {
+		db = db.Where("title_pt LIKE ?", "%"+info.TitlePt+"%")
+	}
+	if info.Content != "" {
+		db = db.Where("content LIKE ?", "%"+info.Content+"%")
+	}
+	if info.ContentEn != "" {
+		db = db.Where("content_en LIKE ?", "%"+info.ContentEn+"%")
+	}
+	if info.ContentPt != "" {
+		db = db.Where("content_pt LIKE ?", "%"+info.ContentPt+"%")
+	}
+	if info.Status != 0 {
+		db = db.Where("status = ?", info.Status)
+	}
+	if info.IsHot != 0 {
+		db = db.Where("is_hot = ?", info.IsHot)
+	}
 
 	err = db.Count(&total).Error
 	if err != nil {

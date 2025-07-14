@@ -31,15 +31,14 @@ func NewJWT() *JWT {
 
 func (j *JWT) CreateClaims(baseClaims request.BaseClaims) request.CustomClaims {
 	bf, _ := ParseDuration(global.GVA_CONFIG.JWT.BufferTime)
-	ep, _ := ParseDuration(global.GVA_CONFIG.JWT.ExpiresTime)
 	claims := request.CustomClaims{
 		BaseClaims: baseClaims,
 		BufferTime: int64(bf / time.Second), // 1 token
 		RegisteredClaims: jwt.RegisteredClaims{
 			Audience:  jwt.ClaimStrings{"GVA"},                   //
 			NotBefore: jwt.NewNumericDate(time.Now().Add(-1000)), //
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(ep)),    //  7
-			Issuer:    global.GVA_CONFIG.JWT.Issuer,              //
+			// ExpiresAt: jwt.NewNumericDate(time.Now().Add(ep)),    // 注释掉过期时间，让token永不过期
+			Issuer: global.GVA_CONFIG.JWT.Issuer, //
 		},
 	}
 	return claims
@@ -94,12 +93,7 @@ func (j *JWT) ParseToken(tokenString string) (*request.CustomClaims, error) {
 //@return: err error
 
 func SetRedisJWT(jwt string, userName string) (err error) {
-	// jwt
-	dr, err := ParseDuration(global.GVA_CONFIG.JWT.ExpiresTime)
-	if err != nil {
-		return err
-	}
-	timer := dr
-	err = global.GVA_REDIS.Set(context.Background(), userName, jwt, timer).Err()
+	// jwt永不过期
+	err = global.GVA_REDIS.Set(context.Background(), userName, jwt, 0).Err()
 	return err
 }

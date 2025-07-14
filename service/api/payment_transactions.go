@@ -279,3 +279,17 @@ func (paymentTransactionsService *PaymentTransactionsService) GetPaymentList(ctx
 	err = db.Find(&paymentTransactionss).Error
 	return paymentTransactionss, total, err
 }
+
+// GetByOrderNo 根据订单号获取支付交易记录
+func (paymentTransactionsService *PaymentTransactionsService) GetByOrderNo(ctx context.Context, orderNo string) (paymentTransactions api.PaymentTransactions, err error) {
+	err = global.GVA_DB.Where("merchant_order_no = ?", orderNo).First(&paymentTransactions).Error
+	return
+}
+
+// UpdateByOrderNo 根据订单号更新支付交易记录
+func (paymentTransactionsService *PaymentTransactionsService) UpdateByOrderNo(ctx context.Context, orderNo string, updateData api.PaymentTransactions) (err error) {
+	err = global.GVA_DB.Model(&api.PaymentTransactions{}).
+		Where("merchant_order_no = ?", orderNo).
+		Updates(updateData).Error
+	return err
+}
