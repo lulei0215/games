@@ -463,7 +463,7 @@ type CashoutCreateRequest struct {
 	NotifyUrl     string `json:"notifyUrl"`               // 交易异步回调地址
 	IdentityNo    string `json:"identityNo"`              // 证件号码/税号
 	IdentityType  string `json:"identityType"`            // 证件类型/收款类型编码
-	ReqTimesTamp  string `json:"reqTimesTamp"`            // 证件类型/收款类型编码
+	ReqTimeStamp  string `json:"reqTimesTamp"`            // 证件类型/收款类型编码
 	Sign          string `json:"sign"`                    // 加密字符串
 }
 
@@ -498,7 +498,7 @@ func (pc *PaymentClient2) CreateCashout(formData CashoutCreateRequest) (int, str
 		IdentityType:  formData.IdentityType,
 		BankFirstName: formData.BankFirstName,
 		BankLastName:  formData.BankLastName,
-		ReqTimesTamp:  strconv.FormatInt(time.Now().UTC().UnixMilli(), 10),
+		ReqTimeStamp:  strconv.FormatInt(time.Now().UTC().UnixMilli(), 10),
 	}
 
 	// 如果有邮箱，添加到请求中
@@ -658,7 +658,7 @@ func (pc *PaymentClient2) GenerateCashoutSign(request CashoutCreateRequest) stri
 	params["identityType"] = request.IdentityType
 	params["bankFirstName"] = request.BankFirstName
 	params["bankLastName"] = request.BankLastName
-	params["reqTimesTamp"] = request.ReqTimesTamp
+	params["ReqTimeStamp"] = request.ReqTimeStamp
 
 	// 如果有邮箱，添加到参数中
 	if request.AccEmail != "" {

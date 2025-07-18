@@ -350,10 +350,19 @@ func (userService *UserService) ChangeWithdrawPassword(u *system.SysUser, newPas
 	if ok := utils.BcryptCheck(u.Password, user.WithdrawPassword); !ok {
 		return nil, errors.New("old password error")
 	}
+	
+	// 直接使用Update方法更新withdraw_password字段，更高效
+	err = global.GVA_DB.Model(&system.SysUser{}).
+		Where("id = ?", u.ID).
+		Update("withdraw_password", utils.BcryptHash(newPassword)).Error
+	
+	if err != nil {
+		return nil, err
+	}
+	
+	// 返回更新后的用户信息
 	user.WithdrawPassword = utils.BcryptHash(newPassword)
-	err = global.GVA_DB.Save(&user).Error
 	return &user, err
-
 }
 func (userService *UserService) VerifyWithdrawPassword(u *system.SysUser, newPassword string) (err error) {
 	var user system.SysUser

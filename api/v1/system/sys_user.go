@@ -590,11 +590,24 @@ func (b *BaseApi) ChangeWithdrawPassword(c *gin.Context) {
 	u := &system.SysUser{GVA_MODEL: global.GVA_MODEL{ID: uid}, Password: req.Password}
 	_, err = userService.ChangeWithdrawPassword(u, req.NewPassword)
 	if err != nil {
-		global.GVA_LOG.Error("!", zap.Error(err))
-		response.FailWithMessage("，", c)
+		global.GVA_LOG.Error("ChangeWithdrawPassword failed", zap.Error(err))
+		lang := c.GetHeader("X-Language")
+		if lang == "" {
+			acceptLang := c.GetHeader("Accept-Language")
+			lang = i18n.GetLangFromHeader(acceptLang)
+		} else {
+			lang = i18n.NormalizeLang(lang)
+		}
+		var errorMsg string
+		if err.Error() == "old password error" {
+			errorMsg = i18n.GetMessage(lang, i18n.MsgWithdrawPasswordError)
+		} else {
+			errorMsg = err.Error()
+		}
+		response.FailWithMessage(errorMsg, c)
 		return
 	}
-	response.OkWithMessage("", c)
+	response.OkWithMessage("ok", c)
 }
 func (b *BaseApi) VerifyWithdrawPassword(c *gin.Context) {
 
@@ -658,9 +671,9 @@ func (b *BaseApi) SetWithdrawPassword(c *gin.Context) {
 	}
 
 	u := &system.SysUser{GVA_MODEL: global.GVA_MODEL{ID: uid}, WithdrawPassword: req.Password}
-	user, err := userService.SetWithdrawPassword(u, req.Password, req.LoginPassword)
+	_, err = userService.SetWithdrawPassword(u, req.Password, req.LoginPassword)
 	if err != nil {
-		global.GVA_LOG.Error("!", zap.Error(err))
+		global.GVA_LOG.Error("SetWithdrawPassword failed", zap.Error(err))
 		lang := c.GetHeader("X-Language")
 		if lang == "" {
 			acceptLang := c.GetHeader("Accept-Language")
@@ -676,16 +689,6 @@ func (b *BaseApi) SetWithdrawPassword(c *gin.Context) {
 		}
 		response.FailWithMessage(errorMsg, c)
 		return
-	}
-
-	userJson, err := json.Marshal(user)
-	if err != nil {
-		global.GVA_LOG.Error("Failed to marshal user data", zap.Error(err))
-	} else {
-		err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%d", user.ID), string(userJson), 0).Err()
-		if err != nil {
-			global.GVA_LOG.Error("Failed to save user data to Redis", zap.Error(err))
-		}
 	}
 
 	response.OkWithMessage("ok", c)
