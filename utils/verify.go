@@ -20,7 +20,9 @@ var (
 	ApiSendEmailCodeVerify          = Rules{"email": {NotEmpty()}}
 	ApiBettingVerify                = Rules{"coin": {NotEmpty(), Gt("0")}}
 	SettleVerify                    = Rules{"SessionId": {NotEmpty()}, "Gid": {NotEmpty()}}
-	CreateTradeVerify               = Rules{"Amount": {Gt("0")}}
+	CreateTradeVerify               = Rules{"TotalAmount": {Gt("0")}}
+	CreateTrade2Verify              = Rules{"TotalAmount": {Gt("0")}}
 	AddUserWithdrawalAccountsVerify = Rules{"AccountName": {NotEmpty()}, "AccountType": {NotEmpty()}, "AccountNumber": {NotEmpty()}, "CpfNumber": {NotEmpty()}}
+	AddWithdrawAccountRequestVerify = Rules{"BankCode": {NotEmpty()}, "BankAcctName": {NotEmpty()}, "BankFirstName": {NotEmpty()}, "BankLastName": {NotEmpty()}, "BankAcctNo": {NotEmpty()}, "AccPhone": {NotEmpty()}, "IdentityNo": {NotEmpty()}, "IdentityType": {NotEmpty()}}
 	TradeCallbackRequestVerify      = Rules{"AccountName": {NotEmpty()}, "AccountType": {NotEmpty()}, "AccountNumber": {NotEmpty()}, "CpfNumber": {NotEmpty()}}
 )

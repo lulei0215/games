@@ -3,12 +3,18 @@ package api
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"math"
+	"time"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/api"
 	apiReq "github.com/flipped-aurora/gin-vue-admin/server/model/api/request"
 	"github.com/flipped-aurora/gin-vue-admin/server/model/system"
+	"go.uber.org/zap"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type PaymentTransactionsService struct{}
@@ -162,52 +168,95 @@ func (paymentTransactionsService *PaymentTransactionsService) Create(ctx context
 	return err
 }
 
+// CreateWithTx 支持事务的创建方法
+func (paymentTransactionsService *PaymentTransactionsService) CreateWithTx(tx *gorm.DB, paymentTransactions api.PaymentTransactions) (err error) {
+	err = tx.Create(&paymentTransactions).Error
+	return err
+}
+
+// UpdateWithTx 支持事务的更新方法
+func (paymentTransactionsService *PaymentTransactionsService) UpdateWithTx(tx *gorm.DB, orderNo string, updateData api.PaymentTransactions) (err error) {
+	err = tx.Model(&api.PaymentTransactions{}).Where("merchant_order_no = ?", orderNo).Updates(&updateData).Error
+	return err
+}
+
 func (paymentTransactionsService *PaymentTransactionsService) TradeOk(ctx context.Context, MerchantOrderNo string, OrderNo string, paymentCallbacks api.PaymentCallbacks) (err error) {
 
 	var paymentTransactions api.PaymentTransactions
 
 	err = global.GVA_DB.Where("merchant_order_no = ? and order_no = ?  and transaction_type = ?", MerchantOrderNo, OrderNo, 1).First(&paymentTransactions).Error
 	if err != nil {
-		return
+		return errors.New("payment transactions not found")
 	}
 	if paymentTransactions.Status == "PAYING" {
-		// 更新多个字段，包括从回调中获取的信息
-		updateData := map[string]interface{}{
-			"status":   "PAID",
-			"currency": paymentCallbacks.Currency,
-			"pay_type": paymentCallbacks.PayType,
-			"ref_cpf":  paymentCallbacks.RefCpf,
-			"ref_name": paymentCallbacks.RefName,
-		}
+		// 使用事务同时更新支付状态和用户余额
+		err = global.GVA_DB.Transaction(func(tx *gorm.DB) error {
+			// 更新多个字段，包括从回调中获取的信息
+			updateData := map[string]interface{}{
+				"status":   "PAID",
+				"currency": paymentCallbacks.Currency,
+				"pay_type": paymentCallbacks.PayType,
+				"ref_cpf":  paymentCallbacks.RefCpf,
+				"ref_name": paymentCallbacks.RefName,
+			}
 
-		err = global.GVA_DB.Model(&api.PaymentTransactions{}).
-			Where("merchant_order_no = ? and order_no = ?", MerchantOrderNo, OrderNo).
-			Updates(updateData).Error
-		if err != nil {
-			return
-		}
-		var user system.ApiSysUser
-		redisuser, _ := global.GVA_REDIS.Get(ctx, fmt.Sprintf("user_%d", paymentTransactions.UserId)).Result()
-		if redisuser == "" {
-			return err
-		}
-		err = json.Unmarshal([]byte(redisuser), &user)
-		if err != nil {
-			return err
-		}
-		user.Balance = user.Balance + float64(paymentTransactions.Amount/100)
+			err = tx.Model(&api.PaymentTransactions{}).
+				Where("merchant_order_no = ? and order_no = ?", MerchantOrderNo, OrderNo).
+				Updates(updateData).Error
+			if err != nil {
+				return errors.New("update payment transactions failed")
+			}
 
-		userJson, err := json.Marshal(user)
-		if err != nil {
-		} else {
+			// 使用MySQL加锁更新用户余额
+			var user system.SysUser
+			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", paymentTransactions.UserId).First(&user).Error; err != nil {
+				return errors.New("failed to get user with lock")
+			}
+
+			// 记录原始余额
+			originalBalance := user.Balance
+
+			// 计算新余额
+			newBalance := user.Balance + float64(paymentTransactions.Amount/100)
+
+			// 四舍五入到2位小数
+			finalBalance := math.Round(newBalance*100) / 100
+			user.Balance = finalBalance
+
+			// 更新数据库中的用户余额
+			if err := tx.Save(&user).Error; err != nil {
+				return errors.New("failed to update user balance in database")
+			}
+
+			// 同时更新Redis缓存
+			userJson, err := json.Marshal(user)
+			if err != nil {
+				return errors.New("marshal user failed")
+			}
+
 			err = global.GVA_REDIS.Set(ctx, fmt.Sprintf("user_%d", user.ID), string(userJson), 0).Err()
 			if err != nil {
+				// Redis更新失败不影响数据库事务，但会记录错误
+				global.GVA_LOG.Error("Failed to update user data in Redis",
+					zap.Error(err),
+					zap.Uint("userId", user.ID))
 			}
-		}
+
+			transactionCode := fmt.Sprintf("PAYMENT_ADD_%d_%s_%d", user.ID, MerchantOrderNo, time.Now().Unix())
+			global.GVA_LOG.Info("Successfully processed TradeOk with balance update",
+				zap.Uint("userId", user.ID),
+				zap.Float64("originalBalance", originalBalance),
+				zap.Float64("addAmount", float64(paymentTransactions.Amount/100)),
+				zap.Float64("finalBalance", finalBalance),
+				zap.String("transactionCode", transactionCode))
+
+			return nil
+		})
+
 		return err
 	}
 
-	return err
+	return errors.New("payment transactions not found")
 
 }
 
@@ -228,30 +277,66 @@ func (paymentTransactionsService *PaymentTransactionsService) PaymentOk(ctx cont
 		return
 	}
 	if paymentTransactions.Status == "WAITING_PAY" {
-		err = global.GVA_DB.Model(&api.PaymentTransactions{}).
-			Where("merchant_order_no = ? and order_no = ?", MerchantOrderNo, OrderNo).
-			Update("status", "PAID").Error
-		if err != nil {
-			return
-		}
-		var user system.ApiSysUser
-		redisuser, _ := global.GVA_REDIS.Get(ctx, fmt.Sprintf("user_%d", paymentTransactions.UserId)).Result()
-		if redisuser == "" {
-			return err
-		}
-		err = json.Unmarshal([]byte(redisuser), &user)
-		if err != nil {
-			return err
-		}
-		user.Balance = user.Balance - float64(paymentTransactions.Amount/100)
+		// 使用事务同时更新支付状态和用户余额
+		err = global.GVA_DB.Transaction(func(tx *gorm.DB) error {
+			err = tx.Model(&api.PaymentTransactions{}).
+				Where("merchant_order_no = ? and order_no = ?", MerchantOrderNo, OrderNo).
+				Update("status", "PAID").Error
+			if err != nil {
+				return err
+			}
 
-		userJson, err := json.Marshal(user)
-		if err != nil {
-		} else {
+			// 使用MySQL加锁更新用户余额
+			var user system.SysUser
+			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", paymentTransactions.UserId).First(&user).Error; err != nil {
+				return errors.New("failed to get user with lock")
+			}
+
+			// 记录原始余额
+			originalBalance := user.Balance
+
+			// 计算新余额（扣减）
+			newBalance := user.Balance - float64(paymentTransactions.Amount/100)
+
+			// 检查余额是否足够
+			if newBalance < 0 {
+				return errors.New("insufficient balance")
+			}
+
+			// 四舍五入到2位小数
+			finalBalance := math.Round(newBalance*100) / 100
+			user.Balance = finalBalance
+
+			// 更新数据库中的用户余额
+			if err := tx.Save(&user).Error; err != nil {
+				return errors.New("failed to update user balance in database")
+			}
+
+			// 同时更新Redis缓存
+			userJson, err := json.Marshal(user)
+			if err != nil {
+				return errors.New("marshal user failed")
+			}
+
 			err = global.GVA_REDIS.Set(ctx, fmt.Sprintf("user_%d", user.ID), string(userJson), 0).Err()
 			if err != nil {
+				// Redis更新失败不影响数据库事务，但会记录错误
+				global.GVA_LOG.Error("Failed to update user data in Redis",
+					zap.Error(err),
+					zap.Uint("userId", user.ID))
 			}
-		}
+
+			transactionCode := fmt.Sprintf("PAYMENT_DEDUCT_%d_%s_%d", user.ID, MerchantOrderNo, time.Now().Unix())
+			global.GVA_LOG.Info("Successfully processed PaymentOk with balance update",
+				zap.Uint("userId", user.ID),
+				zap.Float64("originalBalance", originalBalance),
+				zap.Float64("deductAmount", float64(paymentTransactions.Amount/100)),
+				zap.Float64("finalBalance", finalBalance),
+				zap.String("transactionCode", transactionCode))
+
+			return nil
+		})
+
 		return err
 	}
 

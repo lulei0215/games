@@ -7,16 +7,19 @@ import (
 
 // Register User register structure
 type Register struct {
-	Username     string `json:"userName" example:""`
-	Password     string `json:"passWord" example:""`
-	NickName     string `json:"nickName" example:""`
-	HeaderImg    string `json:"headerImg" example:""`
-	AuthorityId  uint   `json:"authorityId" swaggertype:"string" example:"int id"`
-	Enable       int    `json:"enable" swaggertype:"string" example:"int "`
-	AuthorityIds []uint `json:"authorityIds" swaggertype:"string" example:"[]uint id"`
-	Phone        string `json:"phone" example:""`
-	Email        string `json:"email" example:""`
-	Uuid         string `json:"uuid" example:""`
+	Username     string  `json:"userName" example:""`
+	Password     string  `json:"passWord" example:""`
+	NickName     string  `json:"nickName" example:""`
+	HeaderImg    string  `json:"headerImg" example:""`
+	AuthorityId  uint    `json:"authorityId" swaggertype:"string" example:"int id"`
+	Enable       int     `json:"enable" swaggertype:"string" example:"int "`
+	AuthorityIds []uint  `json:"authorityIds" swaggertype:"string" example:"[]uint id"`
+	Phone        string  `json:"phone" example:""`
+	Email        string  `json:"email" example:""`
+	Uuid         string  `json:"uuid" example:""`
+	Level        int     `json:"level" example:""`
+	Balance      float64 `json:"balance" example:""`
+	Robot        int     `json:"robot" example:""`
 }
 
 // Login User login structure

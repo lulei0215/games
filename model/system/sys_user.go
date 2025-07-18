@@ -45,6 +45,8 @@ type SysUser struct {
 	UserType         int            `json:"userType" gorm:"default:2;comment:2putong"`
 	Level            int            `json:"level" gorm:"default:3;comment:2putong"`
 	Lang             int            `json:"lang" gorm:"default:0;comment:lang"`
+	Audio            int            `json:"audio" gorm:"default:1;comment:audio"`
+	Robot            int            `json:"robot" gorm:"default:0;comment:robot"`
 }
 type ApiSysUser struct {
 	global.GVA_MODEL
@@ -69,6 +71,7 @@ type ApiSysUser struct {
 	Level            int        `json:"level" gorm:"default:3;comment:2putong"`
 	Lang             int        `json:"lang" gorm:"default:0;comment:lang"`
 	Audio            int        `json:"audio" gorm:"default:1;comment:audio"`
+	Robot            int        `json:"robot" gorm:"default:0;comment:robot"`
 }
 
 func (SysUser) TableName() string {

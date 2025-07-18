@@ -24,5 +24,6 @@ func (s *UserBetRecordRouter) InitUserBetRecordRouter(Router *gin.RouterGroup,Pu
 	}
 	{
 	    userBetRecordRouterWithoutAuth.GET("getUserBetRecordPublic", userBetRecordApi.GetUserBetRecordPublic)  // userBetRecord表
+	    userBetRecordRouterWithoutAuth.GET("getMyBetRecordList", userBetRecordApi.GetMyBetRecordList)  // userBetRecord表
 	}
 }

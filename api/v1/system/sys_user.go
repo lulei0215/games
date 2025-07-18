@@ -3,8 +3,10 @@ package system
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"math/rand"
 	"strconv"
 	"time"
@@ -19,6 +21,8 @@ import (
 	systemReq "github.com/flipped-aurora/gin-vue-admin/server/model/system/request"
 	systemRes "github.com/flipped-aurora/gin-vue-admin/server/model/system/response"
 	"github.com/flipped-aurora/gin-vue-admin/server/utils/i18n"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/utils"
 	"github.com/gin-gonic/gin"
@@ -33,6 +37,87 @@ import (
 // @Param    data  body      systemReq.Login                                                true  ", , "
 // @Success  200   {object}  response.Response{data=systemRes.LoginResponse,msg=string}  ",token,"
 // @Router   /base/login [post]
+// func (b *BaseApi) Login(c *gin.Context) {
+// 	var l systemReq.Login
+// 	err := c.ShouldBindJSON(&l)
+// 	key := c.ClientIP()
+
+// 	if err != nil {
+// 		response.FailWithMessage(err.Error(), c)
+// 		return
+// 	}
+// 	err = utils.Verify(l, utils.LoginVerify)
+// 	if err != nil {
+// 		response.FailWithMessage(err.Error(), c)
+// 		return
+// 	}
+
+// 	//
+// 	openCaptcha := global.GVA_CONFIG.Captcha.OpenCaptcha               //
+// 	openCaptchaTimeOut := global.GVA_CONFIG.Captcha.OpenCaptchaTimeOut //
+// 	v, ok := global.BlackCache.Get(key)
+// 	if !ok {
+// 		global.BlackCache.Set(key, 1, time.Second*time.Duration(openCaptchaTimeOut))
+// 	}
+
+// 	var oc bool = false
+// 	if openCaptcha > 0 {
+// 		oc = true
+// 	} else if ok {
+// 		if count, ok := v.(int); ok && count > 5 {
+// 			oc = true
+// 		}
+// 	}
+
+// 	if !oc || (l.CaptchaId != "" && l.Captcha != "" && store.Verify(l.CaptchaId, l.Captcha, true)) {
+// 		u := &system.SysUser{Username: l.Username, Password: l.Password}
+// 		user, err := userService.Login(u)
+// 		if err != nil {
+// 			global.GVA_LOG.Error("! !", zap.Error(err))
+// 			// +1
+// 			global.BlackCache.Increment(key, 1)
+// 			response.FailWithMessage("", c)
+// 			return
+// 		}
+// 		if user.Enable != 1 {
+// 			global.GVA_LOG.Error("! !")
+// 			// +1
+// 			global.BlackCache.Increment(key, 1)
+// 			response.FailWithMessage("", c)
+// 			return
+// 		}
+
+// 		// 检查Redis中是否有用户数据
+// 		redisKey := fmt.Sprintf("user_%d", user.ID)
+// 		redisUser, err := global.GVA_REDIS.Get(c, redisKey).Result()
+// 		fmt.Println("redisUser", redisUser)
+// 		// if err == nil && redisUser != "" {
+// 		// 	// Redis中有用户数据，直接返回
+// 		// 	var cachedUser system.SysUser
+// 		// 	err = json.Unmarshal([]byte(redisUser), &cachedUser)
+// 		// 	if err == nil {
+// 		// 		global.GVA_LOG.Info("Using cached user data from Redis",
+// 		// 			zap.Uint("userId", user.ID),
+// 		// 			zap.String("username", user.Username))
+// 		// 		b.TokenNext(c, cachedUser)
+// 		// 		response.FailWithMessage("", c)
+// 		// 	} else {
+// 		// 		global.GVA_LOG.Error("Failed to unmarshal cached user data",
+// 		// 			zap.Error(err),
+// 		// 			zap.Uint("userId", user.ID))
+// 		// 	}
+// 		// }
+
+//			// Redis中没有数据或解析失败，使用数据库数据
+//			global.GVA_LOG.Info("Using database user data",
+//				zap.Uint("userId", user.ID),
+//				zap.String("username", user.Username))
+//			b.TokenNext(c, *user)
+//		}
+//		// +1
+//		global.BlackCache.Increment(key, 1)
+//		response.FailWithMessage("", c)
+//	}
 func (b *BaseApi) Login(c *gin.Context) {
 	var l systemReq.Login
 	err := c.ShouldBindJSON(&l)
@@ -48,9 +133,9 @@ func (b *BaseApi) Login(c *gin.Context) {
 		return
 	}
 
-	//
-	openCaptcha := global.GVA_CONFIG.Captcha.OpenCaptcha               //
-	openCaptchaTimeOut := global.GVA_CONFIG.Captcha.OpenCaptchaTimeOut //
+	// 判断验证码是否开启
+	openCaptcha := global.GVA_CONFIG.Captcha.OpenCaptcha               // 是否开启防爆次数
+	openCaptchaTimeOut := global.GVA_CONFIG.Captcha.OpenCaptchaTimeOut // 缓存超时时间
 	v, ok := global.BlackCache.Get(key)
 	if !ok {
 		global.BlackCache.Set(key, 1, time.Second*time.Duration(openCaptchaTimeOut))
@@ -69,50 +154,25 @@ func (b *BaseApi) Login(c *gin.Context) {
 		u := &system.SysUser{Username: l.Username, Password: l.Password}
 		user, err := userService.Login(u)
 		if err != nil {
-			global.GVA_LOG.Error("! !", zap.Error(err))
-			// +1
+			global.GVA_LOG.Error("登陆失败! 用户名不存在或者密码错误!", zap.Error(err))
+			// 验证码次数+1
 			global.BlackCache.Increment(key, 1)
-			response.FailWithMessage("", c)
+			response.FailWithMessage("用户名不存在或者密码错误", c)
 			return
 		}
 		if user.Enable != 1 {
-			global.GVA_LOG.Error("! !")
-			// +1
+			global.GVA_LOG.Error("登陆失败! 用户被禁止登录!")
+			// 验证码次数+1
 			global.BlackCache.Increment(key, 1)
-			response.FailWithMessage("", c)
+			response.FailWithMessage("用户被禁止登录", c)
 			return
 		}
-
-		// 检查Redis中是否有用户数据
-		redisKey := fmt.Sprintf("user_%d", user.ID)
-		redisUser, err := global.GVA_REDIS.Get(c, redisKey).Result()
-		if err == nil && redisUser != "" {
-			// Redis中有用户数据，直接返回
-			var cachedUser system.SysUser
-			err = json.Unmarshal([]byte(redisUser), &cachedUser)
-			if err == nil {
-				global.GVA_LOG.Info("Using cached user data from Redis",
-					zap.Uint("userId", user.ID),
-					zap.String("username", user.Username))
-				b.TokenNext(c, cachedUser)
-				return
-			} else {
-				global.GVA_LOG.Error("Failed to unmarshal cached user data",
-					zap.Error(err),
-					zap.Uint("userId", user.ID))
-			}
-		}
-
-		// Redis中没有数据或解析失败，使用数据库数据
-		global.GVA_LOG.Info("Using database user data",
-			zap.Uint("userId", user.ID),
-			zap.String("username", user.Username))
 		b.TokenNext(c, *user)
 		return
 	}
-	// +1
+	// 验证码次数+1
 	global.BlackCache.Increment(key, 1)
-	response.FailWithMessage("", c)
+	response.FailWithMessage("验证码错误", c)
 }
 func (b *BaseApi) Dashboard(c *gin.Context) {
 	// 获取今日开始和结束时间
@@ -391,10 +451,20 @@ func (b *BaseApi) TokenNext(c *gin.Context, user system.SysUser) {
 	}
 	// 由于JWT永不过期，设置一个很长的过期时间
 	utils.SetToken(c, token, 365*24*60*60) // 1年
+
+	// 修复空指针异常：检查ExpiresAt是否为nil
+	var expiresAt int64
+	if claims.RegisteredClaims.ExpiresAt != nil {
+		expiresAt = claims.RegisteredClaims.ExpiresAt.Unix() * 1000
+	} else {
+		// 如果ExpiresAt为nil，设置一个默认的过期时间（1年后）
+		expiresAt = time.Now().AddDate(1, 0, 0).Unix() * 1000
+	}
+
 	response.OkWithDetailed(systemRes.LoginResponse{
 		User:      user,
 		Token:     token,
-		ExpiresAt: claims.RegisteredClaims.ExpiresAt.Unix() * 1000,
+		ExpiresAt: expiresAt,
 	}, "ok", c)
 
 	users, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", user.ID)).Result()
@@ -440,7 +510,7 @@ func (b *BaseApi) Register(c *gin.Context) {
 			AuthorityId: v,
 		})
 	}
-	user := &system.SysUser{Username: r.Username, NickName: r.NickName, Password: r.Password, HeaderImg: r.HeaderImg, AuthorityId: r.AuthorityId, Authorities: authorities, Enable: r.Enable, Phone: r.Phone, Email: r.Email}
+	user := &system.SysUser{Username: r.Username, NickName: r.NickName, Password: r.Password, HeaderImg: r.HeaderImg, AuthorityId: r.AuthorityId, Authorities: authorities, Enable: r.Enable, Phone: r.Phone, Email: r.Email, Level: r.Level, Balance: r.Balance, Robot: r.Robot}
 	userReturn, err := userService.Register(*user)
 	if err != nil {
 		global.GVA_LOG.Error("!", zap.Error(err))
@@ -1013,31 +1083,29 @@ func (b *BaseApi) ApiLogin(c *gin.Context) {
 		return
 	}
 
-	// 检查Redis中是否有用户数据
-	redisKey := fmt.Sprintf("user_%d", user.ID)
-	redisUser, err := global.GVA_REDIS.Get(c, redisKey).Result()
-	if err == nil && redisUser != "" {
-		// Redis中有用户数据，直接返回
-		var cachedUser system.SysUser
-		err = json.Unmarshal([]byte(redisUser), &cachedUser)
-		if err == nil {
-			global.GVA_LOG.Info("Using cached user data from Redis for API login",
-				zap.Uint("userId", user.ID),
-				zap.String("username", user.Username))
-			b.ApiTokenNext(c, cachedUser)
-			return
-		} else {
-			global.GVA_LOG.Error("Failed to unmarshal cached user data for API login",
-				zap.Error(err),
-				zap.Uint("userId", user.ID))
-		}
-	}
-
-	// Redis中没有数据或解析失败，使用数据库数据
-	global.GVA_LOG.Info("Using database user data for API login",
+	// 直接从MySQL数据库查询最新的用户数据
+	global.GVA_LOG.Info("Querying latest user data from MySQL for API login",
 		zap.Uint("userId", user.ID),
 		zap.String("username", user.Username))
-	b.ApiTokenNext(c, *user)
+
+	// 查询最新的用户数据，包括余额等信息
+	var latestUser system.SysUser
+	err = global.GVA_DB.Where("id = ?", user.ID).First(&latestUser).Error
+	if err != nil {
+		global.GVA_LOG.Error("Failed to query latest user data from MySQL",
+			zap.Error(err),
+			zap.Uint("userId", user.ID))
+		// 如果查询失败，使用原始用户数据
+		b.ApiTokenNext(c, *user)
+		return
+	}
+
+	global.GVA_LOG.Info("Successfully retrieved latest user data from MySQL",
+		zap.Uint("userId", latestUser.ID),
+		zap.String("username", latestUser.Username),
+		zap.Float64("balance", latestUser.Balance))
+
+	b.ApiTokenNext(c, latestUser)
 }
 
 // TokenNext jwt
@@ -1108,8 +1176,15 @@ func (b *BaseApi) ApiTokenNext(c *gin.Context, user system.SysUser) {
 		lang = i18n.NormalizeLang(lang)
 	}
 
-	// 由于JWT永不过期，设置一个很长的过期时间
-	expiresAt := time.Now().AddDate(1, 0, 0).Unix() * 1000 // 1年后
+	// 修复空指针异常：检查ExpiresAt是否为nil
+	var expiresAt int64
+	if claims.RegisteredClaims.ExpiresAt != nil {
+		expiresAt = claims.RegisteredClaims.ExpiresAt.Unix() * 1000
+	} else {
+		// 如果ExpiresAt为nil，设置一个默认的过期时间（1年后）
+		expiresAt = time.Now().AddDate(1, 0, 0).Unix() * 1000
+	}
+
 	response.OkWithDetailed(systemRes.LoginResponse{
 		User:      user,
 		Token:     token,
@@ -1137,7 +1212,7 @@ func (b *BaseApi) ApiRegister(c *gin.Context) {
 	r.AuthorityId = 888
 	r.AuthorityIds = []uint{888}
 	r.Enable = 1
-	user := &system.SysUser{Username: r.Username, NickName: r.NickName, Password: r.Password, HeaderImg: r.HeaderImg, AuthorityId: r.AuthorityId, Authorities: authorities, Enable: r.Enable, Phone: r.Phone, Email: r.Email, Balance: 100000}
+	user := &system.SysUser{Username: r.Username, NickName: r.NickName, Password: r.Password, HeaderImg: r.HeaderImg, AuthorityId: r.AuthorityId, Authorities: authorities, Enable: r.Enable, Phone: r.Phone, Email: r.Email, Balance: 0}
 	userReturn, err := userService.ApiRegister(*user)
 	if err != nil {
 		global.GVA_LOG.Error("!", zap.Error(err))
@@ -1712,29 +1787,42 @@ func (b *BaseApi) Info(c *gin.Context) {
 		return
 	}
 
-	var user system.ApiSysUser
-	redisuser, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", uid)).Result()
-	if redisuser == "" {
-		response.Result(401, nil, "", c)
-		return
-	}
+	// 直接从MySQL数据库查询最新的用户数据
+	global.GVA_LOG.Info("Querying latest user data from MySQL for Info",
+		zap.Uint("userId", uid))
 
-	// 将Redis中的用户数据反序列化为user对象
-	err := json.Unmarshal([]byte(redisuser), &user)
+	var user system.SysUser
+	err := global.GVA_DB.Where("id = ?", uid).First(&user).Error
 	if err != nil {
-		global.GVA_LOG.Error("Failed to unmarshal user data", zap.Error(err))
+		global.GVA_LOG.Error("Failed to query user data from MySQL",
+			zap.Error(err),
+			zap.Uint("userId", uid))
 		response.Result(401, nil, "Failed to get user data", c)
 		return
 	}
 
-	// jiami
-	// encrypted, err := utils.CBCEncrypt(user)
-	// if err != nil {
-	// 	global.GVA_LOG.Error("Encryption failed", zap.Error(err))
-	// 	response.FailWithMessage("Encryption failed: "+err.Error(), c)
-	// 	return
-	// }
-	response.OkWithDetailed(user, "ok", c)
+	// 转换为ApiSysUser格式
+	var apiUser system.ApiSysUser
+	apiUser.ID = user.ID
+	apiUser.Username = user.Username
+	apiUser.NickName = user.NickName
+	apiUser.HeaderImg = user.HeaderImg
+	apiUser.Phone = user.Phone
+	apiUser.Email = user.Email
+	apiUser.Enable = user.Enable
+	apiUser.Balance = user.Balance
+	apiUser.Robot = user.Robot
+	apiUser.Lang = user.Lang
+	apiUser.Audio = user.Audio
+	apiUser.CreatedAt = user.CreatedAt
+	apiUser.UpdatedAt = user.UpdatedAt
+
+	global.GVA_LOG.Info("Successfully retrieved user data from MySQL",
+		zap.Uint("userId", apiUser.ID),
+		zap.String("username", apiUser.Username),
+		zap.Float64("balance", apiUser.Balance))
+
+	response.OkWithDetailed(apiUser, "ok", c)
 }
 func (b *BaseApi) GetInfo(c *gin.Context) {
 
@@ -1744,22 +1832,42 @@ func (b *BaseApi) GetInfo(c *gin.Context) {
 		return
 	}
 
-	var user system.ApiSysUser
-	redisuser, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", uid)).Result()
-	if redisuser == "" {
-		response.Result(401, nil, "", c)
-		return
-	}
+	// 直接从MySQL数据库查询最新的用户数据
+	global.GVA_LOG.Info("Querying latest user data from MySQL for GetInfo",
+		zap.Uint("userId", uid))
 
-	// 将Redis中的用户数据反序列化为user对象
-	err := json.Unmarshal([]byte(redisuser), &user)
+	var user system.SysUser
+	err := global.GVA_DB.Where("id = ?", uid).First(&user).Error
 	if err != nil {
-		global.GVA_LOG.Error("Failed to unmarshal user data", zap.Error(err))
+		global.GVA_LOG.Error("Failed to query user data from MySQL",
+			zap.Error(err),
+			zap.Uint("userId", uid))
 		response.Result(401, nil, "Failed to get user data", c)
 		return
 	}
 
-	response.OkWithDetailed(user, "ok", c)
+	// 转换为ApiSysUser格式
+	var apiUser system.ApiSysUser
+	apiUser.ID = user.ID
+	apiUser.Username = user.Username
+	apiUser.NickName = user.NickName
+	apiUser.HeaderImg = user.HeaderImg
+	apiUser.Phone = user.Phone
+	apiUser.Email = user.Email
+	apiUser.Enable = user.Enable
+	apiUser.Balance = user.Balance
+	apiUser.Robot = user.Robot
+	apiUser.Lang = user.Lang
+	apiUser.Audio = 1 // 默认值
+	apiUser.CreatedAt = user.CreatedAt
+	apiUser.UpdatedAt = user.UpdatedAt
+
+	global.GVA_LOG.Info("Successfully retrieved user data from MySQL",
+		zap.Uint("userId", apiUser.ID),
+		zap.String("username", apiUser.Username),
+		zap.Float64("balance", apiUser.Balance))
+
+	response.OkWithDetailed(apiUser, "ok", c)
 }
 func (b *BaseApi) AutoLogin(c *gin.Context) {
 	// 获取所有用户数据
@@ -1976,7 +2084,7 @@ func (b *BaseApi) UpdateAudio(c *gin.Context) {
 	response.OkWithMessage("Audio updated successfully", c)
 }
 
-// UpdateRedisUserDataSafe 并发安全的Redis用户数据更新
+// UpdateRedisUserDataSafe 并发安全的用户数据更新（同时更新数据库和Redis）
 func (b *BaseApi) UpdateRedisUserDataSafe(c *gin.Context) {
 	uid := utils.GetRedisUserID(c)
 	if uid == 0 {
@@ -1996,81 +2104,98 @@ func (b *BaseApi) UpdateRedisUserDataSafe(c *gin.Context) {
 		return
 	}
 
-	// 使用分布式锁确保并发安全
-	lockKey := fmt.Sprintf("user_data_lock_%d", uid)
-	locked, err := global.GVA_REDIS.SetNX(c, lockKey, "1", 10*time.Second).Result()
+	// 使用数据库事务和行锁来安全更新用户数据
+	err = global.GVA_DB.Transaction(func(tx *gorm.DB) error {
+		// 使用FOR UPDATE锁来防止并发更新
+		var user system.SysUser
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", uid).First(&user).Error; err != nil {
+			global.GVA_LOG.Error("Failed to get user with lock",
+				zap.Error(err),
+				zap.Uint("userId", uid))
+			return err
+		}
+
+		// 记录原始数据
+		originalBalance := user.Balance
+		originalLang := user.Lang
+
+		// 更新指定的字段
+		for key, value := range requestData.UserData {
+			switch key {
+			case "balance":
+				if balance, ok := value.(float64); ok {
+					user.Balance = math.Round(balance*100) / 100
+				}
+			case "lang":
+				if lang, ok := value.(int); ok {
+					user.Lang = lang
+				}
+			case "audio":
+				// Audio字段在SysUser中不存在，跳过
+				global.GVA_LOG.Warn("Audio field not supported in database update",
+					zap.Uint("userId", uid))
+			default:
+				global.GVA_LOG.Info("Skipping unsupported field for database update",
+					zap.String("field", key),
+					zap.Uint("userId", uid))
+			}
+		}
+
+		// 更新数据库中的用户数据
+		if err := tx.Save(&user).Error; err != nil {
+			global.GVA_LOG.Error("Failed to update user data in database",
+				zap.Error(err),
+				zap.Uint("userId", uid))
+			return err
+		}
+
+		// 同时更新Redis缓存
+		userJson, err := json.Marshal(user)
+		if err != nil {
+			global.GVA_LOG.Error("Failed to marshal updated user data",
+				zap.Error(err),
+				zap.Uint("userId", uid))
+			return err
+		}
+
+		// 更新Redis缓存
+		redisKey := fmt.Sprintf("user_%d", uid)
+		err = global.GVA_REDIS.Set(c, redisKey, string(userJson), 0).Err()
+		if err != nil {
+			global.GVA_LOG.Error("Failed to update user data in Redis",
+				zap.Error(err),
+				zap.Uint("userId", uid))
+			// Redis更新失败不影响数据库事务，但会记录错误
+		}
+
+		// 生成事务码
+		transactionCode := fmt.Sprintf("USER_UPDATE_%d_%d", uid, time.Now().Unix())
+
+		// 记录详细的更新日志
+		global.GVA_LOG.Info("Successfully updated user data in database and Redis",
+			zap.Uint("userId", uid),
+			zap.Float64("originalBalance", originalBalance),
+			zap.Float64("newBalance", user.Balance),
+			zap.Int("originalLang", originalLang),
+			zap.Int("newLang", user.Lang),
+			zap.Any("updatedFields", requestData.UserData),
+			zap.String("transactionCode", transactionCode))
+
+		return nil
+	})
+
 	if err != nil {
-		global.GVA_LOG.Error("Failed to acquire lock for user data update", zap.Error(err))
-		response.FailWithMessage("System busy, please try again", c)
-		return
-	}
-	if !locked {
-		response.FailWithMessage("System busy, please try again", c)
-		return
-	}
-	defer global.GVA_REDIS.Del(c, lockKey)
-
-	// 获取当前Redis中的用户数据
-	var user system.ApiSysUser
-	redisKey := fmt.Sprintf("user_%d", uid)
-	redisuser, err := global.GVA_REDIS.Get(c, redisKey).Result()
-
-	if err != nil || redisuser == "" {
-		global.GVA_LOG.Error("User data not found in Redis",
+		global.GVA_LOG.Error("Failed to update user data",
 			zap.Error(err),
 			zap.Uint("userId", uid))
-		response.FailWithMessage("User data not found in Redis", c)
+		response.FailWithMessage("Failed to update user data: "+err.Error(), c)
 		return
 	}
 
-	// 反序列化现有用户数据
-	err = json.Unmarshal([]byte(redisuser), &user)
-	if err != nil {
-		global.GVA_LOG.Error("Failed to unmarshal user data from Redis",
-			zap.Error(err),
-			zap.Uint("userId", uid))
-		response.FailWithMessage("Failed to parse user data", c)
-		return
-	}
-
-	// 将用户数据转换为map以便更新
-	userMap := make(map[string]interface{})
-	userJson, _ := json.Marshal(user)
-	json.Unmarshal(userJson, &userMap)
-
-	// 更新指定的字段
-	for key, value := range requestData.UserData {
-		userMap[key] = value
-	}
-
-	// 将更新后的数据重新序列化
-	updatedUserJson, err := json.Marshal(userMap)
-	if err != nil {
-		global.GVA_LOG.Error("Failed to marshal updated user data",
-			zap.Error(err),
-			zap.Uint("userId", uid))
-		response.FailWithMessage("Failed to process user data", c)
-		return
-	}
-
-	// 保存到Redis
-	err = global.GVA_REDIS.Set(c, redisKey, string(updatedUserJson), 0).Err()
-	if err != nil {
-		global.GVA_LOG.Error("Failed to update user data in Redis",
-			zap.Error(err),
-			zap.Uint("userId", uid))
-		response.FailWithMessage("Failed to update Redis data", c)
-		return
-	}
-
-	global.GVA_LOG.Info("Successfully updated user data in Redis",
-		zap.Uint("userId", uid),
-		zap.Any("updatedFields", requestData.UserData))
-
-	response.OkWithMessage("Redis user data updated successfully", c)
+	response.OkWithMessage("User data updated successfully", c)
 }
 
-// UpdateRedisUserDataWithVersion 使用版本号防止并发冲突的Redis更新
+// UpdateRedisUserDataWithVersion 使用版本号防止并发冲突的用户数据更新（同时更新数据库和Redis）
 func (b *BaseApi) UpdateRedisUserDataWithVersion(c *gin.Context) {
 	uid := utils.GetRedisUserID(c)
 	if uid == 0 {
@@ -2091,21 +2216,8 @@ func (b *BaseApi) UpdateRedisUserDataWithVersion(c *gin.Context) {
 		return
 	}
 
-	// 获取当前Redis中的用户数据
-	var user system.ApiSysUser
-	redisKey := fmt.Sprintf("user_%d", uid)
+	// 检查版本号（从Redis获取）
 	versionKey := fmt.Sprintf("user_version_%d", uid)
-
-	redisuser, err := global.GVA_REDIS.Get(c, redisKey).Result()
-	if err != nil || redisuser == "" {
-		global.GVA_LOG.Error("User data not found in Redis",
-			zap.Error(err),
-			zap.Uint("userId", uid))
-		response.FailWithMessage("User data not found in Redis", c)
-		return
-	}
-
-	// 获取当前版本号
 	currentVersion, err := global.GVA_REDIS.Get(c, versionKey).Int64()
 	if err != nil {
 		currentVersion = 0
@@ -2117,79 +2229,126 @@ func (b *BaseApi) UpdateRedisUserDataWithVersion(c *gin.Context) {
 		return
 	}
 
-	// 反序列化现有用户数据
-	err = json.Unmarshal([]byte(redisuser), &user)
-	if err != nil {
-		global.GVA_LOG.Error("Failed to unmarshal user data from Redis",
-			zap.Error(err),
-			zap.Uint("userId", uid))
-		response.FailWithMessage("Failed to parse user data", c)
-		return
-	}
+	// 使用数据库事务和行锁来安全更新用户数据
+	err = global.GVA_DB.Transaction(func(tx *gorm.DB) error {
+		// 使用FOR UPDATE锁来防止并发更新
+		var user system.SysUser
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", uid).First(&user).Error; err != nil {
+			global.GVA_LOG.Error("Failed to get user with lock",
+				zap.Error(err),
+				zap.Uint("userId", uid))
+			return err
+		}
 
-	// 将用户数据转换为map以便更新
-	userMap := make(map[string]interface{})
-	userJson, _ := json.Marshal(user)
-	json.Unmarshal(userJson, &userMap)
+		// 记录原始数据
+		originalBalance := user.Balance
+		originalLang := user.Lang
 
-	// 更新指定的字段
-	for key, value := range requestData.UserData {
-		userMap[key] = value
-	}
+		// 更新指定的字段
+		for key, value := range requestData.UserData {
+			switch key {
+			case "balance":
+				if balance, ok := value.(float64); ok {
+					user.Balance = math.Round(balance*100) / 100
+				}
+			case "lang":
+				if lang, ok := value.(int); ok {
+					user.Lang = lang
+				}
+			case "audio":
+				// Audio字段在SysUser中不存在，跳过
+				global.GVA_LOG.Warn("Audio field not supported in database update",
+					zap.Uint("userId", uid))
+			default:
+				global.GVA_LOG.Info("Skipping unsupported field for database update",
+					zap.String("field", key),
+					zap.Uint("userId", uid))
+			}
+		}
 
-	// 将更新后的数据重新序列化
-	updatedUserJson, err := json.Marshal(userMap)
-	if err != nil {
-		global.GVA_LOG.Error("Failed to marshal updated user data",
-			zap.Error(err),
-			zap.Uint("userId", uid))
-		response.FailWithMessage("Failed to process user data", c)
-		return
-	}
+		// 更新数据库中的用户数据
+		if err := tx.Save(&user).Error; err != nil {
+			global.GVA_LOG.Error("Failed to update user data in database",
+				zap.Error(err),
+				zap.Uint("userId", uid))
+			return err
+		}
 
-	// 使用Lua脚本原子性更新数据和版本号
-	luaScript := `
-		local userKey = KEYS[1]
-		local versionKey = KEYS[2]
-		local userData = ARGV[1]
-		local newVersion = ARGV[2]
-		local expectedVersion = ARGV[3]
-		
-		-- 检查版本号
-		local currentVersion = redis.call('GET', versionKey)
-		if currentVersion and tonumber(currentVersion) ~= tonumber(expectedVersion) then
-			return {err = "VERSION_MISMATCH"}
-		end
-		
-		-- 原子性更新数据和版本号
-		redis.call('SET', userKey, userData)
-		redis.call('SET', versionKey, newVersion)
-		return {ok = "SUCCESS"}
-	`
+		// 同时更新Redis缓存和版本号
+		userJson, err := json.Marshal(user)
+		if err != nil {
+			global.GVA_LOG.Error("Failed to marshal updated user data",
+				zap.Error(err),
+				zap.Uint("userId", uid))
+			return err
+		}
 
-	result, err := global.GVA_REDIS.Eval(c, luaScript, []string{redisKey, versionKey},
-		string(updatedUserJson), requestData.Version+1, requestData.Version).Result()
+		// 使用Lua脚本原子性更新Redis数据和版本号
+		redisKey := fmt.Sprintf("user_%d", uid)
+		luaScript := `
+			local userKey = KEYS[1]
+			local versionKey = KEYS[2]
+			local userData = ARGV[1]
+			local newVersion = ARGV[2]
+			local expectedVersion = ARGV[3]
+			
+			-- 检查版本号
+			local currentVersion = redis.call('GET', versionKey)
+			if currentVersion and tonumber(currentVersion) ~= tonumber(expectedVersion) then
+				return {err = "VERSION_MISMATCH"}
+			end
+			
+			-- 原子性更新数据和版本号
+			redis.call('SET', userKey, userData)
+			redis.call('SET', versionKey, newVersion)
+			return {ok = "SUCCESS"}
+		`
+
+		result, err := global.GVA_REDIS.Eval(c, luaScript, []string{redisKey, versionKey},
+			string(userJson), requestData.Version+1, requestData.Version).Result()
+
+		if err != nil {
+			global.GVA_LOG.Error("Failed to update user data in Redis with version control",
+				zap.Error(err),
+				zap.Uint("userId", uid))
+			// Redis更新失败不影响数据库事务，但会记录错误
+		} else {
+			// 检查Lua脚本执行结果
+			if resultArray, ok := result.([]interface{}); ok && len(resultArray) > 0 {
+				if resultArray[0] == "VERSION_MISMATCH" {
+					return errors.New("version mismatch in Redis")
+				}
+			}
+		}
+
+		// 生成事务码
+		transactionCode := fmt.Sprintf("USER_UPDATE_VERSION_%d_%d", uid, time.Now().Unix())
+
+		// 记录详细的更新日志
+		global.GVA_LOG.Info("Successfully updated user data in database and Redis with version control",
+			zap.Uint("userId", uid),
+			zap.Int64("version", requestData.Version),
+			zap.Float64("originalBalance", originalBalance),
+			zap.Float64("newBalance", user.Balance),
+			zap.Int("originalLang", originalLang),
+			zap.Int("newLang", user.Lang),
+			zap.Any("updatedFields", requestData.UserData),
+			zap.String("transactionCode", transactionCode))
+
+		return nil
+	})
 
 	if err != nil {
 		global.GVA_LOG.Error("Failed to update user data with version control",
 			zap.Error(err),
 			zap.Uint("userId", uid))
-		response.FailWithMessage("Failed to update data", c)
+		if err.Error() == "version mismatch in Redis" {
+			response.FailWithMessage("Data has been modified by another request, please refresh and try again", c)
+		} else {
+			response.FailWithMessage("Failed to update user data: "+err.Error(), c)
+		}
 		return
 	}
-
-	// 检查Lua脚本执行结果
-	if resultMap, ok := result.([]interface{}); ok && len(resultMap) > 0 {
-		if errMsg, ok := resultMap[0].(string); ok && errMsg == "VERSION_MISMATCH" {
-			response.FailWithMessage("Data has been modified by another request, please refresh and try again", c)
-			return
-		}
-	}
-
-	global.GVA_LOG.Info("Successfully updated user data with version control",
-		zap.Uint("userId", uid),
-		zap.Any("updatedFields", requestData.UserData),
-		zap.Int64("newVersion", requestData.Version+1))
 
 	response.OkWithDetailed(gin.H{
 		"message": "User data updated successfully",

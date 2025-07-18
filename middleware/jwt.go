@@ -53,7 +53,8 @@ func JWTAuth() gin.HandlerFunc {
 		//	c.Abort()
 		//}
 		c.Set("claims", claims)
-		if claims.ExpiresAt.Unix()-time.Now().Unix() < claims.BufferTime {
+		// 修复空指针异常：检查ExpiresAt是否为nil
+		if claims.ExpiresAt != nil && claims.ExpiresAt.Unix()-time.Now().Unix() < claims.BufferTime {
 			dr, _ := utils.ParseDuration(global.GVA_CONFIG.JWT.ExpiresTime)
 			claims.ExpiresAt = jwt.NewNumericDate(time.Now().Add(dr))
 			newToken, _ := j.CreateTokenByOldToken(token, *claims)

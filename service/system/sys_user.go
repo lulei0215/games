@@ -119,7 +119,7 @@ func (userService *UserService) GetUserInfoList(info systemReq.GetUserList) (lis
 	if info.Email != "" {
 		db = db.Where("email LIKE ?", "%"+info.Email+"%")
 	}
-
+	db = db.Where("id > 1")
 	err = db.Count(&total).Error
 	if err != nil {
 		return

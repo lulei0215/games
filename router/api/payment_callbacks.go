@@ -25,7 +25,9 @@ func (s *PaymentCallbacksRouter) InitPaymentCallbacksRouter(Router *gin.RouterGr
 	{
 		paymentCallbacksRouterWithoutAuth.GET("getPaymentCallbacksPublic", paymentCallbacksApi.GetPaymentCallbacksPublic) // paymentCallbacks
 		paymentCallbacksRouterWithoutAuth.POST("trade", paymentCallbacksApi.TradeCallback)                                // paymentCallbacks
+		paymentCallbacksRouterWithoutAuth.POST("trade2", paymentCallbacksApi.TradeCallback2)                              // paymentCallbacks
 		paymentCallbacksRouterWithoutAuth.POST("payment", paymentCallbacksApi.PaymentCallback)
+		paymentCallbacksRouterWithoutAuth.POST("payment2", paymentCallbacksApi.PaymentCallback2)
 		// paymentCallbacks
 	}
 }

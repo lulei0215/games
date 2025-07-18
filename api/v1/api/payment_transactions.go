@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/flipped-aurora/gin-vue-admin/server/global"
@@ -19,6 +20,7 @@ import (
 	"github.com/flipped-aurora/gin-vue-admin/server/utils/payment"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 // CancelPaymentData 取消提现请求结构体
@@ -303,6 +305,79 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreateTrade(c *gin.Context
 	}
 	response.OkWithData(paymentResponse.Data.PayUrl, c)
 }
+func (paymentTransactionsApi *PaymentTransactionsApi) CreateTrade2(c *gin.Context) {
+
+	uid := utils.GetRedisUserID(c)
+	if uid == 0 {
+		response.Result(401, nil, "user fail", c)
+		return
+	}
+
+	pc := payment.InitPayment2()
+
+	var r apiReq.CreateTradeData2
+	err := c.ShouldBindJSON(&r)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	err = utils.Verify(r, utils.CreateTradeVerify)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+
+	fmt.Println(1)
+	OutTradeNo := fmt.Sprintf("%d", time.Now().UnixNano()%100000000000000)
+	status, msg, data := pc.CreatePayin(r, OutTradeNo)
+	fmt.Println("status", status)
+	fmt.Println("msg", msg)
+	fmt.Println("data", data)
+	if status != 1 {
+		response.FailWithMessage(msg, c)
+		return
+	}
+	totalAmount, err := strconv.ParseFloat(data.TotalAmount, 64)
+	if err != nil {
+		response.FailWithMessage(err.Error(), c)
+		return
+	}
+	fmt.Println(2)
+	paymentTransactions := api.PaymentTransactions{
+		UserId:          uint(uid),
+		MerchantOrderNo: OutTradeNo,
+		OrderNo:         data.PayOrderNo,
+		TransactionType: 1,
+		Amount:          int(totalAmount * 100),
+		Currency:        "BRL",
+		Status:          "PAYING",
+		PayType:         "PIX",
+		AccountType:     "PIX",
+		AccountNo:       r.PayCardNo,
+		AccountName:     r.PayName,
+		Content:         "CreateTrade2",
+		ClientIp:        c.ClientIP(),
+		CallbackUrl:     "",
+		RedirectUrl:     "",
+		PayUrl:          data.PayURL,
+		PayRaw:          data.PayParams,
+		ErrorMsg:        "",
+		RefCpf:          "",
+		RefName:         "",
+		PayEmail:        r.PayEmail,
+		PayPhone:        r.PayPhone,
+		PayBankCode:     r.PayBankCode,
+		Type:            3,
+	}
+
+	fmt.Println("paymentTransactions::::", paymentTransactions)
+	err = paymentTransactionsService.Create(c, paymentTransactions)
+	if err != nil {
+		utils.FailWithMessageI18n(i18n.MsgCreateRecordFailed, c)
+		return
+	}
+	response.OkWithData(data.PayURL, c)
+}
 
 // CreatePayment
 func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment(c *gin.Context) {
@@ -383,29 +458,19 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment(c *gin.Conte
 		RefName:         userWithdrawalAccounts.AccountName,
 	}
 
-	err = paymentTransactionsService.Create(ctx, paymentTransactions)
+	// 使用事务函数同时创建支付记录并扣减用户余额
+	transactionCode := fmt.Sprintf("CREATE_PAYMENT_%d_%d", user.ID, time.Now().Unix())
+	err = utils.CreatePaymentWithBalanceDeduction(c, user.ID, float64(r.Amount), "CreatePayment", func(tx *gorm.DB) error {
+		return paymentTransactionsService.CreateWithTx(tx, paymentTransactions)
+	}, transactionCode)
 	if err != nil {
-		global.GVA_LOG.Error("paymentTransactionsService.Create",
-			zap.Error(err),
-			zap.Any("paymentTransactions", paymentTransactions),
-			zap.Any("userWithdrawalAccounts", userWithdrawalAccounts),
-		)
-		utils.FailWithMessageI18n(i18n.MsgCreateRecordFailed, c)
-		return
-	}
-
-	// 使用工具函数安全地扣减用户余额
-	err = utils.DeductUserBalance(c, user.ID, float64(r.Amount), "AdminCreatePayment")
-	if err != nil {
-		global.GVA_LOG.Error("Failed to deduct user balance",
+		global.GVA_LOG.Error("Failed to create payment with balance deduction",
 			zap.Error(err),
 			zap.Uint("userId", user.ID),
 			zap.Float64("amount", float64(r.Amount)))
 
 		if err.Error() == "insufficient balance" {
 			utils.FailWithMessageI18n(i18n.MsgInsufficientFunds, c)
-		} else if err.Error() == "user balance is being updated by another request" {
-			utils.FailWithMessageI18n(i18n.MsgSystemBusy, c)
 		} else {
 			utils.FailWithMessageI18n(i18n.MsgSystemError, c)
 		}
@@ -480,45 +545,23 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CancelPayment(c *gin.Conte
 		return
 	}
 
-	global.GVA_LOG.Info("CancelPayment Step 4: Update payment transaction status to CANCELLED")
+	global.GVA_LOG.Info("CancelPayment Step 4: Update payment transaction status and add balance back to user")
 
-	// 更新数据库状态为已取消
+	// 使用事务函数同时更新支付状态并加回用户余额
 	updateData := api.PaymentTransactions{
 		Status:  "CANCELLED",
 		Content: "CancelPayment",
 	}
 
-	err = paymentTransactionsService.UpdateByOrderNo(ctx, r.OrderId, updateData)
-	global.GVA_LOG.Info("CancelPayment Step 4.1: UpdateByOrderNo result", zap.Error(err))
+	transactionCode := fmt.Sprintf("CANCEL_PAYMENT_%d_%s_%d", paymentTransaction.UserId, r.OrderId, time.Now().Unix())
+	err = utils.CancelPaymentWithBalanceAddition(c, paymentTransaction.UserId, float64(paymentTransaction.Amount)/100, "CancelPayment", func(tx *gorm.DB) error {
+		return paymentTransactionsService.UpdateWithTx(tx, r.OrderId, updateData)
+	}, transactionCode)
 	if err != nil {
-		global.GVA_LOG.Error("Failed to update payment transaction status", zap.Error(err))
-		utils.FailWithMessageI18n(i18n.MsgUpdateStatusFailed, c)
-		return
-	}
-
-	global.GVA_LOG.Info("CancelPayment Step 5: Add balance back to user",
-		zap.Uint("userId", paymentTransaction.UserId),
-		zap.Float64("amount", float64(paymentTransaction.Amount)/100))
-
-	// 将提现金额加回用户余额
-	err = utils.AddUserBalance(c, paymentTransaction.UserId, float64(paymentTransaction.Amount)/100, "CancelPayment")
-	global.GVA_LOG.Info("CancelPayment Step 5.1: AddUserBalance result", zap.Error(err))
-	if err != nil {
-		global.GVA_LOG.Error("Failed to add balance back to user",
+		global.GVA_LOG.Error("Failed to cancel payment with balance addition",
 			zap.Error(err),
 			zap.Uint("userId", paymentTransaction.UserId),
 			zap.Float64("amount", float64(paymentTransaction.Amount)/100))
-
-		// 如果加回余额失败，需要回滚状态更新
-		rollbackData := api.PaymentTransactions{
-			Status:  "WAITING_PAY",
-			Content: "RollbackAfterCancelFailed",
-		}
-		rollbackErr := paymentTransactionsService.UpdateByOrderNo(ctx, r.OrderId, rollbackData)
-		if rollbackErr != nil {
-			global.GVA_LOG.Error("Failed to rollback payment transaction status", zap.Error(rollbackErr))
-		}
-
 		utils.FailWithMessageI18n(i18n.MsgSystemError, c)
 		return
 	}
@@ -668,30 +711,19 @@ func (paymentTransactionsApi *PaymentTransactionsApi) AdminCreatePayment(c *gin.
 		RefName:         userWithdrawalAccounts.AccountName,
 	}
 
-	err = paymentTransactionsService.Create(ctx, paymentTransactions)
+	// 使用事务函数同时创建支付记录并扣减用户余额
+	transactionCode := fmt.Sprintf("ADMIN_CREATE_PAYMENT_%d_%d", user.ID, time.Now().Unix())
+	err = utils.CreatePaymentWithBalanceDeduction(c, user.ID, float64(r.Amount), "AdminCreatePayment", func(tx *gorm.DB) error {
+		return paymentTransactionsService.CreateWithTx(tx, paymentTransactions)
+	}, transactionCode)
 	if err != nil {
-		global.GVA_LOG.Error("paymentTransactionsService.Create",
-			zap.Error(err),
-			zap.Any("paymentTransactions", paymentTransactions),
-			zap.Any("userWithdrawalAccounts", userWithdrawalAccounts),
-			zap.Any("paymentResponse", paymentResponse),
-		)
-		utils.FailWithMessageI18n(i18n.MsgCreateRecordFailed, c)
-		return
-	}
-
-	// 使用工具函数安全地扣减用户余额
-	err = utils.DeductUserBalance(c, user.ID, float64(r.Amount), "AdminCreatePayment")
-	if err != nil {
-		global.GVA_LOG.Error("Failed to deduct user balance",
+		global.GVA_LOG.Error("Failed to create payment with balance deduction",
 			zap.Error(err),
 			zap.Uint("userId", user.ID),
 			zap.Float64("amount", float64(r.Amount)))
 
 		if err.Error() == "insufficient balance" {
 			utils.FailWithMessageI18n(i18n.MsgInsufficientFunds, c)
-		} else if err.Error() == "user balance is being updated by another request" {
-			utils.FailWithMessageI18n(i18n.MsgSystemBusy, c)
 		} else {
 			utils.FailWithMessageI18n(i18n.MsgSystemError, c)
 		}
@@ -707,6 +739,218 @@ func (paymentTransactionsApi *PaymentTransactionsApi) AdminCreatePayment(c *gin.
 
 	utils.OkWithMessageI18n(i18n.MsgWithdrawalPending, c)
 }
+
+func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment2(c *gin.Context) {
+	global.GVA_LOG.Info("CreatePayment2 - Starting payment process")
+
+	uid := utils.GetRedisUserID(c)
+	global.GVA_LOG.Info("CreatePayment2 - Retrieved user ID from Redis", zap.Uint("uid", uid))
+
+	if uid == 0 {
+		global.GVA_LOG.Warn("CreatePayment2 - User ID is 0, unauthorized")
+		utils.UnauthorizedI18n(c)
+		return
+	}
+
+	global.GVA_LOG.Info("CreatePayment2 - Initializing payment client")
+	pc := payment.InitPayment2()
+
+	ctx := c.Request.Context()
+
+	global.GVA_LOG.Info("CreatePayment2 - Binding JSON request")
+	var r apiReq.CreatePaymentData2
+	err := c.ShouldBindJSON(&r)
+	if err != nil {
+		global.GVA_LOG.Error("CreatePayment2 - Failed to bind JSON request", zap.Error(err))
+		utils.FailWithMessageI18n(i18n.MsgInvalidRequest, c)
+		return
+	}
+	global.GVA_LOG.Info("CreatePayment2 - Request data bound successfully", zap.Any("requestData", r))
+
+	global.GVA_LOG.Info("CreatePayment2 - Verifying request data")
+	err = utils.Verify(r, utils.CreateTradeVerify)
+	if err != nil {
+		global.GVA_LOG.Error("CreatePayment2 - Request verification failed", zap.Error(err))
+		utils.FailWithMessageI18n(i18n.MsgInvalidAmount, c)
+		return
+	}
+	global.GVA_LOG.Info("CreatePayment2 - Request verification passed")
+
+	global.GVA_LOG.Info("CreatePayment2 - Getting user data from Redis")
+	var user system.ApiSysUser
+	redisuser, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%d", uid)).Result()
+	if redisuser == "" {
+		global.GVA_LOG.Warn("CreatePayment2 - User data not found in Redis", zap.Uint("uid", uid))
+		utils.UnauthorizedI18n(c)
+		return
+	}
+	global.GVA_LOG.Info("CreatePayment2 - User data retrieved from Redis", zap.String("redisUser", redisuser))
+
+	err = json.Unmarshal([]byte(redisuser), &user)
+	if err != nil {
+		global.GVA_LOG.Error("CreatePayment2 - Failed to unmarshal user data", zap.Error(err))
+		utils.UnauthorizedI18n(c)
+		return
+	}
+	if user.Robot == 1 {
+		global.GVA_LOG.Error("Robot == 1")
+		utils.FailWithMessageI18n(i18n.MsgWithdrawalFailed, c)
+		return
+	}
+	global.GVA_LOG.Info("CreatePayment2 - User data unmarshaled successfully", zap.Any("user", user))
+
+	global.GVA_LOG.Info("CreatePayment2 - Parsing total amount", zap.String("totalAmount", r.TotalAmount))
+	amount, err := strconv.ParseFloat(r.TotalAmount, 64)
+	if err != nil {
+		global.GVA_LOG.Error("CreatePayment2 - Failed to parse total amount", zap.Error(err), zap.String("totalAmount", r.TotalAmount))
+		utils.FailWithMessageI18n(i18n.MsgInvalidAmount, c)
+		return
+	}
+	global.GVA_LOG.Info("CreatePayment2 - Total amount parsed successfully", zap.Float64("amount", amount))
+
+	global.GVA_LOG.Info("CreatePayment2 - Checking user balance", zap.Float64("userBalance", user.Balance), zap.Float64("requestAmount", amount))
+	if user.Balance < amount {
+		global.GVA_LOG.Warn("CreatePayment2 - Insufficient funds", zap.Float64("userBalance", user.Balance), zap.Float64("requestAmount", amount))
+		utils.FailWithMessageI18n(i18n.MsgInsufficientFunds, c)
+		return
+	}
+	global.GVA_LOG.Info("CreatePayment2 - Balance check passed")
+
+	global.GVA_LOG.Info("CreatePayment2 - Attempting to get user withdrawal accounts",
+		zap.Uint("userId", uid),
+		zap.String("accountId", r.AccountId),
+		zap.Any("requestData", r))
+
+	userWithdrawalAccounts, err := userWithdrawalAccountsService.GetUserWithdrawalAccounts(ctx, r.AccountId)
+
+	if err != nil {
+		global.GVA_LOG.Error("CreatePayment2 - Failed to get user withdrawal accounts",
+			zap.Error(err),
+			zap.Uint("userId", uid),
+			zap.String("accountId", r.AccountId))
+		utils.FailWithMessageI18n(i18n.MsgAccountNotFound, c)
+		return
+	}
+
+	global.GVA_LOG.Info("CreatePayment2 - Successfully retrieved user withdrawal accounts",
+		zap.Uint("userId", uid),
+		zap.String("accountId", r.AccountId),
+		zap.Any("userWithdrawalAccounts", userWithdrawalAccounts))
+
+	// 判断 BankAcctNo 是否是邮箱格式
+	global.GVA_LOG.Info("CreatePayment2 - Checking if account number is email format", zap.String("accountNumber", userWithdrawalAccounts.AccountNumber))
+	accEmail := ""
+	if strings.Contains(userWithdrawalAccounts.AccountNumber, "@") {
+		accEmail = userWithdrawalAccounts.AccountNumber
+		global.GVA_LOG.Info("CreatePayment2 - Account number is email format", zap.String("accEmail", accEmail))
+	} else {
+		global.GVA_LOG.Info("CreatePayment2 - Account number is not email format")
+	}
+
+	global.GVA_LOG.Info("CreatePayment2 - Creating cashout request form data")
+	formData := payment.CashoutCreateRequest{
+		MerNo:         pc.MerchantId,
+		CurrencyCode:  "BRL",
+		OutTradeNo:    fmt.Sprintf("ORDER_%d", time.Now().Unix()),
+		TotalAmount:   r.TotalAmount,
+		RandomNo:      fmt.Sprintf("%d", time.Now().UnixNano()%100000000000000),
+		BankCode:      userWithdrawalAccounts.BankCode,
+		BankAcctName:  userWithdrawalAccounts.AccountName,
+		BankFirstName: userWithdrawalAccounts.FirstName,
+		BankLastName:  userWithdrawalAccounts.LastName,
+		BankAcctNo:    userWithdrawalAccounts.AccountNumber,
+		AccPhone:      userWithdrawalAccounts.Phone,
+		AccEmail:      accEmail,
+		NotifyUrl:     "http://api.bzgame777.com/callback/payment2",
+		IdentityNo:    userWithdrawalAccounts.CpfNumber,
+		IdentityType:  userWithdrawalAccounts.AccountType,
+	}
+	global.GVA_LOG.Info("CreatePayment2 - Form data created", zap.Any("formData", formData))
+
+	global.GVA_LOG.Info("CreatePayment2 - Calling CreateCashout API")
+	code, msg, response := pc.CreateCashout(formData)
+	global.GVA_LOG.Info("CreatePayment2 - CreateCashout API response",
+		zap.Int("code", code),
+		zap.String("msg", msg),
+		zap.Any("response", response))
+
+	if code != 0 {
+		global.GVA_LOG.Error("CreatePayment2 - CreateCashout API failed", zap.Int("code", code), zap.String("msg", msg))
+		utils.FailWithMessageI18n(i18n.MsgWithdrawalFailed, c)
+		fmt.Println(msg, response)
+		return
+	}
+	global.GVA_LOG.Info("CreatePayment2 - CreateCashout API succeeded")
+
+	// Convert response.TotalAmount (string) to int safely
+	global.GVA_LOG.Info("CreatePayment2 - Parsing response TotalAmount", zap.String("responseTotalAmount", response.TotalAmount))
+	amountInt, err := strconv.Atoi(response.TotalAmount)
+	if err != nil {
+		global.GVA_LOG.Error("CreatePayment2 - Failed to parse TotalAmount", zap.String("TotalAmount", response.TotalAmount), zap.Error(err))
+		utils.FailWithMessageI18n(i18n.MsgSystemError, c)
+		return
+	}
+	global.GVA_LOG.Info("CreatePayment2 - TotalAmount parsed successfully", zap.Int("amountInt", amountInt))
+
+	global.GVA_LOG.Info("CreatePayment2 - Creating payment transaction record")
+	paymentTransactions := api.PaymentTransactions{
+		UserId:          uint(uid),
+		MerchantOrderNo: response.OutTradeNo,
+		OrderNo:         response.RemitOrderNo,
+		TransactionType: 2,
+		Amount:          amountInt * 100,
+		Currency:        "BRL",
+		Status:          "WAITING_PAY",
+		PayType:         "PIX",
+		AccountType:     userWithdrawalAccounts.AccountType,
+		AccountNo:       userWithdrawalAccounts.AccountNumber,
+		AccountName:     userWithdrawalAccounts.AccountName,
+		Content:         "CreatePayment",
+		ClientIp:        c.ClientIP(),
+		CallbackUrl:     "",
+		RedirectUrl:     "",
+		PayUrl:          "",
+		PayRaw:          "",
+		ErrorMsg:        "",
+		RefCpf:          userWithdrawalAccounts.CpfNumber,
+		RefName:         userWithdrawalAccounts.AccountName,
+	}
+	global.GVA_LOG.Info("CreatePayment2 - Payment transaction record created", zap.Any("paymentTransactions", paymentTransactions))
+
+	global.GVA_LOG.Info("CreatePayment2 - Creating payment transaction and deducting user balance in transaction")
+	// 使用事务函数同时创建支付记录并扣减用户余额
+	transactionCode := fmt.Sprintf("CREATE_PAYMENT2_%d_%d", user.ID, time.Now().Unix())
+	err = utils.CreatePaymentWithBalanceDeduction(c, user.ID, amount, "CreatePayment2", func(tx *gorm.DB) error {
+		return paymentTransactionsService.CreateWithTx(tx, paymentTransactions)
+	}, transactionCode)
+	if err != nil {
+		global.GVA_LOG.Error("CreatePayment2 - Failed to create payment with balance deduction",
+			zap.Error(err),
+			zap.Uint("userId", user.ID),
+			zap.Float64("amount", amount))
+
+		if err.Error() == "insufficient balance" {
+			global.GVA_LOG.Warn("CreatePayment2 - Insufficient balance error")
+			utils.FailWithMessageI18n(i18n.MsgInsufficientFunds, c)
+		} else {
+			global.GVA_LOG.Error("CreatePayment2 - Unknown error during balance deduction")
+			utils.FailWithMessageI18n(i18n.MsgSystemError, c)
+		}
+		return
+	}
+	global.GVA_LOG.Info("CreatePayment2 - Payment transaction and balance deduction completed successfully")
+
+	global.GVA_LOG.Info("CreatePayment2 - Successfully processed payment",
+		zap.Uint("userId", uint(uid)),
+		zap.String("merchantOrderNo", response.OutTradeNo),
+		zap.String("orderNo", response.RemitOrderNo),
+		zap.Int("amount", amountInt),
+		zap.String("status", response.ResultCode))
+
+	global.GVA_LOG.Info("CreatePayment2 - Payment process completed successfully")
+	utils.OkWithMessageI18n(i18n.MsgWithdrawalPending, c)
+}
+
 func (paymentTransactionsApi *PaymentTransactionsApi) GetPaymentList(c *gin.Context) {
 
 	uid := utils.GetRedisUserID(c)

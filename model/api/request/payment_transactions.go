@@ -46,6 +46,15 @@ type CreateTradeData struct {
 	Callback string `json:"callback"`
 	Redirect string `json:"redirect"`
 }
+type CreateTradeData2 struct {
+	TotalAmount string `json:"totalAmount"`
+	PayCardNo   string `json:"payCardNo"`
+	PayBankCode string `json:"payBankCode"`
+	PayName     string `json:"payName"`
+	PayEmail    string `json:"payEmail"`
+	PayPhone    string `json:"payPhone"`
+	PayViewUrl  string `json:"payViewUrl"`
+}
 type CreatePaymentData struct {
 	Amount        int64  `json:"amount"`
 	AccountId     int64  `json:"accountId"`
@@ -54,6 +63,10 @@ type CreatePaymentData struct {
 	AccountType   string `json:"accountType"`
 	CpfNumber     string `json:"cpfNumber"`
 	PaymentType   string `json:"paymentType"`
+}
+type CreatePaymentData2 struct {
+	TotalAmount string `json:"totalAmount"`
+	AccountId   string `json:"accountId"`
 }
 
 // 创建交易响应结构体
@@ -124,6 +137,19 @@ type TradeCallbackFormRequest struct {
 	RefName         string `form:"ref_name"`
 	Sign            string `form:"sign"`
 }
+
+type TradeCallback2Request struct {
+	MerNo        string `json:"merNo" binding:"required"`
+	CurrencyCode string `json:"currencyCode" binding:"required"`
+	PayType      string `json:"payType" binding:"required"`
+	OutTradeNo   string `json:"outTradeNo" binding:"required"`
+	TotalAmount  string `json:"totalAmount" binding:"required"`
+	PayOrderNo   string `json:"payOrderNo" binding:"required"`
+	PayState     string `json:"payState" binding:"required"`
+	PayDate      string `json:"payDate" binding:"required"`
+	Sign         string `json:"sign" binding:"required"`
+}
+
 type PaymentCallbackFormRequest struct {
 	MerchantId      string `form:"merchantId"`
 	MerchantOrderNo string `form:"merchantOrderNo"`
@@ -133,6 +159,17 @@ type PaymentCallbackFormRequest struct {
 	Currency        string `form:"currency"`
 	ErrorMsg        string `form:"errorMsg"`
 	Sign            string `form:"sign"`
+}
+type PaymentCallback2FormRequest struct {
+	MerNo        string `json:"merNo" binding:"required"`
+	CurrencyCode string `json:"currencyCode" binding:"required"`
+	OutTradeNo   string `json:"outTradeNo" binding:"required"`
+	TotalAmount  string `json:"totalAmount" binding:"required"`
+	RemitOrderNo string `json:"remitOrderNo" binding:"required"`
+	RemitState   string `json:"remitState" binding:"required"`
+	RemitDate    string `json:"remitDate" binding:"required"`
+	OrderMessage string `json:"orderMessage" binding:"required"`
+	Sign         string `json:"sign" binding:"required"`
 }
 
 // 创建提现响应结构体

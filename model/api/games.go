@@ -28,6 +28,7 @@ type Games struct {
 	ContentEn string     `json:"contentEn" form:"contentEn" gorm:"column:content_en;size:500;"`            //content_en字段
 	ContentPt string     `json:"contentPt" form:"contentPt" gorm:"column:content_pt;size:500;"`            //content_pt字段
 	Url       string     `json:"url" form:"url" gorm:"column:url;size:500;"`                               //content字段
+	UrlPc     string     `json:"url_pc" form:"url_pc" gorm:"column:url_pc;size:500;"`                      //content字段
 }
 
 // TableName games表 Games games

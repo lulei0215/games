@@ -21,6 +21,8 @@ import (
 	signUtils "github.com/flipped-aurora/gin-vue-admin/server/utils/sign"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type SysTransactionsApi struct{}
@@ -348,72 +350,51 @@ func (sysTransactionsApi *SysTransactionsApi) Settle(c *gin.Context) {
 	}
 	fmt.Println("settleList.List", settleList.List)
 	// 处理结算逻辑
-	for _, record := range settleList.List {
-		fmt.Println("der:", record.Coin)
+	var betRecords []api.UserBetRecord
 
-		redisuser, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%s", record.UserCode)).Result()
-		if redisuser == "" {
-			response.Result(401, nil, "", c)
+	for _, record := range settleList.List {
+		// 结算余额
+		transactionCode := fmt.Sprintf("SETTLE_%s_%d", record.UserCode, time.Now().Unix())
+		err := updateUserBalanceWithLock(c, record.UserCode, record.Win, transactionCode)
+		if err != nil {
+			global.GVA_LOG.Error("Failed to update user balance with lock",
+				zap.Error(err),
+				zap.String("userCode", record.UserCode),
+				zap.Float64("winAmount", record.Win))
+			response.Result(500, nil, "Failed to update user balance", c)
 			return
 		}
+
+		// 获取结算后余额（从Redis或DB查）
+		redisuser, _ := global.GVA_REDIS.Get(c, fmt.Sprintf("user_%s", record.UserCode)).Result()
 		var userJson system.ApiSysUser
-		err = json.Unmarshal([]byte(redisuser), &userJson)
+		_ = json.Unmarshal([]byte(redisuser), &userJson)
+
+		// 构造下注记录
+		betRecords = append(betRecords, api.UserBetRecord{
+			Usercode:  record.UserCode,
+			Win:       record.Win,
+			Coin:      record.Coin,
+			Gametype:  record.GameType,
+			Area:      record.Area,
+			Balance:   userJson.Balance, // 结算后余额
+			SessionId: record.SessionID,
+			// 其他字段...
+		})
+
+		// 分佣
+		processUserRebate(c, record)
+	}
+
+	// 批量插入
+	if len(betRecords) > 0 {
+		err := global.GVA_DB.Create(&betRecords).Error
 		if err != nil {
-			global.GVA_LOG.Error("Failed to unmarshal user data", zap.Error(err))
-		} else {
-			// 打印余额增加操作的详细日志
-			global.GVA_LOG.Info("=== 余额增加操作开始 ===",
-				zap.String("UserCode", record.UserCode),
-				zap.String("Username", userJson.Username),
-				zap.Float64("原始余额", userJson.Balance),
-				zap.Float64("增加金额", record.Win),
-				zap.String("操作类型", "余额增加"),
-			)
-
-			newBalance := userJson.Balance + record.Win
-
-			// 打印计算过程
-			global.GVA_LOG.Info("余额计算过程",
-				zap.Float64("原始余额", userJson.Balance),
-				zap.Float64("增加金额", record.Win),
-				zap.Float64("计算后余额", newBalance),
-				zap.String("计算公式", fmt.Sprintf("%.2f + %.2f = %.2f", userJson.Balance, record.Win, newBalance)),
-			)
-
-			if newBalance < 0 {
-				global.GVA_LOG.Error("余额计算结果为负数，强制设为0:",
-					zap.String("UserCode", record.UserCode),
-					zap.Float64("OriginalBalance", userJson.Balance),
-					zap.Float64("WinAmount", record.Win),
-					zap.Float64("CalculatedBalance", newBalance),
-					zap.String("Username", userJson.Username),
-				)
-				newBalance = 0
-			}
-
-			// 打印四舍五入前的余额
-			global.GVA_LOG.Info("四舍五入前余额",
-				zap.Float64("四舍五入前", newBalance),
-			)
-
-			userJson.Balance = math.Round(newBalance*100) / 100
-
-			// 打印最终余额
-			global.GVA_LOG.Info("=== 余额增加操作完成 ===",
-				zap.String("UserCode", record.UserCode),
-				zap.String("Username", userJson.Username),
-				zap.Float64("最终余额", userJson.Balance),
-				zap.Float64("余额变化", record.Win),
-			)
-			updatedUserJson, err := json.Marshal(userJson)
-			if err != nil {
-				global.GVA_LOG.Error("Failed to marshal updated user data", zap.Error(err))
-			} else {
-				err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%s", record.UserCode), string(updatedUserJson), 0).Err()
-				if err != nil {
-					global.GVA_LOG.Error("Failed to save user data to Redis", zap.Error(err))
-				}
-			}
+			global.GVA_LOG.Error("Failed to save user bet records to database",
+				zap.Error(err),
+				zap.Int("count", len(betRecords)))
+			response.Result(500, nil, "Failed to save user bet records", c)
+			return
 		}
 	}
 
@@ -677,7 +658,7 @@ func (sysTransactionsApi *SysTransactionsApi) GetSettleListFromRedis(c *gin.Cont
 				Coin:      record.Coin,
 				Gametype:  record.GameType,
 				Area:      record.Area,
-				Balance:   record.Balance,
+				Balance:   record.Balance, // 结算后余额
 				SessionId: record.SessionID,
 				// BetInfo:   record.BetInfo,
 				// Result:    datatypes.JSON(record.Result),
@@ -883,102 +864,58 @@ func getUserInvitationRelation(c *gin.Context, userId uint) (map[string]interfac
 
 // addRebateToUser Add rebate to user
 func addRebateToUser(c *gin.Context, userId int, rebateAmount float64, rebateType string, record apiReq.SettleRecord, rebateRate float64, rebateLevel int) {
-	// Get user information
-	redisKey := fmt.Sprintf("user_%d", userId)
-
-	redisuser, err := global.GVA_REDIS.Get(c, redisKey).Result()
-	if err != nil {
-		global.GVA_LOG.Error("Failed to get user from Redis",
-			zap.Error(err),
-			zap.Int("userId", userId),
-			zap.String("redisKey", redisKey))
-		return
-	}
-
-	var userJson system.ApiSysUser
-	err = json.Unmarshal([]byte(redisuser), &userJson)
-	if err != nil {
-		global.GVA_LOG.Error("Failed to unmarshal user data",
-			zap.Error(err),
-			zap.Int("userId", userId),
-			zap.String("redisData", redisuser))
-		return
-	}
-
-	// Calculate new balance
-	originalBalance := userJson.Balance
-
 	// Round rebate amount to 2 decimal places
 	roundedRebateAmount := math.Round(rebateAmount*100) / 100
 
 	// 检查返佣条件：返佣率大于0且返佣金额大于0.01
 	if rebateRate > 0 && roundedRebateAmount > 0.01 {
-		// Calculate new balance
-		newBalance := userJson.Balance + roundedRebateAmount
-
-		if newBalance < 0 {
-			global.GVA_LOG.Error("Rebate would result in negative balance, set to 0",
+		// 使用数据库锁安全地更新用户返佣余额
+		transactionCode := fmt.Sprintf("REBATE_%d_%s_%d", userId, rebateType, time.Now().Unix())
+		originalBalance, finalBalance, err := updateUserRebateBalanceWithLock(c, userId, roundedRebateAmount, rebateType, transactionCode)
+		if err != nil {
+			global.GVA_LOG.Error("Failed to update user rebate balance with lock",
+				zap.Error(err),
 				zap.Int("userId", userId),
-				zap.Float64("originalBalance", originalBalance),
 				zap.Float64("rebateAmount", roundedRebateAmount),
 				zap.String("rebateType", rebateType))
-			newBalance = 0
-		}
-
-		// Final balance rounded to 2 decimal places
-		finalBalance := math.Round(newBalance*100) / 100
-		userJson.Balance = finalBalance
-
-		// Update user information to Redis
-		updatedUserJson, err := json.Marshal(userJson)
-		if err != nil {
-			global.GVA_LOG.Error("Failed to marshal updated user data",
-				zap.Error(err),
-				zap.Int("userId", userId))
 			return
 		}
 
-		err = global.GVA_REDIS.Set(c, redisKey, string(updatedUserJson), 0).Err()
-		if err != nil {
-			global.GVA_LOG.Error("Failed to save user data to Redis",
-				zap.Error(err),
-				zap.Int("userId", userId),
-				zap.String("redisKey", redisKey))
-			return
-		}
+		// 保存返佣记录到数据库（状态为1，表示返佣成功）
+		saveRebateRecordToDB(c, userId, record, rebateType, rebateLevel, rebateRate, rebateAmount, originalBalance, finalBalance, 1)
+
+		global.GVA_LOG.Info("返佣成功（数据库锁版本）",
+			zap.Int("userId", userId),
+			zap.Float64("返佣金额", roundedRebateAmount),
+			zap.Float64("返佣率", rebateRate),
+			zap.String("返佣类型", rebateType),
+			zap.Int("返佣状态", 1))
 	} else {
-		// 返佣金额不足，不更新用户余额
+		// 返佣金额不足，不更新用户余额，但仍记录返佣记录
 		global.GVA_LOG.Info("返佣金额不足，跳过余额更新",
 			zap.Int("userId", userId),
 			zap.Float64("返佣金额", roundedRebateAmount),
 			zap.Float64("返佣率", rebateRate),
 			zap.String("返佣类型", rebateType))
-	}
 
-	// 根据返佣率和返佣金额决定状态
-	var status int
-	if rebateRate > 0 && roundedRebateAmount > 0.01 { // 返佣率大于0且返佣金额大于0.01才返佣
-		status = 1
-		// 保存返佣记录到数据库
-		saveRebateRecordToDB(c, userId, record, rebateType, rebateLevel, rebateRate, rebateAmount, originalBalance, userJson.Balance, status)
+		// 获取用户当前余额用于记录
+		user, err := getUserFromRedis(c, userId)
+		if err != nil {
+			global.GVA_LOG.Error("获取用户信息失败",
+				zap.Error(err),
+				zap.Int("userId", userId))
+			return
+		}
 
-		global.GVA_LOG.Info("返佣成功",
-			zap.Int("userId", userId),
-			zap.Float64("返佣金额", roundedRebateAmount),
-			zap.Float64("返佣率", rebateRate),
-			zap.String("返佣类型", rebateType),
-			zap.Int("返佣状态", status))
-	} else {
-		status = 0
 		// 保存返佣记录到数据库（状态为0，表示不返佣）
-		saveRebateRecordToDB(c, userId, record, rebateType, rebateLevel, rebateRate, rebateAmount, originalBalance, originalBalance, status)
+		saveRebateRecordToDB(c, userId, record, rebateType, rebateLevel, rebateRate, rebateAmount, user.Balance, user.Balance, 0)
 
 		global.GVA_LOG.Info("返佣金额不足，不进行返佣",
 			zap.Int("userId", userId),
 			zap.Float64("返佣金额", roundedRebateAmount),
 			zap.Float64("返佣率", rebateRate),
 			zap.String("返佣类型", rebateType),
-			zap.Int("返佣状态", status))
+			zap.Int("返佣状态", 0))
 	}
 }
 
@@ -1275,4 +1212,174 @@ func isComplexValueForDebug(value interface{}) bool {
 		}
 		return false
 	}
+}
+
+// updateUserBalanceWithLock 使用数据库锁安全地更新用户余额
+func updateUserBalanceWithLock(c *gin.Context, userCode string, winAmount float64, transactionCode string) error {
+	// 将UserCode转换为用户ID
+	userId, err := strconv.ParseUint(userCode, 10, 32)
+	if err != nil {
+		global.GVA_LOG.Error("Failed to convert user code to ID",
+			zap.Error(err),
+			zap.String("userCode", userCode))
+		return err
+	}
+
+	// 使用数据库事务和行锁来安全更新余额
+	err = global.GVA_DB.Transaction(func(tx *gorm.DB) error {
+		// 使用FOR UPDATE锁来防止并发更新
+		var user system.SysUser
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", userId).First(&user).Error; err != nil {
+			global.GVA_LOG.Error("Failed to get user with lock",
+				zap.Error(err),
+				zap.Uint("userId", uint(userId)))
+			return err
+		}
+
+		// 记录原始余额
+		originalBalance := user.Balance
+
+		// 计算新余额
+		newBalance := user.Balance + winAmount
+
+		// 检查余额是否为负数
+		if newBalance < 0 {
+			global.GVA_LOG.Error("Balance calculation results in negative value, set to 0",
+				zap.String("UserCode", userCode),
+				zap.Float64("OriginalBalance", originalBalance),
+				zap.Float64("WinAmount", winAmount),
+				zap.Float64("CalculatedBalance", newBalance),
+				zap.String("Username", user.Username))
+			newBalance = 0
+		}
+
+		// 四舍五入到2位小数
+		finalBalance := math.Round(newBalance*100) / 100
+		user.Balance = finalBalance
+
+		// 更新数据库中的余额
+		if err := tx.Save(&user).Error; err != nil {
+			global.GVA_LOG.Error("Failed to update user balance in database",
+				zap.Error(err),
+				zap.Uint("userId", uint(userId)),
+				zap.Float64("originalBalance", originalBalance),
+				zap.Float64("newBalance", finalBalance))
+			return err
+		}
+
+		// 同时更新Redis缓存
+		userJson, err := json.Marshal(user)
+		if err != nil {
+			global.GVA_LOG.Error("Failed to marshal updated user data",
+				zap.Error(err),
+				zap.Uint("userId", uint(userId)))
+			return err
+		}
+
+		// 更新Redis缓存
+		err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%s", userCode), string(userJson), 0).Err()
+		if err != nil {
+			global.GVA_LOG.Error("Failed to update user data in Redis",
+				zap.Error(err),
+				zap.String("userCode", userCode))
+			// 注意：Redis更新失败不影响数据库事务，但会记录错误
+		}
+
+		// 记录详细的余额更新日志
+		global.GVA_LOG.Info("=== 余额增加操作完成（数据库锁版本） ===",
+			zap.String("UserCode", userCode),
+			zap.String("Username", user.Username),
+			zap.Float64("原始余额", originalBalance),
+			zap.Float64("增加金额", winAmount),
+			zap.Float64("最终余额", finalBalance),
+			zap.Float64("余额变化", winAmount),
+			zap.String("操作类型", "数据库锁余额增加"),
+			zap.String("事务码", transactionCode))
+
+		return nil
+	})
+
+	return err
+}
+
+// updateUserRebateBalanceWithLock 使用数据库锁安全地更新用户返佣余额
+func updateUserRebateBalanceWithLock(c *gin.Context, userId int, rebateAmount float64, rebateType string, transactionCode string) (float64, float64, error) {
+	// 使用数据库事务和行锁来安全更新返佣余额
+	var originalBalance, finalBalance float64
+
+	err := global.GVA_DB.Transaction(func(tx *gorm.DB) error {
+		// 使用FOR UPDATE锁来防止并发更新
+		var user system.SysUser
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("id = ?", userId).First(&user).Error; err != nil {
+			global.GVA_LOG.Error("Failed to get user with lock for rebate",
+				zap.Error(err),
+				zap.Int("userId", userId))
+			return err
+		}
+
+		// 记录原始余额
+		originalBalance = user.Balance
+
+		// 四舍五入返佣金额到2位小数
+		roundedRebateAmount := math.Round(rebateAmount*100) / 100
+
+		// 计算新余额
+		newBalance := user.Balance + roundedRebateAmount
+
+		// 检查余额是否为负数
+		if newBalance < 0 {
+			global.GVA_LOG.Error("Rebate would result in negative balance, set to 0",
+				zap.Int("userId", userId),
+				zap.Float64("originalBalance", originalBalance),
+				zap.Float64("rebateAmount", roundedRebateAmount),
+				zap.String("rebateType", rebateType))
+			newBalance = 0
+		}
+
+		// 四舍五入到2位小数
+		finalBalance = math.Round(newBalance*100) / 100
+		user.Balance = finalBalance
+
+		// 更新数据库中的余额
+		if err := tx.Save(&user).Error; err != nil {
+			global.GVA_LOG.Error("Failed to update user rebate balance in database",
+				zap.Error(err),
+				zap.Int("userId", userId),
+				zap.Float64("originalBalance", originalBalance),
+				zap.Float64("newBalance", finalBalance))
+			return err
+		}
+
+		// 同时更新Redis缓存
+		userJson, err := json.Marshal(user)
+		if err != nil {
+			global.GVA_LOG.Error("Failed to marshal updated user data for rebate",
+				zap.Error(err),
+				zap.Int("userId", userId))
+			return err
+		}
+
+		// 更新Redis缓存
+		err = global.GVA_REDIS.Set(c, fmt.Sprintf("user_%d", userId), string(userJson), 0).Err()
+		if err != nil {
+			global.GVA_LOG.Error("Failed to update user data in Redis for rebate",
+				zap.Error(err),
+				zap.Int("userId", userId))
+			// 注意：Redis更新失败不影响数据库事务，但会记录错误
+		}
+
+		// 记录详细的返佣余额更新日志
+		global.GVA_LOG.Info("=== 返佣余额增加操作完成（数据库锁版本） ===",
+			zap.Int("userId", userId),
+			zap.String("Username", user.Username),
+			zap.Float64("原始余额", originalBalance),
+			zap.Float64("返佣金额", roundedRebateAmount),
+			zap.Float64("最终余额", finalBalance),
+			zap.String("返佣类型", rebateType),
+			zap.String("事务码", transactionCode))
+
+		return nil
+	})
+
+	return originalBalance, finalBalance, err
 }

@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -328,6 +329,7 @@ func (pc *PaymentClient) CreateTrade() {
 	formData.Set("clientIp", "192.168.1.100")
 	formData.Set("callback", "https://your-domain.com/callback")
 	formData.Set("redirect", "https://your-domain.com/success")
+	formData.Set("reqTimesTamp", strconv.FormatInt(time.Now().UTC().Unix(), 10))
 
 	fmt.Println("\n📝 请求参数:")
 	for k, v := range formData {
@@ -389,6 +391,7 @@ func (pc *PaymentClient) QueryTrade() {
 	formData := url.Values{}
 	formData.Set("merchantId", pc.MerchantId)
 	formData.Set("merchantOrderNo", merchantOrderNo)
+	formData.Set("reqTimesTamp", strconv.FormatInt(time.Now().UTC().Unix(), 10))
 
 	// 生成签名
 	signature := pc.GenerateFormSign(formData)
@@ -584,6 +587,7 @@ func (pc *PaymentClient) CreatePayment() {
 	formData.Set("accountType", accountType)
 	formData.Set("accountNo", accountNo)
 	formData.Set("accountName", accountName)
+	formData.Set("reqTimesTamp", strconv.FormatInt(time.Now().UTC().Unix(), 10))
 
 	// 生成签名
 	signature := pc.GenerateFormSign(formData)
@@ -640,6 +644,7 @@ func (pc *PaymentClient) QueryPayment() {
 	formData := url.Values{}
 	formData.Set("merchantId", pc.MerchantId)
 	formData.Set("merchantOrderNo", merchantOrderNo)
+	formData.Set("reqTimesTamp", strconv.FormatInt(time.Now().UTC().Unix(), 10))
 
 	// 生成签名
 	signature := pc.GenerateFormSign(formData)
