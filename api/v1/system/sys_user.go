@@ -1861,7 +1861,8 @@ func (b *BaseApi) GetInfo(c *gin.Context) {
 	apiUser.Balance = user.Balance
 	apiUser.Robot = user.Robot
 	apiUser.Lang = user.Lang
-	apiUser.Audio = 1 // 默认值
+	apiUser.Audio = user.Audio
+	apiUser.WithdrawPassword = user.WithdrawPassword
 	apiUser.CreatedAt = user.CreatedAt
 	apiUser.UpdatedAt = user.UpdatedAt
 

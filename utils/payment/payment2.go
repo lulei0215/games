@@ -463,7 +463,7 @@ type CashoutCreateRequest struct {
 	NotifyUrl     string `json:"notifyUrl"`               // 交易异步回调地址
 	IdentityNo    string `json:"identityNo"`              // 证件号码/税号
 	IdentityType  string `json:"identityType"`            // 证件类型/收款类型编码
-	ReqTimeStamp  string `json:"reqTimesTamp"`            // 证件类型/收款类型编码
+	ReqTimesTamp  string `json:"reqTimesTamp"`            // 证件类型/收款类型编码
 	Sign          string `json:"sign"`                    // 加密字符串
 }
 
@@ -498,9 +498,9 @@ func (pc *PaymentClient2) CreateCashout(formData CashoutCreateRequest) (int, str
 		IdentityType:  formData.IdentityType,
 		BankFirstName: formData.BankFirstName,
 		BankLastName:  formData.BankLastName,
-		ReqTimeStamp:  strconv.FormatInt(time.Now().UTC().UnixMilli(), 10),
+		ReqTimesTamp:  strconv.FormatInt(time.Now().UTC().UnixMilli(), 10),
 	}
-
+	fmt.Printf("  requestData: %v\n", requestData)
 	// 如果有邮箱，添加到请求中
 	if formData.AccEmail != "" {
 		requestData.AccEmail = formData.AccEmail
@@ -658,7 +658,7 @@ func (pc *PaymentClient2) GenerateCashoutSign(request CashoutCreateRequest) stri
 	params["identityType"] = request.IdentityType
 	params["bankFirstName"] = request.BankFirstName
 	params["bankLastName"] = request.BankLastName
-	params["ReqTimeStamp"] = request.ReqTimeStamp
+	params["reqTimeStamp"] = request.ReqTimesTamp
 
 	// 如果有邮箱，添加到参数中
 	if request.AccEmail != "" {
@@ -680,21 +680,27 @@ func (pc *PaymentClient2) GenerateCashoutSign(request CashoutCreateRequest) stri
 	}
 	sort.Strings(keys)
 
-	// 3. 组装JSON字符串
-	var jsonPairs []string
+	// 3. 使用json.Marshal()组装JSON字符串
+	sortedMap := make(map[string]string)
 	for _, k := range keys {
-		jsonPairs = append(jsonPairs, fmt.Sprintf("\"%s\":\"%s\"", k, filtered[k]))
+		sortedMap[k] = filtered[k]
 	}
-	jsonString := "{" + strings.Join(jsonPairs, ",") + "}"
-
+	jsonBytes, err := json.Marshal(sortedMap)
+	if err != nil {
+		fmt.Printf("❌ JSON序列化失败: %v\n", err)
+		return ""
+	}
+	jsonString := string(jsonBytes)
+	fmt.Printf("  jsonString-1: %v\n", jsonString)
 	// 4. 拼接密钥
 	signString := jsonString + pc.SecretKey
-
+	fmt.Printf("  signString-2: %v\n", signString)
 	// 5. MD5加密并转大写
 	md5Sum := md5.Sum([]byte(signString))
 	signature := strings.ToUpper(hex.EncodeToString(md5Sum[:]))
 
 	return signature
+
 }
 
 // 测试代付申请签名

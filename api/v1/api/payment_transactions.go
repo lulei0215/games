@@ -328,7 +328,7 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreateTrade2(c *gin.Contex
 	}
 
 	fmt.Println(1)
-	OutTradeNo := fmt.Sprintf("%d", time.Now().UnixNano()%100000000000000)
+	OutTradeNo := fmt.Sprintf("%d%d", time.Now().Unix(), time.Now().UnixNano()%100000)
 	status, msg, data := pc.CreatePayin(r, OutTradeNo)
 	fmt.Println("status", status)
 	fmt.Println("msg", msg)
@@ -851,7 +851,7 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment2(c *gin.Cont
 	formData := payment.CashoutCreateRequest{
 		MerNo:         pc.MerchantId,
 		CurrencyCode:  "BRL",
-		OutTradeNo:    fmt.Sprintf("ORDER_%d", time.Now().Unix()),
+		OutTradeNo:    fmt.Sprintf("ORDER_%d%d", time.Now().Unix(), time.Now().UnixNano()%100000),
 		TotalAmount:   r.TotalAmount,
 		RandomNo:      fmt.Sprintf("%d", time.Now().UnixNano()%100000000000000),
 		BankCode:      userWithdrawalAccounts.BankCode,
@@ -861,7 +861,7 @@ func (paymentTransactionsApi *PaymentTransactionsApi) CreatePayment2(c *gin.Cont
 		BankAcctNo:    userWithdrawalAccounts.AccountNumber,
 		AccPhone:      userWithdrawalAccounts.Phone,
 		AccEmail:      accEmail,
-		NotifyUrl:     "http://api.bzgame777.com/callback/payment2",
+		NotifyUrl:     "https://api.bzgame777.com/callback/payment2",
 		IdentityNo:    userWithdrawalAccounts.CpfNumber,
 		IdentityType:  userWithdrawalAccounts.AccountType,
 	}
